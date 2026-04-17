@@ -1,6 +1,13 @@
 # setup logging
 require "logger"
 $logger = Logger.new(STDOUT)
+$logger.level = Logger::WARN
+
+$LOAD_PATH.unshift(File.expand_path("../lib", __dir__))
+
+ENV["OPENAI_API_KEY"] ||= "test-openai-key"
+ENV["DISCORD_BOT_TOKEN"] ||= "test-discord-token"
+ENV["REDIS_URL"] ||= "redis://localhost:6379/15"
 
 # setup environment
 require "./environment"

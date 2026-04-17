@@ -5,10 +5,11 @@ require "opentelemetry/sdk"
 OpenAITracer = OpenTelemetry.tracer_provider.tracer("openai", "1.0")
 
 module OpenAI
+  ModerationResult = Struct.new(:flagged, :categories, :category_scores, keyword_init: true)
+
   def query(url, params, user = nil)
     OpenAITracer.in_span(url, attributes: {
                                 "http.url" => url,
-                                "http.body" => params.to_json,
                                 "http.scheme" => "https",
                                 "http.target" => URI.parse(url).request_uri,
                                 "http.method" => "POST",
@@ -35,78 +36,56 @@ module OpenAI
         request["Content-Type"] = "application/json"
         request["Authorization"] = "Bearer #{OPENAI_API_KEY}"
         request.body = params.to_json
-        $logger.debug(request.body)
         span.add_event("OpenAI API call")
 
         response = http.request(request)
-        span.set_attribute("http.status_code", response.code)
-        $logger.debug(response.body)
+        span.set_attribute("http.status_code", response.code.to_i)
         span.add_event("OpenAI API response")
 
         ret = JSON.parse(response.body)
-        if ret.include?("error")
-          ret["error"]
-        else
-          choices = ret["choices"]
-          usage = ret["usage"]
-          text = choices[0]["text"].strip
-          span.set_attribute("openai.completions.choices.text", text)
-          span.set_attribute("openai.completions.choices", choices.length)
-          span.set_attribute("openai.completions.choices.index", choices[0]["index"])
-          span.set_attribute("openai.completions.choices.logprobs", choices[0]["logprobs"] || [])
-          span.set_attribute("openai.completions.choices.finish_reason", choices[0]["finish_reason"])
-          span.set_attribute("openai.completions.model", ret["model"])
-          span.set_attribute("openai.completions.id", ret["id"])
-          span.set_attribute("openai.completions.object", ret["object"])
-          span.set_attribute("openai.completions.created", ret["created"])
-          span.set_attribute("openai.completions.usage", usage.length)
-          span.set_attribute("openai.completions.usage.prompt_tokens", usage["prompt_tokens"])
-          span.set_attribute("openai.completions.usage.completion_tokens", usage["completion_tokens"])
-          span.set_attribute("openai.completions.usage.total_tokens", usage["total_tokens"])
-          text
-        end
-      rescue Net::ReadTimeout
-        span.add_event("OpenAI API timeout")
-        "Timeout"
+        raise "OpenAI API error: #{ret['error']}" if ret.include?("error")
+        raise "OpenAI API error: HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+
+        ret
+      rescue JSON::ParserError => e
+        span.add_event("OpenAI API invalid JSON", attributes: { "exception.message" => e.message })
+        raise "OpenAI API returned invalid JSON"
+      rescue Net::ReadTimeout, Net::OpenTimeout => e
+        span.add_event("OpenAI API timeout", attributes: { "exception.message" => e.message })
+        raise "OpenAI API timeout"
       end
     end
   end
 
-  # query OpenAI completions API for sentiment analysis
-  def sentiment_analysis(text, user = nil)
-    query("https://api.openai.com/v1/completions", {
-      model: "text-davinci-003",
-      prompt: "Do you feel like the statement : \"#{text}\" is positive, negative or neutral?",
-      temperature: 0.7,
-      max_tokens: 256,
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0,
+  def moderate_text(text, user = nil)
+    response = query("https://api.openai.com/v1/moderations", {
+      model: OPENAI_MODERATION_MODEL,
+      input: text,
     }, user)
+
+    result = response.fetch("results").first
+    ModerationResult.new(
+      flagged: result.fetch("flagged"),
+      categories: result.fetch("categories"),
+      category_scores: result.fetch("category_scores"),
+    )
   end
 
-  def qualify_toxicity(text, user = nil)
-    query("https://api.openai.com/v1/completions", {
-      model: "text-davinci-003",
-      prompt: "Is the statement : \"#{text}\" is toxic or non-toxic?",
-      temperature: 0.7,
-      max_tokens: 256,
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0,
-    }, user)
-  end
-
-  # moderation request
   def moderation_rewrite(text, user = nil)
-    query("https://api.openai.com/v1/completions", {
-      model: "text-davinci-003",
-      prompt: "Rewrite the following statement in a positive manner : \"#{text}\"",
-      temperature: 0.7,
-      max_tokens: 256,
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0,
+    response = query("https://api.openai.com/v1/responses", {
+      model: OPENAI_REWRITE_MODEL,
+      instructions: "Rewrite the user's message in a respectful, constructive tone. Preserve the user's apparent intent, do not add new claims, and return only the rewritten message.",
+      input: text,
     }, user)
+
+    response_text(response)
+  end
+
+  def response_text(response)
+    return response["output_text"].strip if response["output_text"]
+
+    response.fetch("output", []).flat_map do |item|
+      item.fetch("content", []).map { |content| content["text"] }
+    end.compact.join.strip
   end
 end

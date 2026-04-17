@@ -14,17 +14,9 @@ end
 
 class RemoveMessageStrategy < ModerationStrategy
   def condition(event)
-    case analysed = sentiment_analysis(event.message.content, event.user)
-    when /Positive/i
-      $logger.info("Sentiment Analysis: Positive")
-      false
-    when /Negative/i
-      $logger.info("Sentiment Analysis: Negative")
-      true
-    else
-      $logger.info("Sentiment Analysis: Neutral")
-      false
-    end
+    result = @bot.moderate_text(event.message.content, event.user)
+    $logger.info("Moderation flagged: #{result.flagged}")
+    result.flagged
   end
 
   def execute(event)
@@ -35,24 +27,15 @@ end
 
 class WatchListStrategy < ModerationStrategy
   def condition(event)
-    # watched users loop
-    if @bot.get_watch_list_users(event.server.id.to_i).include?(event.user.id.to_i)
-      case analysed = sentiment_analysis(event.message.content, event.user)
-      when /Positive/i
-        $logger.info("Sentiment Analysis: Positive")
-        false
-      when /Negative/i
-        $logger.info("Sentiment Analysis: Negative")
-        true
-      else
-        $logger.info("Sentiment Analysis: Neutral")
-        false
-      end
-    end
+    return false unless @bot.get_watch_list_users(event.server.id.to_i).include?(event.user.id.to_i)
+
+    result = @bot.moderate_text(event.message.content, event.user)
+    $logger.info("Watch list moderation flagged: #{result.flagged}")
+    result.flagged
   end
 
   def execute(event)
-    edited = moderation_rewrite(event.message.content, event.user)
+    edited = @bot.moderation_rewrite(event.message.content, event.user)
     $logger.info(edited)
     reason = "Moderation (rewriting due to negative sentiment)"
     event.message.delete(reason)

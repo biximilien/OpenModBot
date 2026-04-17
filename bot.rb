@@ -12,6 +12,7 @@ require "./lib/opentelemetry"
 $logger = Logger.new(STDOUT)
 
 require "./environment"
+Environment.validate!
 
 # create bot
 bot = Discordrb::Bot.new token: DISCORD_BOT_TOKEN, intents: :all
@@ -33,6 +34,8 @@ strategies << RemoveMessageStrategy.new(self)
 
 # bot commands
 bot.message do |event|
+  next if event.user.current_bot?
+
   $logger.info("Message from #{event.user.name} (#{event.user.id})")
   $logger.info(event.message.content)
 
@@ -64,8 +67,12 @@ bot.message do |event|
   else
     # execute enabled strategies
     strategies.each do |strategy|
-      if strategy.condition(event)
-        strategy.execute(event) and break
+      begin
+        if strategy.condition(event)
+          strategy.execute(event) and break
+        end
+      rescue StandardError => e
+        $logger.error("Moderation strategy failed: #{e.class}: #{e.message}")
       end
     end
   end

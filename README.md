@@ -1,51 +1,88 @@
 # ModerationGPT
 
-This bot provides automated text moderation for Discord text channels. It uses OpenAI API text completions GPT-3 to rewrite any negative messages from users in text channels into a positive message.
+ModerationGPT is a Discord moderation bot for text channels. It uses OpenAI's moderation endpoint to classify messages, Redis to store per-server watchlists, and the OpenAI Responses API to rewrite flagged messages from watched users in a more constructive tone.
 
-## How it works
+## How It Works
 
-The bot monitors all messages in a text channel. If a message contains a negative word, the bot will rewrite the message using GPT-3. The bot will then delete the original message and replace it with the rewritten message.
+The bot listens for Discord messages and applies two moderation paths:
 
-## How to use
+- Watched users: flagged messages are deleted and replaced with a rewritten version.
+- Other users: flagged messages are deleted.
 
-1. Create a Discord bot and invite it to your server. See [this guide](https://discordpy.readthedocs.io/en/latest/discord.html) for more information.
-
-2. Create an OpenAI API key. See [this guide](https://beta.openai.com/docs/developer-quickstart/1-creating-an-api-key) for more information.
-
-3. Clone this repository and install the dependencies.
+Administrators can manage the watch list with:
 
 ```bash
-git clone
-cd ModerationGPT
-bundle install
+!moderation watchlist
+!moderation watchlist add @user
+!moderation watchlist remove @user
 ```
 
-4. Create a file called `.env` in the root directory of the repository. Add the following lines to the file, replacing the values with your own.
+## Requirements
+
+- Ruby 2.7.7, matching `.tool-versions` and `Gemfile`
+- Bundler
+- Redis
+- Discord bot token
+- OpenAI API key
+
+## Configuration
+
+Create a `.env` file in the project root:
 
 ```bash
-# .env
 OPENAI_API_KEY=my_openai_secret
 DISCORD_BOT_TOKEN=my_discord_secret
 REDIS_URL=redis://localhost:6379/0
+OPENAI_MODERATION_MODEL=omni-moderation-latest
+OPENAI_REWRITE_MODEL=gpt-4.1-mini
 ```
 
-Use direnv or source .env the file manually.
+`OPENAI_MODERATION_MODEL` and `OPENAI_REWRITE_MODEL` are optional. The defaults are shown above.
 
-5. Run the bot.
+## Local Development
+
+Install dependencies:
+
+```bash
+bundle install
+```
+
+Start Redis:
+
+```bash
+docker compose up redis
+```
+
+Run the bot:
 
 ```bash
 bundle exec ruby bot.rb
 ```
 
-## Contributing
+Run tests:
 
-Contributions are welcome! Please open an issue or pull request if you would like to contribute.
+```bash
+bundle exec rspec
+```
 
-## License
+The default specs stub OpenAI and Redis, so they do not require external API calls.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## Docker
 
-## Acknowledgments
+Run the bot and Redis together:
 
-- [OpenAI](https://openai.com/) for providing the GPT-3 API
-- [Discordrb]() for providing the Discord API wrapper
+```bash
+docker compose up --build
+```
+
+The bot service reads secrets from `.env`. Inside Compose, `REDIS_URL` is set to `redis://redis:6379/0`.
+
+## OpenTelemetry
+
+Optional OpenTelemetry settings can be added to `.env`:
+
+```bash
+OTEL_EXPORTER_OTLP_ENDPOINT=https://api.honeycomb.io
+OTEL_EXPORTER_OTLP_HEADERS=x-honeycomb-team=secretkey
+OTEL_SERVICE_NAME=ModerationGPT
+```

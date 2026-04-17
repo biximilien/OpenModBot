@@ -1,4 +1,20 @@
 services:
+  bot:
+    build: .
+    environment:
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
+      OPENAI_MODERATION_MODEL: ${OPENAI_MODERATION_MODEL:-omni-moderation-latest}
+      OPENAI_REWRITE_MODEL: ${OPENAI_REWRITE_MODEL:-gpt-4.1-mini}
+      REDIS_URL: redis://redis:6379/0
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-ModerationGPT}
+    depends_on:
+      - redis
+    networks:
+      - backend
+
   redis:
     image: redis:alpine
     container_name: redis
