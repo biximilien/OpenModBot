@@ -7,6 +7,7 @@ require "./lib/discord/watchlist_command"
 require "./lib/discord/permission"
 require "./lib/backend"
 require "./lib/moderation_strategy"
+require "./lib/moderation/message_router"
 require "./lib/opentelemetry"
 
 # setup logging
@@ -34,6 +35,7 @@ strategies << RemoveMessageStrategy.new(self)
 # strategies << RewriteMessageStrategy.new
 
 watchlist_command = Discord::WatchlistCommand.new(self)
+message_router = Moderation::MessageRouter.new(strategies)
 
 # bot commands
 bot.message do |event|
@@ -45,16 +47,7 @@ bot.message do |event|
   if watchlist_command.matches?(event)
     watchlist_command.handle(event)
   else
-    # execute enabled strategies
-    strategies.each do |strategy|
-      begin
-        if strategy.condition(event)
-          strategy.execute(event) and break
-        end
-      rescue StandardError => e
-        $logger.error("Moderation strategy failed: #{e.class}: #{e.message}")
-      end
-    end
+    message_router.handle(event)
   end
 end
 
