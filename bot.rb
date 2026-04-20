@@ -10,10 +10,13 @@ require_relative "lib/discord/permission"
 require_relative "lib/moderation_strategy"
 require_relative "lib/moderation/message_router"
 require_relative "lib/telemetry"
+require_relative "lib/plugin_registry"
 
 $logger = Logger.new(STDOUT)
 
 Environment.validate!
+plugins = ModerationGPT::PluginRegistry.from_environment
+plugins.boot
 
 bot = Discordrb::Bot.new token: Environment.discord_bot_token, intents: :all
 
@@ -25,8 +28,8 @@ end
 app = ModerationGPT::Application.new
 
 strategies = [
-  WatchListStrategy.new(app),
-  RemoveMessageStrategy.new(app),
+  WatchListStrategy.new(app, plugin_registry: plugins),
+  RemoveMessageStrategy.new(app, plugin_registry: plugins),
 ]
 
 moderation_command = Discord::ModerationCommand.new(app)
@@ -36,6 +39,7 @@ ready_handler = Discord::ReadyHandler.new(bot, app)
 bot.message do |event|
   next if event.user.current_bot?
 
+  plugins.message(event: event, app: app, bot: bot)
   $logger.info("Message received: user=#{Telemetry::Anonymizer.hash(event.user.id)} length=#{event.message.content.length}")
 
   if moderation_command.matches?(event)
@@ -46,6 +50,7 @@ bot.message do |event|
 end
 
 bot.ready do |event|
+  plugins.ready(event: event, app: app, bot: bot)
   ready_handler.handle(event)
 end
 

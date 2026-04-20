@@ -1,25 +1,23 @@
 require "json"
 require "net/http"
 require "uri"
-require "opentelemetry/sdk"
 require_relative "../environment"
-require_relative "telemetry/anonymizer"
-OpenAITracer = OpenTelemetry.tracer_provider.tracer("openai", "1.0")
+require_relative "telemetry"
 
 module OpenAI
   ModerationResult = Struct.new(:flagged, :categories, :category_scores, keyword_init: true)
 
   def query(url, params, user = nil)
-    OpenAITracer.in_span(url, attributes: {
-                                "http.url" => url,
-                                "http.scheme" => "https",
-                                "http.target" => URI.parse(url).request_uri,
-                                "http.method" => "POST",
-                                "net.peer.name" => URI.parse(url).host,
-                                "net.peer.port" => URI.parse(url).port,
-                                "discord.user.hash" => anonymized_user_hash(user),
-                                "discord.user.bot_account" => user&.bot_account,
-                              }) do |span|
+    Telemetry.in_span(url, attributes: {
+                        "http.url" => url,
+                        "http.scheme" => "https",
+                        "http.target" => URI.parse(url).request_uri,
+                        "http.method" => "POST",
+                        "net.peer.name" => URI.parse(url).host,
+                        "net.peer.port" => URI.parse(url).port,
+                        "discord.user.hash" => anonymized_user_hash(user),
+                        "discord.user.bot_account" => user&.bot_account,
+                      }) do |span|
       begin
         uri = URI.parse(url)
         http = Net::HTTP.new(uri.host, uri.port)

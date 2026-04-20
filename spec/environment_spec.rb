@@ -71,6 +71,66 @@ describe Environment do
     end
   end
 
+  describe ".telemetry_enabled?" do
+    it "is false by default" do
+      ENV.delete("TELEMETRY_ENABLED")
+
+      expect(described_class.telemetry_enabled?).to eq(false)
+    end
+
+    it "is true when configured" do
+      ENV["TELEMETRY_ENABLED"] = "true"
+
+      expect(described_class.telemetry_enabled?).to eq(true)
+    end
+  end
+
+  describe ".enabled_plugins" do
+    it "returns no plugins by default" do
+      ENV.delete("PLUGINS")
+      ENV.delete("TELEMETRY_ENABLED")
+
+      expect(described_class.enabled_plugins).to eq([])
+    end
+
+    it "parses comma-separated plugins" do
+      ENV["PLUGINS"] = "telemetry, audit_webhook"
+
+      expect(described_class.enabled_plugins).to eq(%w[telemetry audit_webhook])
+    end
+
+    it "adds telemetry when telemetry is enabled" do
+      ENV.delete("PLUGINS")
+      ENV["TELEMETRY_ENABLED"] = "true"
+
+      expect(described_class.enabled_plugins).to eq(["telemetry"])
+    end
+
+    it "deduplicates telemetry when configured twice" do
+      ENV["PLUGINS"] = "telemetry"
+      ENV["TELEMETRY_ENABLED"] = "true"
+
+      expect(described_class.enabled_plugins).to eq(["telemetry"])
+    end
+  end
+
+  describe ".plugin_requires" do
+    it "returns no plugin requires by default" do
+      ENV.delete("PLUGIN_REQUIRES")
+
+      expect(described_class.plugin_requires).to eq([])
+    end
+
+    it "parses comma-separated require paths" do
+      ENV["PLUGIN_REQUIRES"] = "moderation_gpt/plugins/audit_webhook, custom/plugin"
+
+      expect(described_class.plugin_requires).to eq([
+        "moderation_gpt/plugins/audit_webhook",
+        "custom/plugin",
+      ])
+    end
+  end
+
   describe ".karma_automod_action" do
     it "returns timeout by default" do
       ENV.delete("KARMA_AUTOMOD_ACTION")

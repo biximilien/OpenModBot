@@ -1,6 +1,9 @@
 services:
   bot:
-    build: .
+    build:
+      context: .
+      args:
+        BUNDLE_WITH: ${BUNDLE_WITH:-}
     environment:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN:-}
@@ -11,6 +14,9 @@ services:
       KARMA_TIMEOUT_SECONDS: ${KARMA_TIMEOUT_SECONDS:-3600}
       LOG_INVITE_URL: ${LOG_INVITE_URL:-false}
       TELEMETRY_HASH_SALT: ${TELEMETRY_HASH_SALT:-development-telemetry-salt}
+      PLUGIN_REQUIRES: ${PLUGIN_REQUIRES:-}
+      PLUGINS: ${PLUGINS:-}
+      TELEMETRY_ENABLED: ${TELEMETRY_ENABLED:-false}
       REDIS_URL: redis://redis:6379/0
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}

@@ -50,6 +50,20 @@ module Environment
     ENV.fetch("TELEMETRY_HASH_SALT", DEFAULT_TELEMETRY_HASH_SALT)
   end
 
+  def self.telemetry_enabled?
+    ENV.fetch("TELEMETRY_ENABLED", "false").casecmp("true").zero?
+  end
+
+  def self.enabled_plugins
+    plugins = ENV.fetch("PLUGINS", "").split(",").map(&:strip).reject(&:empty?)
+    plugins << "telemetry" if telemetry_enabled?
+    plugins.uniq
+  end
+
+  def self.plugin_requires
+    ENV.fetch("PLUGIN_REQUIRES", "").split(",").map(&:strip).reject(&:empty?)
+  end
+
   def self.karma_automod_action
     ENV.fetch("KARMA_AUTOMOD_ACTION", DEFAULT_KARMA_AUTOMOD_ACTION)
   end

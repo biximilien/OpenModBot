@@ -50,6 +50,8 @@ KARMA_AUTOMOD_ACTION=timeout
 KARMA_TIMEOUT_SECONDS=3600
 LOG_INVITE_URL=false
 TELEMETRY_HASH_SALT=replace_with_random_secret
+PLUGIN_REQUIRES=
+PLUGINS=
 ```
 
 `OPENAI_MODERATION_MODEL`, `OPENAI_REWRITE_MODEL`, `KARMA_AUTOMOD_THRESHOLD`, `KARMA_AUTOMOD_ACTION`, `KARMA_TIMEOUT_SECONDS`, and `LOG_INVITE_URL` are optional. `TELEMETRY_HASH_SALT` is used to anonymize Discord identifiers in logs and traces; set it to a stable random secret for your deployment.
@@ -85,6 +87,31 @@ The default specs stub OpenAI and Redis, so they do not require external API cal
 
 The Redis data model is documented in `docs/data-model.md`.
 
+## Plugins
+
+Optional built-in plugins can be enabled with `PLUGINS`, using comma-separated names:
+
+```bash
+PLUGINS=telemetry
+```
+
+The first built-in plugin is `telemetry`. External plugin packages can follow the same `ModerationGPT::Plugin` hook interface and register with `ModerationGPT::PluginRegistry.register`. Use `PLUGIN_REQUIRES` to load plugin packages before `PLUGINS` is resolved:
+
+```bash
+PLUGIN_REQUIRES=moderation_gpt/plugins/audit_webhook
+PLUGINS=audit_webhook
+```
+
+Plugin hooks:
+
+- `boot`
+- `ready`
+- `message`
+- `moderation_result`
+- `infraction`
+- `automod_outcome`
+- `commands`
+
 ## Docker
 
 Run the bot and Redis together:
@@ -100,7 +127,10 @@ The bot service reads secrets from `.env`. Inside Compose, `REDIS_URL` is set to
 Optional OpenTelemetry settings can be added to `.env`:
 
 ```bash
+TELEMETRY_ENABLED=true
 OTEL_EXPORTER_OTLP_ENDPOINT=https://api.honeycomb.io
 OTEL_EXPORTER_OTLP_HEADERS=x-honeycomb-team=secretkey
 OTEL_SERVICE_NAME=ModerationGPT
 ```
+
+OpenTelemetry is disabled by default. Identifier anonymization still runs when telemetry is disabled. Install optional telemetry dependencies with `bundle config set --local with telemetry` before `bundle install` when enabling OpenTelemetry locally. For Docker, build with `BUNDLE_WITH=telemetry docker compose build`. Setting `TELEMETRY_ENABLED=true` enables the telemetry plugin automatically.
