@@ -9,6 +9,10 @@ describe Discord::ModerationCommand do
       remove_user_from_watch_list: true,
       get_watch_list_users: [456, 789],
       get_user_karma: -3,
+      get_user_karma_history: [
+        { created_at: "2026-04-19T12:00:00Z", delta: -1, score: -3, source: "automated_infraction" },
+        { created_at: "2026-04-19T12:05:00Z", delta: 2, score: -2, source: "manual_adjustment", actor_id: 42 },
+      ],
       set_user_karma: 0,
       increment_user_karma: -2,
     )
@@ -108,7 +112,7 @@ describe Discord::ModerationCommand do
       it "resets the user's karma score" do
         command.handle(event)
 
-        expect(store).to have_received(:set_user_karma).with(123, 456, 0)
+        expect(store).to have_received(:set_user_karma).with(123, 456, 0, actor_id: 42)
         expect(event).to have_received(:respond).with("Reset karma for <@456>")
       end
     end
@@ -119,7 +123,7 @@ describe Discord::ModerationCommand do
       it "increases the user's karma score" do
         command.handle(event)
 
-        expect(store).to have_received(:increment_user_karma).with(123, 456, 2)
+        expect(store).to have_received(:increment_user_karma).with(123, 456, 2, actor_id: 42)
         expect(event).to have_received(:respond).with("Karma for <@456>: -2")
       end
     end
@@ -130,8 +134,57 @@ describe Discord::ModerationCommand do
       it "decreases the user's karma score" do
         command.handle(event)
 
-        expect(store).to have_received(:increment_user_karma).with(123, 456, -2)
+        expect(store).to have_received(:increment_user_karma).with(123, 456, -2, actor_id: 42)
         expect(event).to have_received(:respond).with("Karma for <@456>: -2")
+      end
+    end
+
+    context "when checking karma history" do
+      let(:content) { "!moderation karma history <@456>" }
+
+      it "responds with recent karma events" do
+        command.handle(event)
+
+        expect(store).to have_received(:get_user_karma_history).with(123, 456, 5)
+        expect(event).to have_received(:respond).with(
+          "Karma history for <@456>:\n" \
+          "- -1 => -3 via automated_infraction at 2026-04-19T12:00:00Z\n" \
+          "- +2 => -2 via manual_adjustment by <@42> at 2026-04-19T12:05:00Z",
+        )
+      end
+    end
+
+    context "when checking karma history with a limit" do
+      let(:content) { "!moderation karma history <@456> 1" }
+
+      it "passes the requested history limit" do
+        command.handle(event)
+
+        expect(store).to have_received(:get_user_karma_history).with(123, 456, 1)
+      end
+    end
+
+    context "when checking karma history with a large limit" do
+      let(:content) { "!moderation karma history <@456> 99" }
+
+      it "caps the requested history limit" do
+        command.handle(event)
+
+        expect(store).to have_received(:get_user_karma_history).with(123, 456, 10)
+      end
+    end
+
+    context "when karma history is empty" do
+      let(:content) { "!moderation karma history <@456>" }
+
+      before do
+        allow(store).to receive(:get_user_karma_history).and_return([])
+      end
+
+      it "responds with an empty-history message" do
+        command.handle(event)
+
+        expect(event).to have_received(:respond).with("No karma history for <@456>")
       end
     end
 

@@ -2,9 +2,11 @@ require_relative "../telemetry/anonymizer"
 
 module Discord
   class ModerationCommand
-    USAGE = "Usage: !moderation watchlist [add|remove @user] OR !moderation karma @user OR !moderation karma reset @user OR !moderation karma [add|remove] @user amount".freeze
+    DEFAULT_HISTORY_LIMIT = 5
+    MAX_HISTORY_LIMIT = 10
+    USAGE = "Usage: !moderation watchlist [add|remove @user] OR !moderation karma @user OR !moderation karma history @user [limit] OR !moderation karma reset @user OR !moderation karma [add|remove] @user amount".freeze
     TRIGGER_PATTERN = /\A!moderation\b/i.freeze
-    COMMAND_PATTERN = /\A!moderation(?:\s+(?<command>watchlist|karma))?(?:\s+(?<subcommand>add|remove|reset))?(?:\s+<@!?(?<user_id>\d+)>)?(?:\s+(?<amount>\d+))?\s*\z/i.freeze
+    COMMAND_PATTERN = /\A!moderation(?:\s+(?<command>watchlist|karma))?(?:\s+(?<subcommand>add|remove|reset|history))?(?:\s+<@!?(?<user_id>\d+)>)?(?:\s+(?<amount>\d+))?\s*\z/i.freeze
 
     def initialize(store)
       @store = store
@@ -62,6 +64,7 @@ module Discord
     def respond_to_karma_command(event, match)
       case match[:subcommand]
       when nil then respond_with_karma(event, match)
+      when "history" then respond_with_karma_history(event, match)
       when "reset" then reset_karma(event, match)
       when "add" then add_karma(event, match)
       when "remove" then remove_karma(event, match)
@@ -105,7 +108,7 @@ module Discord
         return
       end
 
-      @store.set_user_karma(event.server.id, match[:user_id].to_i, 0)
+      @store.set_user_karma(event.server.id, match[:user_id].to_i, 0, actor_id: event.user.id)
       event.respond("Reset karma for <@#{match[:user_id]}>")
     end
 
@@ -123,8 +126,19 @@ module Discord
         return
       end
 
-      karma = @store.increment_user_karma(event.server.id, match[:user_id].to_i, delta)
+      karma = @store.increment_user_karma(event.server.id, match[:user_id].to_i, delta, actor_id: event.user.id)
       event.respond("Karma for <@#{match[:user_id]}>: #{karma}")
+    end
+
+    def respond_with_karma_history(event, match)
+      unless match[:user_id]
+        event.respond(USAGE)
+        return
+      end
+
+      user_id = match[:user_id].to_i
+      entries = @store.get_user_karma_history(event.server.id, user_id, history_limit(match))
+      event.respond(karma_history_response(user_id, entries))
     end
 
     def amount(match)
@@ -132,6 +146,27 @@ module Discord
 
       value = match[:amount].to_i
       value.positive? ? value : nil
+    end
+
+    def history_limit(match)
+      [amount(match) || DEFAULT_HISTORY_LIMIT, MAX_HISTORY_LIMIT].min
+    end
+
+    def karma_history_response(user_id, entries)
+      return "No karma history for <@#{user_id}>" if entries.empty?
+
+      lines = entries.map { |entry| karma_history_line(entry) }
+      "Karma history for <@#{user_id}>:\n#{lines.join("\n")}"
+    end
+
+    def karma_history_line(entry)
+      actor = entry[:actor_id] ? " by <@#{entry[:actor_id]}>" : ""
+      reason = entry[:reason] ? " (#{entry[:reason]})" : ""
+      "- #{signed(entry[:delta])} => #{entry[:score]} via #{entry[:source]}#{actor} at #{entry[:created_at]}#{reason}"
+    end
+
+    def signed(value)
+      value.positive? ? "+#{value}" : value.to_s
     end
 
     def watch_list_mentions(server_id)
