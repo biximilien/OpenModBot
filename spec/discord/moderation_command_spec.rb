@@ -13,7 +13,7 @@ describe Discord::ModerationCommand do
         { created_at: "2026-04-19T12:00:00Z", delta: -1, score: -3, source: "automated_infraction" },
         { created_at: "2026-04-19T12:05:00Z", delta: 2, score: -2, source: "manual_adjustment", actor_id: 42 },
       ],
-      set_user_karma: 0,
+      set_user_karma: -7,
       increment_user_karma: -2,
     )
   end
@@ -93,6 +93,20 @@ describe Discord::ModerationCommand do
       end
     end
 
+    context "when listing an empty watch list" do
+      let(:content) { "!moderation watchlist" }
+
+      before do
+        allow(store).to receive(:get_watch_list_users).and_return([])
+      end
+
+      it "responds with an empty message" do
+        command.handle(event)
+
+        expect(event).to have_received(:respond).with("Watch list: empty")
+      end
+    end
+
     context "when adding a watched user" do
       let(:content) { "!moderation watchlist add <@456>" }
 
@@ -144,6 +158,42 @@ describe Discord::ModerationCommand do
 
         expect(store).to have_received(:set_user_karma).with(123, 456, 0, actor_id: 42)
         expect(event).to have_received(:respond).with("Reset karma for <@456>")
+      end
+    end
+
+    context "when setting user karma" do
+      let(:content) { "!moderation karma set <@456> -7" }
+
+      it "sets the user's karma score" do
+        command.handle(event)
+
+        expect(store).to have_received(:set_user_karma).with(123, 456, -7, actor_id: 42)
+        expect(event).to have_received(:respond).with("Karma for <@456> set to -7")
+      end
+    end
+
+    context "when setting user karma to zero" do
+      let(:content) { "!moderation karma set <@456> 0" }
+
+      before do
+        allow(store).to receive(:set_user_karma).and_return(0)
+      end
+
+      it "sets the user's karma score" do
+        command.handle(event)
+
+        expect(store).to have_received(:set_user_karma).with(123, 456, 0, actor_id: 42)
+        expect(event).to have_received(:respond).with("Karma for <@456> set to 0")
+      end
+    end
+
+    context "when setting user karma without a score" do
+      let(:content) { "!moderation karma set <@456>" }
+
+      it "responds with usage" do
+        command.handle(event)
+
+        expect(event).to have_received(:respond).with(described_class::USAGE)
       end
     end
 

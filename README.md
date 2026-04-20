@@ -19,6 +19,7 @@ Administrators can manage moderation state with:
 !moderation karma @user
 !moderation karma history @user
 !moderation karma history @user 10
+!moderation karma set @user -3
 !moderation karma reset @user
 !moderation karma add @user 1
 !moderation karma remove @user 1

@@ -12,12 +12,13 @@ module Discord
       "!moderation watchlist remove @user",
       "!moderation karma @user",
       "!moderation karma history @user [limit]",
+      "!moderation karma set @user score",
       "!moderation karma reset @user",
       "!moderation karma add @user amount",
       "!moderation karma remove @user amount",
     ].join("\n").freeze
     TRIGGER_PATTERN = /\A!moderation\b/i.freeze
-    COMMAND_PATTERN = /\A!moderation(?:\s+(?<command>help|watchlist|karma))?(?:\s+(?<subcommand>add|remove|reset|history))?(?:\s+<@!?(?<user_id>\d+)>)?(?:\s+(?<amount>\d+))?\s*\z/i.freeze
+    COMMAND_PATTERN = /\A!moderation(?:\s+(?<command>help|watchlist|karma))?(?:\s+(?<subcommand>add|remove|reset|history|set))?(?:\s+<@!?(?<user_id>\d+)>)?(?:\s+(?<amount>-?\d+))?\s*\z/i.freeze
 
     def initialize(store)
       @store = store
@@ -86,6 +87,7 @@ module Discord
       when nil then respond_with_karma(event, match)
       when "history" then respond_with_karma_history(event, match)
       when "reset" then reset_karma(event, match)
+      when "set" then set_karma(event, match)
       when "add" then add_karma(event, match)
       when "remove" then remove_karma(event, match)
       else event.respond(USAGE)
@@ -132,6 +134,16 @@ module Discord
       event.respond("Reset karma for <@#{match[:user_id]}>")
     end
 
+    def set_karma(event, match)
+      unless match[:user_id] && signed_amount(match)
+        event.respond(USAGE)
+        return
+      end
+
+      karma = @store.set_user_karma(event.server.id, match[:user_id].to_i, signed_amount(match), actor_id: event.user.id)
+      event.respond("Karma for <@#{match[:user_id]}> set to #{karma}")
+    end
+
     def add_karma(event, match)
       adjust_karma(event, match, amount(match))
     end
@@ -168,6 +180,12 @@ module Discord
       value.positive? ? value : nil
     end
 
+    def signed_amount(match)
+      return nil unless match[:amount]
+
+      match[:amount].to_i
+    end
+
     def history_limit(match)
       [amount(match) || DEFAULT_HISTORY_LIMIT, MAX_HISTORY_LIMIT].min
     end
@@ -190,7 +208,8 @@ module Discord
     end
 
     def watch_list_mentions(server_id)
-      @store.get_watch_list_users(server_id).map { |user_id| "<@#{user_id}>" }.join(", ")
+      mentions = @store.get_watch_list_users(server_id).map { |user_id| "<@#{user_id}>" }
+      mentions.empty? ? "empty" : mentions.join(", ")
     end
   end
 end
