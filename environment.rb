@@ -11,6 +11,9 @@ module Environment
   DEFAULT_OPENAI_MODERATION_MODEL = "omni-moderation-latest"
   DEFAULT_OPENAI_REWRITE_MODEL = "gpt-4.1-mini"
   DEFAULT_KARMA_AUTOMOD_THRESHOLD = -5
+  DEFAULT_TELEMETRY_HASH_SALT = "development-telemetry-salt"
+  DEFAULT_KARMA_AUTOMOD_ACTION = "timeout"
+  DEFAULT_KARMA_TIMEOUT_SECONDS = 3_600
 
   def self.validate!
     missing = REQUIRED_VARIABLES.select { |name| missing?(ENV[name]) }
@@ -41,6 +44,22 @@ module Environment
 
   def self.karma_automod_threshold
     ENV.fetch("KARMA_AUTOMOD_THRESHOLD", DEFAULT_KARMA_AUTOMOD_THRESHOLD).to_i
+  end
+
+  def self.telemetry_hash_salt
+    ENV.fetch("TELEMETRY_HASH_SALT", DEFAULT_TELEMETRY_HASH_SALT)
+  end
+
+  def self.karma_automod_action
+    ENV.fetch("KARMA_AUTOMOD_ACTION", DEFAULT_KARMA_AUTOMOD_ACTION)
+  end
+
+  def self.karma_timeout_seconds
+    ENV.fetch("KARMA_TIMEOUT_SECONDS", DEFAULT_KARMA_TIMEOUT_SECONDS).to_i
+  end
+
+  def self.log_invite_url?
+    ENV.fetch("LOG_INVITE_URL", "false").casecmp("true").zero?
   end
 
   def self.missing?(value)

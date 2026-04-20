@@ -4,7 +4,7 @@ require "logger"
 require_relative "environment"
 require_relative "lib/application"
 require_relative "lib/discord"
-require_relative "lib/discord/watchlist_command"
+require_relative "lib/discord/moderation_command"
 require_relative "lib/discord/ready_handler"
 require_relative "lib/discord/permission"
 require_relative "lib/moderation_strategy"
@@ -17,8 +17,10 @@ Environment.validate!
 
 bot = Discordrb::Bot.new token: Environment.discord_bot_token, intents: :all
 
-$logger.info("This bot's invite URL is #{bot.invite_url(permission_bits: Discord::Permission::MODERATION_BOT)}.")
-$logger.info("Click on it to invite it to your server.")
+if Environment.log_invite_url?
+  $logger.info("This bot's invite URL is #{bot.invite_url(permission_bits: Discord::Permission::MODERATION_BOT)}.")
+  $logger.info("Click on it to invite it to your server.")
+end
 
 app = ModerationGPT::Application.new
 
@@ -27,18 +29,17 @@ strategies = [
   RemoveMessageStrategy.new(app),
 ]
 
-watchlist_command = Discord::WatchlistCommand.new(app)
+moderation_command = Discord::ModerationCommand.new(app)
 message_router = Moderation::MessageRouter.new(strategies)
 ready_handler = Discord::ReadyHandler.new(bot, app)
 
 bot.message do |event|
   next if event.user.current_bot?
 
-  $logger.info("Message from #{event.user.name} (#{event.user.id})")
-  $logger.info(event.message.content)
+  $logger.info("Message received: user=#{Telemetry::Anonymizer.hash(event.user.id)} length=#{event.message.content.length}")
 
-  if watchlist_command.matches?(event)
-    watchlist_command.handle(event)
+  if moderation_command.matches?(event)
+    moderation_command.handle(event)
   else
     message_router.handle(event)
   end

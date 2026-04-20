@@ -1,8 +1,11 @@
 require_relative "../environment"
+require_relative "moderation/automod_policy"
+require_relative "telemetry/anonymizer"
 
 class ModerationStrategy
-  def initialize(bot)
+  def initialize(bot, automod_policy: Moderation::AutomodPolicy.new)
     @bot = bot
+    @automod_policy = automod_policy
   end
 
   def condition(event)
@@ -17,10 +20,11 @@ class ModerationStrategy
 
   def record_infraction(event)
     score = @bot.decrement_user_karma(event.server.id, event.user.id)
-    $logger.info("Karma score for #{event.user.id}: #{score}")
+    user_hash = Telemetry::Anonymizer.hash(event.user.id)
+    $logger.info("Karma score for user=#{user_hash}: #{score}")
 
     if score <= Environment.karma_automod_threshold
-      $logger.warn("User #{event.user.id} reached automated moderation threshold with karma #{score}")
+      @automod_policy.apply(event, score)
     end
 
     score
@@ -52,7 +56,6 @@ class WatchListStrategy < ModerationStrategy
 
   def execute(event)
     edited = @bot.moderation_rewrite(event.message.content, event.user)
-    $logger.info(edited)
     reason = "Moderation (rewriting due to negative sentiment)"
     event.message.delete(reason)
     record_infraction(event)

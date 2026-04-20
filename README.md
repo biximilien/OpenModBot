@@ -9,16 +9,19 @@ The bot listens for Discord messages and applies two moderation paths:
 - Watched users: flagged messages are deleted and replaced with a rewritten version.
 - Other users: flagged messages are deleted.
 
-Administrators can manage the watch list with:
+Administrators can manage moderation state with:
 
 ```bash
 !moderation watchlist
 !moderation watchlist add @user
 !moderation watchlist remove @user
 !moderation karma @user
+!moderation karma reset @user
+!moderation karma add @user 1
+!moderation karma remove @user 1
 ```
 
-Each moderated infraction decreases the user's per-server karma score. When a score reaches `KARMA_AUTOMOD_THRESHOLD`, the bot logs that the user is eligible for automated moderation action. It does not ban users automatically yet.
+Each moderated infraction decreases the user's per-server karma score. When a score reaches `KARMA_AUTOMOD_THRESHOLD`, the bot applies `KARMA_AUTOMOD_ACTION`. Supported actions are `log_only`, `timeout`, `kick`, and `ban`; the default is `timeout`. Timeout requires the Discord moderate-members permission, which is included in the generated invite URL.
 
 ## Requirements
 
@@ -39,9 +42,13 @@ REDIS_URL=redis://localhost:6379/0
 OPENAI_MODERATION_MODEL=omni-moderation-latest
 OPENAI_REWRITE_MODEL=gpt-4.1-mini
 KARMA_AUTOMOD_THRESHOLD=-5
+KARMA_AUTOMOD_ACTION=timeout
+KARMA_TIMEOUT_SECONDS=3600
+LOG_INVITE_URL=false
+TELEMETRY_HASH_SALT=replace_with_random_secret
 ```
 
-`OPENAI_MODERATION_MODEL`, `OPENAI_REWRITE_MODEL`, and `KARMA_AUTOMOD_THRESHOLD` are optional. The defaults are shown above.
+`OPENAI_MODERATION_MODEL`, `OPENAI_REWRITE_MODEL`, `KARMA_AUTOMOD_THRESHOLD`, `KARMA_AUTOMOD_ACTION`, `KARMA_TIMEOUT_SECONDS`, and `LOG_INVITE_URL` are optional. `TELEMETRY_HASH_SALT` is used to anonymize Discord identifiers in logs and traces; set it to a stable random secret for your deployment.
 
 ## Local Development
 

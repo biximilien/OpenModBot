@@ -1,7 +1,7 @@
 require "discord"
-require "discord/watchlist_command"
+require "discord/moderation_command"
 
-describe Discord::WatchlistCommand do
+describe Discord::ModerationCommand do
   let(:store) do
     instance_double(
       "Store",
@@ -9,6 +9,8 @@ describe Discord::WatchlistCommand do
       remove_user_from_watch_list: true,
       get_watch_list_users: [456, 789],
       get_user_karma: -3,
+      set_user_karma: 0,
+      increment_user_karma: -2,
     )
   end
   let(:server) { instance_double("Server", id: 123, members: members) }
@@ -21,7 +23,7 @@ describe Discord::WatchlistCommand do
   subject(:command) { described_class.new(store) }
 
   describe "#matches?" do
-    context "with a watchlist command" do
+    context "with a moderation command" do
       let(:content) { "!moderation watchlist add <@456>" }
 
       it "returns true" do
@@ -97,6 +99,49 @@ describe Discord::WatchlistCommand do
 
         expect(store).to have_received(:get_user_karma).with(123, 456)
         expect(event).to have_received(:respond).with("Karma for <@456>: -3")
+      end
+    end
+
+    context "when resetting user karma" do
+      let(:content) { "!moderation karma reset <@456>" }
+
+      it "resets the user's karma score" do
+        command.handle(event)
+
+        expect(store).to have_received(:set_user_karma).with(123, 456, 0)
+        expect(event).to have_received(:respond).with("Reset karma for <@456>")
+      end
+    end
+
+    context "when adding user karma" do
+      let(:content) { "!moderation karma add <@456> 2" }
+
+      it "increases the user's karma score" do
+        command.handle(event)
+
+        expect(store).to have_received(:increment_user_karma).with(123, 456, 2)
+        expect(event).to have_received(:respond).with("Karma for <@456>: -2")
+      end
+    end
+
+    context "when removing user karma" do
+      let(:content) { "!moderation karma remove <@456> 2" }
+
+      it "decreases the user's karma score" do
+        command.handle(event)
+
+        expect(store).to have_received(:increment_user_karma).with(123, 456, -2)
+        expect(event).to have_received(:respond).with("Karma for <@456>: -2")
+      end
+    end
+
+    context "when adjusting karma by zero" do
+      let(:content) { "!moderation karma add <@456> 0" }
+
+      it "responds with usage" do
+        command.handle(event)
+
+        expect(event).to have_received(:respond).with(described_class::USAGE)
       end
     end
 

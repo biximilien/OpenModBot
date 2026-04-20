@@ -29,6 +29,10 @@ class FakeRedis
   def hincrby(key, field, increment)
     @hashes[key][field.to_s] += increment
   end
+
+  def hset(key, field, value)
+    @hashes[key][field.to_s] = value
+  end
 end
 
 describe Backend do
@@ -79,6 +83,20 @@ describe Backend do
     it "supports custom decrement amounts" do
       expect(decrement_user_karma(server_id, user_id, 3)).to eq(-3)
       expect(get_user_karma(server_id, user_id)).to eq(-3)
+    end
+  end
+
+  describe "#increment_user_karma" do
+    it "increments a user's karma score" do
+      expect(increment_user_karma(server_id, user_id, 2)).to eq(2)
+      expect(get_user_karma(server_id, user_id)).to eq(2)
+    end
+  end
+
+  describe "#set_user_karma" do
+    it "sets a user's karma score" do
+      expect(set_user_karma(server_id, user_id, 10)).to eq(10)
+      expect(get_user_karma(server_id, user_id)).to eq(10)
     end
   end
 

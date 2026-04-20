@@ -3,6 +3,18 @@ require "open_ai"
 describe OpenAI do
   include OpenAI
 
+  describe "#anonymized_user_hash" do
+    it "hashes user ids for telemetry" do
+      user = instance_double("User", id: 123)
+
+      expect(anonymized_user_hash(user)).to eq(Telemetry::Anonymizer.hash(123))
+    end
+
+    it "returns nil without a user" do
+      expect(anonymized_user_hash(nil)).to be_nil
+    end
+  end
+
   describe "#moderate_text" do
     it "returns a moderation result" do
       allow(self).to receive(:query).and_return(

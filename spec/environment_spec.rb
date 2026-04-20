@@ -56,4 +56,60 @@ describe Environment do
       expect(described_class.karma_automod_threshold).to eq(-10)
     end
   end
+
+  describe ".telemetry_hash_salt" do
+    it "returns the default salt" do
+      ENV.delete("TELEMETRY_HASH_SALT")
+
+      expect(described_class.telemetry_hash_salt).to eq("development-telemetry-salt")
+    end
+
+    it "returns a configured salt" do
+      ENV["TELEMETRY_HASH_SALT"] = "deployment-secret"
+
+      expect(described_class.telemetry_hash_salt).to eq("deployment-secret")
+    end
+  end
+
+  describe ".karma_automod_action" do
+    it "returns timeout by default" do
+      ENV.delete("KARMA_AUTOMOD_ACTION")
+
+      expect(described_class.karma_automod_action).to eq("timeout")
+    end
+
+    it "returns a configured action" do
+      ENV["KARMA_AUTOMOD_ACTION"] = "ban"
+
+      expect(described_class.karma_automod_action).to eq("ban")
+    end
+  end
+
+  describe ".karma_timeout_seconds" do
+    it "returns the default timeout" do
+      ENV.delete("KARMA_TIMEOUT_SECONDS")
+
+      expect(described_class.karma_timeout_seconds).to eq(3_600)
+    end
+
+    it "returns a configured timeout" do
+      ENV["KARMA_TIMEOUT_SECONDS"] = "120"
+
+      expect(described_class.karma_timeout_seconds).to eq(120)
+    end
+  end
+
+  describe ".log_invite_url?" do
+    it "is false by default" do
+      ENV.delete("LOG_INVITE_URL")
+
+      expect(described_class.log_invite_url?).to eq(false)
+    end
+
+    it "is true when configured" do
+      ENV["LOG_INVITE_URL"] = "true"
+
+      expect(described_class.log_invite_url?).to eq(true)
+    end
+  end
 end

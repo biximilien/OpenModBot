@@ -3,6 +3,7 @@ require "net/http"
 require "uri"
 require "opentelemetry/sdk"
 require_relative "../environment"
+require_relative "telemetry/anonymizer"
 OpenAITracer = OpenTelemetry.tracer_provider.tracer("openai", "1.0")
 
 module OpenAI
@@ -16,18 +17,8 @@ module OpenAI
                                 "http.method" => "POST",
                                 "net.peer.name" => URI.parse(url).host,
                                 "net.peer.port" => URI.parse(url).port,
-                                "discord.user.id" => user&.id,
-                                "discord.user.name" => user&.name,
-                                "discord.user.username" => user&.username,
-                                "discord.user.discriminator" => user&.discriminator,
-                                "discord.user.status" => user&.status.to_s,
-                                "discord.user.avatar_id" => user&.avatar_id,
+                                "discord.user.hash" => anonymized_user_hash(user),
                                 "discord.user.bot_account" => user&.bot_account,
-                                "discord.user.current_bot?" => user&.current_bot?,
-                                "discord.user.dnd?" => user&.dnd?,
-                                "discord.user.idle?" => user&.idle?,
-                                "discord.user.offline?" => user&.offline?,
-                                "discord.user.online?" => user&.online?,
                               }) do |span|
       begin
         uri = URI.parse(url)
@@ -88,5 +79,11 @@ module OpenAI
     response.fetch("output", []).flat_map do |item|
       item.fetch("content", []).map { |content| content["text"] }
     end.compact.join.strip
+  end
+
+  def anonymized_user_hash(user)
+    return nil unless user
+
+    Telemetry::Anonymizer.hash(user.id)
   end
 end

@@ -27,6 +27,15 @@ module Backend
     @redis.hincrby(karma_key(server_id), user_id, -amount)
   end
 
+  def increment_user_karma(server_id, user_id, amount = 1)
+    @redis.hincrby(karma_key(server_id), user_id, amount)
+  end
+
+  def set_user_karma(server_id, user_id, score)
+    @redis.hset(karma_key(server_id), user_id, score)
+    score
+  end
+
   def add_server(server_id)
     @redis.sadd("servers", server_id)
   end
