@@ -1,4 +1,5 @@
 require "moderation_strategy"
+require "moderation/automod_outcome"
 require "open_ai"
 
 describe RemoveMessageStrategy do
@@ -7,7 +8,7 @@ describe RemoveMessageStrategy do
   let(:user) { instance_double("User", id: 456) }
   let(:event) { instance_double("Event", server: server, message: message, user: user) }
   let(:bot) { instance_double("Bot") }
-  let(:automod_policy) { instance_double("AutomodPolicy", apply: "automod_timeout_applied") }
+  let(:automod_policy) { instance_double("AutomodPolicy", apply: Moderation::AutomodOutcome::TIMEOUT_APPLIED) }
   let(:plugin_registry) do
     instance_double(
       "PluginRegistry",
@@ -70,12 +71,12 @@ describe RemoveMessageStrategy do
       123,
       456,
       score: -5,
-      source: "automod_timeout_applied",
+      source: Moderation::AutomodOutcome::TIMEOUT_APPLIED,
     )
     expect(plugin_registry).to have_received(:automod_outcome).with(
       event: event,
       score: -5,
-      outcome: "automod_timeout_applied",
+      outcome: Moderation::AutomodOutcome::TIMEOUT_APPLIED,
       app: bot,
       strategy: "RemoveMessageStrategy",
     )
@@ -98,7 +99,7 @@ describe WatchListStrategy do
   let(:user) { instance_double("User", id: 456) }
   let(:event) { instance_double("Event", server: server, message: message, user: user, respond: true) }
   let(:bot) { instance_double("Bot") }
-  let(:automod_policy) { instance_double("AutomodPolicy", apply: "automod_timeout_applied") }
+  let(:automod_policy) { instance_double("AutomodPolicy", apply: Moderation::AutomodOutcome::TIMEOUT_APPLIED) }
   let(:plugin_registry) do
     instance_double(
       "PluginRegistry",
