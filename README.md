@@ -52,6 +52,7 @@ LOG_INVITE_URL=false
 TELEMETRY_HASH_SALT=replace_with_random_secret
 PLUGIN_REQUIRES=
 PLUGINS=
+PERSONALITY=objective
 ```
 
 `OPENAI_MODERATION_MODEL`, `OPENAI_REWRITE_MODEL`, `KARMA_AUTOMOD_THRESHOLD`, `KARMA_AUTOMOD_ACTION`, `KARMA_TIMEOUT_SECONDS`, and `LOG_INVITE_URL` are optional. `TELEMETRY_HASH_SALT` is used to anonymize Discord identifiers in logs and traces; set it to a stable random secret for your deployment.
@@ -95,7 +96,12 @@ Optional built-in plugins can be enabled with `PLUGINS`, using comma-separated n
 PLUGINS=telemetry
 ```
 
-The first built-in plugin is `telemetry`. External plugin packages can follow the same `ModerationGPT::Plugin` hook interface and register with `ModerationGPT::PluginRegistry.register`. Use `PLUGIN_REQUIRES` to load plugin packages before `PLUGINS` is resolved:
+Built-in plugins:
+
+- `telemetry`
+- `personality`
+
+External plugin packages can follow the same `ModerationGPT::Plugin` hook interface and register with `ModerationGPT::PluginRegistry.register`. Use `PLUGIN_REQUIRES` to load plugin packages before `PLUGINS` is resolved:
 
 ```bash
 PLUGIN_REQUIRES=moderation_gpt/plugins/audit_webhook
@@ -110,7 +116,19 @@ Plugin hooks:
 - `moderation_result`
 - `infraction`
 - `automod_outcome`
+- `rewrite_instructions`
 - `commands`
+
+## Personalities
+
+The personality plugin controls the tone used when the bot rewrites moderated watchlist messages:
+
+```bash
+PLUGINS=personality
+PERSONALITY=objective
+```
+
+Available personalities are `objective`, `empathetic`, `pirate`, and `poetic`. The default is `objective`, which uses a direct, neutral rewrite style.
 
 ## Docker
 

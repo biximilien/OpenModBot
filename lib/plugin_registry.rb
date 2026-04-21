@@ -1,5 +1,6 @@
 require_relative "../environment"
 require_relative "plugin"
+require_relative "plugins/personality_plugin"
 require_relative "plugins/telemetry_plugin"
 
 module ModerationGPT
@@ -59,6 +60,17 @@ module ModerationGPT
       each_plugin(:automod_outcome, **context)
     end
 
+    def rewrite_instructions(**context)
+      @plugins.each do |plugin|
+        instructions = plugin.rewrite_instructions(**context)
+        return instructions if instructions
+      rescue StandardError => e
+        $logger&.error("Plugin hook rewrite_instructions failed: #{e.class}: #{e.message}")
+      end
+
+      nil
+    end
+
     def commands
       @plugins.flat_map(&:commands)
     end
@@ -74,5 +86,6 @@ module ModerationGPT
     end
   end
 
+  PluginRegistry.register("personality") { Plugins::PersonalityPlugin.new }
   PluginRegistry.register("telemetry") { Plugins::TelemetryPlugin.new }
 end

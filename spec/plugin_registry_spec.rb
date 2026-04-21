@@ -66,6 +66,7 @@ describe ModerationGPT::PluginRegistry do
         moderation_result: true,
         infraction: true,
         automod_outcome: true,
+        rewrite_instructions: nil,
         commands: [:command],
       )
       registry = described_class.new([plugin])
@@ -90,6 +91,29 @@ describe ModerationGPT::PluginRegistry do
         strategy: "Strategy",
       )
       expect(registry.commands).to eq([:command])
+    end
+
+    it "returns the first plugin rewrite instructions" do
+      first = instance_double("Plugin", rewrite_instructions: nil)
+      second = instance_double("Plugin", rewrite_instructions: "Rewrite this way.")
+
+      result = described_class.new([first, second]).rewrite_instructions(event: :event)
+
+      expect(result).to eq("Rewrite this way.")
+      expect(first).to have_received(:rewrite_instructions).with(event: :event)
+      expect(second).to have_received(:rewrite_instructions).with(event: :event)
+    end
+
+    it "logs and continues when a rewrite instruction hook fails" do
+      broken = instance_double("Plugin")
+      healthy = instance_double("Plugin", rewrite_instructions: "Fallback instructions.")
+      allow(broken).to receive(:rewrite_instructions).and_raise(StandardError, "boom")
+      allow($logger).to receive(:error)
+
+      result = described_class.new([broken, healthy]).rewrite_instructions(event: :event)
+
+      expect(result).to eq("Fallback instructions.")
+      expect($logger).to have_received(:error).with("Plugin hook rewrite_instructions failed: StandardError: boom")
     end
 
     it "logs and continues when a plugin hook fails" do

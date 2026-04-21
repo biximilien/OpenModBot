@@ -14,6 +14,7 @@ module Environment
   DEFAULT_TELEMETRY_HASH_SALT = "development-telemetry-salt"
   DEFAULT_KARMA_AUTOMOD_ACTION = "timeout"
   DEFAULT_KARMA_TIMEOUT_SECONDS = 3_600
+  DEFAULT_PERSONALITY = "objective"
 
   def self.validate!
     missing = REQUIRED_VARIABLES.select { |name| missing?(ENV[name]) }
@@ -60,6 +61,10 @@ module Environment
 
   def self.plugin_requires
     ENV.fetch("PLUGIN_REQUIRES", "").split(",").map(&:strip).reject(&:empty?)
+  end
+
+  def self.personality
+    ENV.fetch("PERSONALITY", DEFAULT_PERSONALITY).downcase
   end
 
   def self.karma_automod_action

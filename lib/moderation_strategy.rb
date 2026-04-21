@@ -77,7 +77,7 @@ class WatchListStrategy < ModerationStrategy
   end
 
   def execute(event)
-    edited = @bot.moderation_rewrite(event.message.content, event.user)
+    edited = moderation_rewrite(event)
     reason = "Moderation (rewriting due to negative sentiment)"
     event.message.delete(reason)
     record_infraction(event)
@@ -85,6 +85,13 @@ class WatchListStrategy < ModerationStrategy
   end
 
   private
+
+  def moderation_rewrite(event)
+    instructions = @plugin_registry&.rewrite_instructions(event: event, app: @bot, strategy: self.class.name)
+    return @bot.moderation_rewrite(event.message.content, event.user, instructions:) if instructions
+
+    @bot.moderation_rewrite(event.message.content, event.user)
+  end
 
   def response_message(user_id, edited)
     rewritten = edited.to_s.strip

@@ -130,6 +130,20 @@ describe Environment do
     end
   end
 
+  describe ".personality" do
+    it "returns objective by default" do
+      ENV.delete("PERSONALITY")
+
+      expect(described_class.personality).to eq("objective")
+    end
+
+    it "normalizes configured personalities" do
+      ENV["PERSONALITY"] = "Empathetic"
+
+      expect(described_class.personality).to eq("empathetic")
+    end
+  end
+
   describe ".karma_automod_action" do
     it "returns timeout by default" do
       ENV.delete("KARMA_AUTOMOD_ACTION")

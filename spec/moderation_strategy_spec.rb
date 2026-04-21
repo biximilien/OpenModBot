@@ -14,6 +14,7 @@ describe RemoveMessageStrategy do
       moderation_result: true,
       infraction: true,
       automod_outcome: true,
+      rewrite_instructions: nil,
     )
   end
 
@@ -104,6 +105,7 @@ describe WatchListStrategy do
       moderation_result: true,
       infraction: true,
       automod_outcome: true,
+      rewrite_instructions: nil,
     )
   end
 
@@ -141,6 +143,21 @@ describe WatchListStrategy do
     expect(message).to have_received(:delete).with("Moderation (rewriting due to negative sentiment)")
     expect(bot).to have_received(:decrement_user_karma).with(123, 456)
     expect(event).to have_received(:respond).with("A message from <@456> was rewritten:\nPlease be kinder.")
+  end
+
+  it "uses plugin rewrite instructions when available" do
+    allow(plugin_registry).to receive(:rewrite_instructions).and_return("Use pirate voice.")
+    allow(bot).to receive(:moderation_rewrite).with("bad message", user, instructions: "Use pirate voice.").and_return("Avast, be kinder.")
+    allow(bot).to receive(:decrement_user_karma).with(123, 456).and_return(-1)
+
+    described_class.new(bot, automod_policy: automod_policy, plugin_registry: plugin_registry).execute(event)
+
+    expect(plugin_registry).to have_received(:rewrite_instructions).with(
+      event: event,
+      app: bot,
+      strategy: "WatchListStrategy",
+    )
+    expect(event).to have_received(:respond).with("A message from <@456> was rewritten:\nAvast, be kinder.")
   end
 
   it "does not repost original content when the rewrite is empty" do

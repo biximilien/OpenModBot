@@ -42,6 +42,18 @@ describe OpenAI do
       expect(moderation_rewrite("you are awful")).to eq("Let's talk this through.")
     end
 
+    it "passes rewrite instructions to the Responses API" do
+      allow(self).to receive(:query).and_return("output_text" => "Please stop.")
+
+      moderation_rewrite("you are awful", nil, instructions: "Use this voice.")
+
+      expect(self).to have_received(:query).with(
+        "https://api.openai.com/v1/responses",
+        hash_including(instructions: "Use this voice."),
+        nil,
+      )
+    end
+
     it "falls back to parsing output content blocks" do
       response = {
         "output" => [

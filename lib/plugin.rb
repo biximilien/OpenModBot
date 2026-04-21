@@ -12,6 +12,10 @@ module ModerationGPT
 
     def automod_outcome(**); end
 
+    def rewrite_instructions(**)
+      nil
+    end
+
     def commands
       []
     end

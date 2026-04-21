@@ -5,6 +5,8 @@ require_relative "../environment"
 require_relative "telemetry"
 
 module OpenAI
+  DEFAULT_REWRITE_INSTRUCTIONS = "Rewrite the user's message in a direct, neutral tone. State the concern plainly, avoid emotional language, preserve the user's apparent intent, do not add new claims, and return only the rewritten message.".freeze
+
   ModerationResult = Struct.new(:flagged, :categories, :category_scores, keyword_init: true)
 
   def query(url, params, user = nil)
@@ -61,10 +63,10 @@ module OpenAI
     )
   end
 
-  def moderation_rewrite(text, user = nil)
+  def moderation_rewrite(text, user = nil, instructions: DEFAULT_REWRITE_INSTRUCTIONS)
     response = query("https://api.openai.com/v1/responses", {
       model: Environment.openai_rewrite_model,
-      instructions: "Rewrite the user's message in a respectful, constructive tone. Preserve the user's apparent intent, do not add new claims, and return only the rewritten message.",
+      instructions: instructions,
       input: text,
     }, user)
 
