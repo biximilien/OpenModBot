@@ -42,49 +42,50 @@ module Moderation
       target = moderation_target(event)
       reason = moderation_reason(score)
 
-      if target.respond_to?(:timeout_for)
-        target.timeout_for(@timeout_seconds, reason)
-        AutomodOutcome::TIMEOUT_APPLIED
-      elsif target.respond_to?(:timeout)
-        target.timeout(@timeout_seconds, reason)
-        AutomodOutcome::TIMEOUT_APPLIED
-      elsif timeout_via_api(event, reason)
-        AutomodOutcome::TIMEOUT_APPLIED
-      else
-        $logger.warn("User #{user_hash} reached timeout threshold with karma #{score}, but timeout is unavailable")
-        AutomodOutcome::TIMEOUT_UNAVAILABLE
+      return applied_or_unavailable(user_hash, score, "timeout", AutomodOutcome::TIMEOUT_APPLIED, AutomodOutcome::TIMEOUT_UNAVAILABLE) do
+        if target.respond_to?(:timeout_for)
+          target.timeout_for(@timeout_seconds, reason)
+        elsif target.respond_to?(:timeout)
+          target.timeout(@timeout_seconds, reason)
+        else
+          timeout_via_api(event, reason)
+        end
       end
     end
 
-    def kick(event, user_hash, score)
-      target = moderation_target(event)
+  def kick(event, user_hash, score)
+    target = moderation_target(event)
+    reason = moderation_reason(score)
 
+    applied_or_unavailable(user_hash, score, "kick", AutomodOutcome::KICK_APPLIED, AutomodOutcome::KICK_UNAVAILABLE) do
       if target.respond_to?(:kick)
-        target.kick(moderation_reason(score))
-        AutomodOutcome::KICK_APPLIED
+        target.kick(reason)
+        true
       elsif event.server.respond_to?(:kick)
-        event.server.kick(event.user, moderation_reason(score))
-        AutomodOutcome::KICK_APPLIED
+        event.server.kick(event.user, reason)
+        true
       else
-        $logger.warn("User #{user_hash} reached kick threshold with karma #{score}, but kick is unavailable")
-        AutomodOutcome::KICK_UNAVAILABLE
+        false
       end
     end
+  end
 
-    def ban(event, user_hash, score)
-      target = moderation_target(event)
+  def ban(event, user_hash, score)
+    target = moderation_target(event)
+    reason = moderation_reason(score)
 
+    applied_or_unavailable(user_hash, score, "ban", AutomodOutcome::BAN_APPLIED, AutomodOutcome::BAN_UNAVAILABLE) do
       if target.respond_to?(:ban)
-        target.ban(moderation_reason(score))
-        AutomodOutcome::BAN_APPLIED
+        target.ban(reason)
+        true
       elsif event.server.respond_to?(:ban)
-        event.server.ban(event.user, 0, reason: moderation_reason(score))
-        AutomodOutcome::BAN_APPLIED
+        event.server.ban(event.user, 0, reason: reason)
+        true
       else
-        $logger.warn("User #{user_hash} reached ban threshold with karma #{score}, but ban is unavailable")
-        AutomodOutcome::BAN_UNAVAILABLE
+        false
       end
     end
+  end
 
     def moderation_target(event)
       return event.member if event.respond_to?(:member) && event.member
@@ -104,6 +105,13 @@ module Moderation
 
     def moderation_reason(score)
       "Automated moderation: karma #{score}"
+    end
+
+    def applied_or_unavailable(user_hash, score, action_name, applied_outcome, unavailable_outcome)
+      return applied_outcome if yield
+
+      $logger.warn("User #{user_hash} reached #{action_name} threshold with karma #{score}, but #{action_name} is unavailable")
+      unavailable_outcome
     end
 
     def timeout_via_api(event, reason)

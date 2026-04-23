@@ -87,6 +87,7 @@ bundle exec rspec
 The default specs stub OpenAI and Redis, so they do not require external API calls.
 
 The Redis data model is documented in `docs/data-model.md`.
+The application structure is documented in `docs/architecture.md`.
 
 ## Plugins
 

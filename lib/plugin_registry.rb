@@ -61,23 +61,11 @@ module ModerationGPT
     end
 
     def rewrite_instructions(**context)
-      @plugins.each do |plugin|
-        instructions = plugin.rewrite_instructions(**context)
-        return instructions if instructions
-      rescue StandardError => e
-        $logger&.error("Plugin hook rewrite_instructions failed: #{e.class}: #{e.message}")
-      end
-
-      nil
+      first_hook_result(:rewrite_instructions, **context)
     end
 
     def moderation_strategies(**context)
-      @plugins.flat_map do |plugin|
-        plugin.moderation_strategies(**context)
-      rescue StandardError => e
-        $logger&.error("Plugin hook moderation_strategies failed: #{e.class}: #{e.message}")
-        []
-      end
+      flat_map_hook(:moderation_strategies, **context)
     end
 
     def commands
@@ -90,8 +78,32 @@ module ModerationGPT
       @plugins.each do |plugin|
         plugin.public_send(hook, **context)
       rescue StandardError => e
-        $logger&.error("Plugin hook #{hook} failed: #{e.class}: #{e.message}")
+        log_hook_failure(hook, e)
       end
+    end
+
+    def first_hook_result(hook, **context)
+      @plugins.each do |plugin|
+        result = plugin.public_send(hook, **context)
+        return result if result
+      rescue StandardError => e
+        log_hook_failure(hook, e)
+      end
+
+      nil
+    end
+
+    def flat_map_hook(hook, **context)
+      @plugins.flat_map do |plugin|
+        plugin.public_send(hook, **context)
+      rescue StandardError => e
+        log_hook_failure(hook, e)
+        []
+      end
+    end
+
+    def log_hook_failure(hook, error)
+      $logger&.error("Plugin hook #{hook} failed: #{error.class}: #{error.message}")
     end
   end
 
