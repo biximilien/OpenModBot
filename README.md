@@ -35,9 +35,11 @@ Each moderated infraction decreases the user's per-server karma score and record
 - Discord bot token
 - OpenAI API key
 
+This repository is intended to work on Linux, macOS, and Windows. The examples below use a POSIX-style shell for brevity; when using PowerShell or `cmd.exe`, keep the same values but use your shell's syntax for file copying and environment variable editing.
+
 ## Configuration
 
-Create a `.env` file in the project root:
+Create a `.env` file in the project root. The simplest approach is to copy `.env.sample` and fill in your secrets:
 
 ```bash
 OPENAI_API_KEY=my_openai_secret
@@ -63,7 +65,7 @@ Install dependencies:
 
 ```bash
 gem install bundler -v 2.4.5
-bundle _2.4.5_ install
+bundle install
 ```
 
 Start Redis:
@@ -71,6 +73,8 @@ Start Redis:
 ```bash
 docker compose up redis
 ```
+
+If you are not using Docker, point `REDIS_URL` at any reachable Redis instance.
 
 Run the bot:
 
