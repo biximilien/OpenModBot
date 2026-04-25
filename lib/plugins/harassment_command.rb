@@ -52,10 +52,17 @@ module ModerationGPT
 
       def handle_risk(event, match)
         report = @plugin.get_user_risk(match[:user_id], as_of: Time.now.utc)
-        signals = report.signals.sort_by { |name, _| name.to_s }.map { |name, value| "#{name}=#{format('%.2f', value)}" }.join(", ")
+        signal_lines = report.signals.sort_by { |name, _| name.to_s }.map do |name, value|
+          "- #{humanize_signal(name)}: #{format('%.2f', value)}"
+        end
         event.respond(
-          "Harassment risk for <@#{match[:user_id]}>: score=#{format('%.2f', report.risk_score)}, " \
-          "relationships=#{report.relationship_count}, #{signals}",
+          [
+            "Harassment risk for <@#{match[:user_id]}>",
+            "Score: #{format('%.2f', report.risk_score)}",
+            "Relationships: #{report.relationship_count}",
+            "Signals:",
+            *signal_lines,
+          ].join("\n"),
         )
       end
 
@@ -68,9 +75,12 @@ module ModerationGPT
 
         edge = report.relationship_edge
         event.respond(
-          "Harassment relationship <@#{match[:source_user_id]}> -> <@#{match[:target_user_id]}>: " \
-          "hostility=#{format('%.2f', edge.hostility_score)}, interactions=#{edge.interaction_count}, " \
-          "last_seen=#{edge.last_interaction_at.iso8601}",
+          [
+            "Harassment relationship <@#{match[:source_user_id]}> -> <@#{match[:target_user_id]}>",
+            "Hostility: #{format('%.2f', edge.hostility_score)}",
+            "Interactions: #{edge.interaction_count}",
+            "Last seen: #{edge.last_interaction_at.iso8601}",
+          ].join("\n"),
         )
       end
 
@@ -84,9 +94,13 @@ module ModerationGPT
 
         lines = report.incidents.map do |incident|
           targets = incident.target_user_ids.empty? ? "none" : incident.target_user_ids.map { |user_id| "<@#{user_id}>" }.join(", ")
-          "- <@#{incident.author_id}> -> #{targets}; intent=#{incident.intent}; severity=#{format('%.2f', incident.severity_score)}; confidence=#{format('%.2f', incident.confidence)}; at=#{incident.classified_at.iso8601}"
+          "- <@#{incident.author_id}> -> #{targets} | #{incident.intent} | severity #{format('%.2f', incident.severity_score)} | confidence #{format('%.2f', incident.confidence)} | #{incident.classified_at.iso8601}"
         end
         event.respond("Recent harassment incidents:\n#{lines.join("\n")}")
+      end
+
+      def humanize_signal(name)
+        name.to_s.split("_").map(&:capitalize).join(" ")
       end
     end
   end

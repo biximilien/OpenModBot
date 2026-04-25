@@ -68,9 +68,10 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
     expect(event).to have_received(:respond).with(
       a_string_including(
-        "Harassment risk for <@456>: score=0.72",
-        "relationships=2",
-        "asymmetry=0.80",
+        "Harassment risk for <@456>",
+        "Score: 0.72",
+        "Relationships: 2",
+        "- Asymmetry: 0.80",
       ),
     )
   end
@@ -82,7 +83,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
     command.handle(event)
 
     expect(event).to have_received(:respond).with(
-      "Harassment relationship <@456> -> <@789>: hostility=0.50, interactions=3, last_seen=2026-04-25T16:00:00Z",
+      "Harassment relationship <@456> -> <@789>\nHostility: 0.50\nInteractions: 3\nLast seen: 2026-04-25T16:00:00Z",
     )
   end
 
@@ -94,7 +95,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
     expect(plugin).to have_received(:recent_incidents).with(321, limit: 1)
     expect(event).to have_received(:respond).with(
-      a_string_including("Recent harassment incidents:", "<@456> -> <@789>; intent=aggressive; severity=0.80; confidence=0.70"),
+      a_string_including("Recent harassment incidents:", "<@456> -> <@789> | aggressive | severity 0.80 | confidence 0.70"),
     )
   end
 end
