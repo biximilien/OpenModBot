@@ -27,6 +27,14 @@ module Harassment
       def redact_content(_message_id, redacted_at: Time.now.utc)
         raise NotImplementedError, "#{self.class} must implement #redact_content"
       end
+
+      def recent_in_channel(server_id:, channel_id:, before:, limit:)
+        raise NotImplementedError, "#{self.class} must implement #recent_in_channel"
+      end
+
+      def recent_between_participants(server_id:, participant_ids:, before:, limit:)
+        raise NotImplementedError, "#{self.class} must implement #recent_between_participants"
+      end
     end
   end
 end

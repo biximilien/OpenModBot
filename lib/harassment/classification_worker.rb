@@ -12,6 +12,7 @@ module Harassment
       classification_jobs:,
       classification_pipeline:,
       classifier:,
+      context_assembler: nil,
       on_success: nil,
       max_attempts: DEFAULT_MAX_ATTEMPTS,
       retry_delays: DEFAULT_RETRY_DELAYS
@@ -20,6 +21,7 @@ module Harassment
       @classification_jobs = classification_jobs
       @classification_pipeline = classification_pipeline
       @classifier = classifier
+      @context_assembler = context_assembler
       @on_success = on_success
       @max_attempts = Integer(max_attempts)
       @retry_delays = Array(retry_delays).map { |delay| Integer(delay) }
@@ -43,6 +45,7 @@ module Harassment
       record = @classifier.classify(
         event: event,
         classifier_version: job.classifier_version,
+        context: classification_context(event),
         classified_at: as_of,
       )
       record = @classification_pipeline.record_success(record)
@@ -69,6 +72,12 @@ module Harassment
           error: error,
         )
       end
+    end
+
+    def classification_context(event)
+      return nil unless @context_assembler
+
+      @context_assembler.build_for(event)
     end
 
     def retryable?(job, error)

@@ -1,6 +1,7 @@
 require_relative "classification_pipeline"
 require_relative "classification_worker"
 require_relative "classifier_version"
+require_relative "context_assembler"
 require_relative "message_ingestor"
 require_relative "open_ai_classifier"
 require_relative "repositories/in_memory_classification_job_repository"
@@ -41,11 +42,13 @@ module Harassment
         classification_pipeline: @classification_pipeline,
         classifier_version: @classifier_version,
       )
+      @context_assembler = ContextAssembler.new(interaction_events: @interaction_events)
       @classification_worker = ClassificationWorker.new(
         interaction_events: @interaction_events,
         classification_jobs: @classification_jobs,
         classification_pipeline: @classification_pipeline,
         classifier: @classifier,
+        context_assembler: @context_assembler,
         on_success: on_classification,
       )
     end

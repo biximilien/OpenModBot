@@ -59,13 +59,13 @@ module Harassment
       @model = model
     end
 
-    def classify(event:, classifier_version:, classified_at: Time.now.utc)
+    def classify(event:, classifier_version:, context: nil, classified_at: Time.now.utc)
       response = @client.query(
         "https://api.openai.com/v1/responses",
         {
           model: @model,
           instructions: INSTRUCTIONS,
-          input: classifier_input(event),
+          input: classifier_input(event, context: context),
           text: {
             format: {
               type: "json_schema",
@@ -95,14 +95,18 @@ module Harassment
 
     private
 
-    def classifier_input(event)
+    def classifier_input(event, context:)
+      participant_labels = (context || {}).fetch(:participant_labels, {})
+
       {
         message: {
           timestamp: event.timestamp.iso8601,
           content: event.raw_content,
-          explicit_target_count: event.target_user_ids.length,
-          has_explicit_targets: event.target_user_ids.any?,
+          author_label: participant_labels.fetch(event.author_id, "author"),
+          target_labels: event.target_user_ids.map { |target_user_id| participant_labels.fetch(target_user_id, "target") },
         },
+        recent_channel_messages: Array((context || {})[:recent_channel_messages]),
+        recent_pair_interactions: Array((context || {})[:recent_pair_interactions]),
       }.to_json
     end
 

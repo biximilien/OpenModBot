@@ -1,4 +1,5 @@
 require "harassment/repositories/in_memory_interaction_event_repository"
+require "set"
 
 describe Harassment::Repositories::InMemoryInteractionEventRepository do
   subject(:repository) { described_class.new }
@@ -9,6 +10,7 @@ describe Harassment::Repositories::InMemoryInteractionEventRepository do
       server_id: 456,
       channel_id: 789,
       author_id: 321,
+      timestamp: Time.utc(2026, 4, 25, 12, 0, 0),
       raw_content: "hello there",
     )
   end
@@ -69,5 +71,68 @@ describe Harassment::Repositories::InMemoryInteractionEventRepository do
 
     expect(redacted.raw_content).to eq("[REDACTED]")
     expect(repository.find("123").content_redacted_at).to eq(Time.utc(2026, 4, 2, 12, 0, 0))
+  end
+
+  it "lists recent events in a channel before a cutoff" do
+    repository.save(event)
+    repository.save(
+      Harassment::InteractionEvent.build(
+        message_id: 124,
+        server_id: 456,
+        channel_id: 789,
+        author_id: 654,
+        timestamp: Time.utc(2026, 4, 25, 12, 5, 0),
+        raw_content: "later message",
+      ),
+    )
+    repository.save(
+      Harassment::InteractionEvent.build(
+        message_id: 125,
+        server_id: 456,
+        channel_id: 790,
+        author_id: 654,
+        timestamp: Time.utc(2026, 4, 25, 12, 6, 0),
+        raw_content: "other channel",
+      ),
+    )
+
+    results = repository.recent_in_channel(server_id: "456", channel_id: "789", before: Time.utc(2026, 4, 25, 12, 6, 0), limit: 2)
+
+    expect(results.map(&:message_id)).to eq(%w[123 124])
+  end
+
+  it "lists recent events involving matching participants in the same server" do
+    repository.save(event)
+    repository.save(
+      Harassment::InteractionEvent.build(
+        message_id: 124,
+        server_id: 456,
+        channel_id: 790,
+        author_id: 654,
+        target_user_ids: [999],
+        timestamp: Time.utc(2026, 4, 25, 12, 5, 0),
+        raw_content: "same author",
+      ),
+    )
+    repository.save(
+      Harassment::InteractionEvent.build(
+        message_id: 125,
+        server_id: 999,
+        channel_id: 790,
+        author_id: 321,
+        target_user_ids: [654],
+        timestamp: Time.utc(2026, 4, 25, 12, 6, 0),
+        raw_content: "wrong server",
+      ),
+    )
+
+    results = repository.recent_between_participants(
+      server_id: "456",
+      participant_ids: %w[321 654],
+      before: Time.utc(2026, 4, 25, 12, 7, 0),
+      limit: 5,
+    )
+
+    expect(results.map(&:message_id)).to eq(%w[123 124])
   end
 end

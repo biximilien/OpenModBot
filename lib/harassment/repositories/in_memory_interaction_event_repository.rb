@@ -43,7 +43,36 @@ module Harassment
         @events[event.message_id] = redacted
       end
 
+      def recent_in_channel(server_id:, channel_id:, before:, limit:)
+        @events.values
+               .select do |event|
+                 event.server_id == server_id.to_s &&
+                   event.channel_id == channel_id.to_s &&
+                   event.timestamp < before.utc
+               end
+               .sort_by(&:timestamp)
+               .last(limit)
+      end
+
+      def recent_between_participants(server_id:, participant_ids:, before:, limit:)
+        normalized_participant_ids = Array(participant_ids).map(&:to_s).to_set
+
+        @events.values
+               .select do |event|
+                 event.server_id == server_id.to_s &&
+                   event.timestamp < before.utc &&
+                   interaction_involves_participants?(event, normalized_participant_ids)
+               end
+               .sort_by(&:timestamp)
+               .last(limit)
+      end
+
       private
+
+      def interaction_involves_participants?(event, participant_ids)
+        event_participants = [event.author_id, *event.target_user_ids].to_set
+        !(event_participants & participant_ids).empty?
+      end
 
       def normalize_status(status)
         return status if ClassificationStatus::ALL.include?(status)

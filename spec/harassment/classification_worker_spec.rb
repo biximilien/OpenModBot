@@ -16,6 +16,7 @@ describe Harassment::ClassificationWorker do
     )
   end
   let(:classifier) { instance_double("Classifier") }
+  let(:context_assembler) { instance_double("ContextAssembler") }
   let(:event) do
     Harassment::InteractionEvent.build(
       message_id: 123,
@@ -55,6 +56,7 @@ describe Harassment::ClassificationWorker do
       classification_jobs: classification_jobs,
       classification_pipeline: classification_pipeline,
       classifier: classifier,
+      context_assembler: context_assembler,
       on_success: ->(event:, record:) { processed << [event, record] },
     )
   end
@@ -62,6 +64,7 @@ describe Harassment::ClassificationWorker do
   before do
     interaction_events.save(event)
     classification_pipeline.enqueue(message_id: "123", classifier_version: "harassment-v1", enqueued_at: event.timestamp)
+    allow(context_assembler).to receive(:build_for).and_return({ recent_channel_messages: [], recent_pair_interactions: [], participant_labels: {} })
   end
 
   it "processes due jobs and records successful classifications" do
@@ -70,6 +73,12 @@ describe Harassment::ClassificationWorker do
     results = worker.process_due_jobs(as_of: Time.utc(2026, 4, 25, 18, 1, 0))
 
     expect(results).to eq([record])
+    expect(classifier).to have_received(:classify).with(
+      event: event,
+      classifier_version: Harassment::ClassifierVersion.build("harassment-v1"),
+      context: { recent_channel_messages: [], recent_pair_interactions: [], participant_labels: {} },
+      classified_at: Time.utc(2026, 4, 25, 18, 1, 0),
+    )
     expect(classification_records.latest_for_message("123")).to eq(record)
     expect(classification_jobs.find(message_id: "123", classifier_version: "harassment-v1").status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
     expect(processed).to eq([[event, record]])
