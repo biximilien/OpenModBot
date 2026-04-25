@@ -32,6 +32,15 @@ describe ModerationGPT::PluginRegistry do
       expect(registry.commands).to eq([])
     end
 
+    it "builds the built-in harassment plugin" do
+      ENV["PLUGINS"] = "harassment"
+
+      registry = described_class.from_environment
+
+      expect(registry).to be_a(described_class)
+      expect(registry.commands).to eq([])
+    end
+
     it "raises for unknown plugins" do
       ENV["PLUGINS"] = "missing"
 

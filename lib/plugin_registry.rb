@@ -1,6 +1,7 @@
 require_relative "../environment"
 require_relative "logging"
 require_relative "plugin"
+require_relative "plugins/harassment_plugin"
 require_relative "plugins/personality_plugin"
 require_relative "plugins/telemetry_plugin"
 
@@ -108,6 +109,7 @@ module ModerationGPT
     end
   end
 
+  PluginRegistry.register("harassment") { Plugins::HarassmentPlugin.new }
   PluginRegistry.register("personality") { Plugins::PersonalityPlugin.new }
   PluginRegistry.register("telemetry") { Plugins::TelemetryPlugin.new }
 end
