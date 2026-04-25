@@ -96,28 +96,33 @@ module Backend
   end
 
   def decrement_user_karma(server_id, user_id, amount = 1, source: "automated_infraction", actor_id: nil, reason: nil)
-    change_user_karma(server_id, user_id, -amount, source:, actor_id:, reason:)
+    validated_amount = positive_integer!(amount, "amount")
+    change_user_karma(server_id, user_id, -validated_amount, source:, actor_id:, reason:)
   end
 
   def increment_user_karma(server_id, user_id, amount = 1, source: "manual_adjustment", actor_id: nil, reason: nil)
-    change_user_karma(server_id, user_id, amount, source:, actor_id:, reason:)
+    validated_amount = positive_integer!(amount, "amount")
+    change_user_karma(server_id, user_id, validated_amount, source:, actor_id:, reason:)
   end
 
   def set_user_karma(server_id, user_id, score, source: "manual_reset", actor_id: nil, reason: nil)
+    validated_score = integer!(score, "score")
     created_at = Time.now.utc.iso8601
     @redis.eval(
       SET_KARMA_WITH_AUDIT_SCRIPT,
       keys: [DataModel::Keys.karma(server_id), DataModel::Keys.karma_history(server_id, user_id)],
-      argv: [user_id.to_s, score.to_i, source, optional_redis_arg(actor_id), optional_redis_arg(reason), created_at, KARMA_AUDIT_LIMIT],
+      argv: [user_id.to_s, validated_score, source, optional_redis_arg(actor_id), optional_redis_arg(reason), created_at, KARMA_AUDIT_LIMIT],
     )
   end
 
   def record_user_karma_event(server_id, user_id, score:, source:, delta: 0, actor_id: nil, reason: nil)
+    validated_score = integer!(score, "score")
+    validated_delta = integer!(delta, "delta")
     created_at = Time.now.utc.iso8601
     @redis.eval(
       RECORD_KARMA_EVENT_SCRIPT,
       keys: [DataModel::Keys.karma_history(server_id, user_id)],
-      argv: [score.to_i, delta.to_i, source, created_at, optional_redis_arg(actor_id), optional_redis_arg(reason), KARMA_AUDIT_LIMIT],
+      argv: [validated_score, validated_delta, source, created_at, optional_redis_arg(actor_id), optional_redis_arg(reason), KARMA_AUDIT_LIMIT],
     )
   end
 
@@ -134,6 +139,7 @@ module Backend
 
   def remove_server(server_id)
     @redis.srem(DataModel::Keys.servers, server_id)
+    purge_server_data(server_id)
   end
 
   def get_servers
@@ -153,5 +159,31 @@ module Backend
 
   def optional_redis_arg(value)
     value.nil? ? "" : value.to_s
+  end
+
+  def purge_server_data(server_id)
+    delete_key(DataModel::Keys.watchlist(server_id))
+    delete_key(DataModel::Keys.karma(server_id))
+
+    @redis.scan_each(match: DataModel::Keys.karma_history_pattern(server_id)) do |key|
+      delete_key(key)
+    end
+  end
+
+  def delete_key(key)
+    @redis.del(key)
+  end
+
+  def positive_integer!(value, name)
+    integer = integer!(value, name)
+    raise ArgumentError, "#{name} must be positive" unless integer.positive?
+
+    integer
+  end
+
+  def integer!(value, name)
+    Integer(value)
+  rescue ArgumentError, TypeError
+    raise ArgumentError, "#{name} must be an integer"
   end
 end

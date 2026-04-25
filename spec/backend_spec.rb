@@ -48,6 +48,19 @@ class FakeRedis
     @lists[key][start..stop] || []
   end
 
+  def del(*keys)
+    keys.flatten.each do |key|
+      @sets.delete(key)
+      @hashes.delete(key)
+      @lists.delete(key)
+    end
+  end
+
+  def scan_each(match:)
+    regex = Regexp.new("\\A" + Regexp.escape(match).gsub("\\*", ".*") + "\\z")
+    all_keys.grep(regex).each { |key| yield key }
+  end
+
   def eval(script, keys:, argv:)
     case script
     when Backend::INCREMENT_KARMA_WITH_AUDIT_SCRIPT
@@ -110,6 +123,10 @@ class FakeRedis
     event[:reason] = reason unless reason.nil? || reason.empty?
     JSON.generate(event)
   end
+
+  def all_keys
+    (@sets.keys + @hashes.keys + @lists.keys).uniq
+  end
 end
 
 describe Backend do
@@ -169,6 +186,11 @@ describe Backend do
         hash_including(delta: -2, score: -2, source: "automated_infraction", reason: "moderation_flag"),
       )
     end
+
+    it "rejects non-positive amounts" do
+      expect { decrement_user_karma(server_id, user_id, 0) }.to raise_error(ArgumentError, "amount must be positive")
+      expect { decrement_user_karma(server_id, user_id, -1) }.to raise_error(ArgumentError, "amount must be positive")
+    end
   end
 
   describe "#increment_user_karma" do
@@ -183,6 +205,11 @@ describe Backend do
       expect(get_user_karma_history(server_id, user_id)).to include(
         hash_including(delta: 2, score: 2, source: "manual_adjustment", actor_id: 99),
       )
+    end
+
+    it "rejects non-positive amounts" do
+      expect { increment_user_karma(server_id, user_id, 0) }.to raise_error(ArgumentError, "amount must be positive")
+      expect { increment_user_karma(server_id, user_id, -1) }.to raise_error(ArgumentError, "amount must be positive")
     end
   end
 
@@ -203,6 +230,10 @@ describe Backend do
         actor_id: 99,
       )
     end
+
+    it "rejects non-integer scores" do
+      expect { set_user_karma(server_id, user_id, "abc") }.to raise_error(ArgumentError, "score must be an integer")
+    end
   end
 
   describe "#record_user_karma_event" do
@@ -216,6 +247,11 @@ describe Backend do
         score: -5,
         source: "automod_timeout_applied",
       )
+    end
+
+    it "rejects non-integer score or delta values" do
+      expect { record_user_karma_event(server_id, user_id, score: "abc", source: "event") }.to raise_error(ArgumentError, "score must be an integer")
+      expect { record_user_karma_event(server_id, user_id, score: -5, source: "event", delta: "abc") }.to raise_error(ArgumentError, "delta must be an integer")
     end
   end
 
@@ -253,6 +289,33 @@ describe Backend do
       add_server(server_id)
       remove_server(server_id)
       expect(get_servers).not_to include(server_id)
+    end
+
+    it "purges the server's moderation data" do
+      add_server(server_id)
+      add_user_to_watch_list(server_id, user_id)
+      increment_user_karma(server_id, user_id, 2)
+      record_user_karma_event(server_id, user_id, score: 2, source: "manual_note")
+
+      remove_server(server_id)
+
+      expect(get_watch_list_users(server_id)).to eq([])
+      expect(get_user_karma(server_id, user_id)).to eq(0)
+      expect(get_user_karma_history(server_id, user_id)).to eq([])
+    end
+
+    it "does not purge data from other servers" do
+      other_server_id = 999
+      add_server(server_id)
+      add_server(other_server_id)
+      increment_user_karma(server_id, user_id, 1)
+      increment_user_karma(other_server_id, user_id, 3)
+
+      remove_server(server_id)
+
+      expect(get_servers).to include(other_server_id)
+      expect(get_user_karma(other_server_id, user_id)).to eq(3)
+      expect(get_user_karma_history(other_server_id, user_id).first).to include(score: 3)
     end
   end
 

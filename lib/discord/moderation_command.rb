@@ -149,7 +149,13 @@ module Discord
     end
 
     def remove_karma(event, match)
-      adjust_karma(event, match, -amount(match))
+      unless match[:user_id] && amount(match)
+        event.respond(USAGE)
+        return
+      end
+
+      karma = @store.decrement_user_karma(event.server.id, match[:user_id].to_i, amount(match), actor_id: event.user.id)
+      event.respond("Karma for <@#{match[:user_id]}>: #{karma}")
     end
 
     def adjust_karma(event, match, delta)

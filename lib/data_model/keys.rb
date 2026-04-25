@@ -17,5 +17,9 @@ module DataModel
     def karma_history(server_id, user_id)
       "server_#{server_id}_user_#{user_id}_karma_history"
     end
+
+    def karma_history_pattern(server_id)
+      "server_#{server_id}_user_*_karma_history"
+    end
   end
 end

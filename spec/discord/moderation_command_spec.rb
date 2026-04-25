@@ -15,6 +15,7 @@ describe Discord::ModerationCommand do
       ],
       set_user_karma: -7,
       increment_user_karma: -2,
+      decrement_user_karma: -2,
     )
   end
   let(:server) { instance_double("Server", id: 123, members: members) }
@@ -214,7 +215,7 @@ describe Discord::ModerationCommand do
       it "decreases the user's karma score" do
         command.handle(event)
 
-        expect(store).to have_received(:increment_user_karma).with(123, 456, -2, actor_id: 42)
+        expect(store).to have_received(:decrement_user_karma).with(123, 456, 2, actor_id: 42)
         expect(event).to have_received(:respond).with("Karma for <@456>: -2")
       end
     end
