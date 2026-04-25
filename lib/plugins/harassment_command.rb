@@ -5,12 +5,13 @@ module ModerationGPT
         "!moderation harassment risk @user",
         "!moderation harassment pair @user_a @user_b",
         "!moderation harassment incidents [limit]",
+        "!moderation harassment incidents @user [limit]",
       ].freeze
       MAX_INCIDENT_LIMIT = 5
       DEFAULT_INCIDENT_LIMIT = 3
       RISK_PATTERN = /\A!moderation harassment risk <@!?(?<user_id>\d+)>\s*\z/i.freeze
       PAIR_PATTERN = /\A!moderation harassment pair <@!?(?<source_user_id>\d+)>\s+<@!?(?<target_user_id>\d+)>\s*\z/i.freeze
-      INCIDENTS_PATTERN = /\A!moderation harassment incidents(?:\s+(?<limit>\d+))?\s*\z/i.freeze
+      INCIDENTS_PATTERN = /\A!moderation harassment incidents(?:\s+<@!?(?<user_id>\d+)>)?(?:\s+(?<limit>\d+))?\s*\z/i.freeze
 
       def initialize(plugin)
         @plugin = plugin
@@ -86,9 +87,9 @@ module ModerationGPT
 
       def handle_incidents(event, match)
         limit = [[match[:limit]&.to_i || DEFAULT_INCIDENT_LIMIT, 1].max, MAX_INCIDENT_LIMIT].min
-        report = @plugin.recent_incidents(event.channel.id, limit:)
+        report = @plugin.recent_incidents(event.channel.id, limit:, user_id: match[:user_id])
         if report.incidents.empty?
-          event.respond("No recent harassment incidents in this channel")
+          event.respond(empty_incidents_message(match[:user_id]))
           return
         end
 
@@ -96,11 +97,23 @@ module ModerationGPT
           targets = incident.target_user_ids.empty? ? "none" : incident.target_user_ids.map { |user_id| "<@#{user_id}>" }.join(", ")
           "- <@#{incident.author_id}> -> #{targets} | #{incident.intent} | severity #{format('%.2f', incident.severity_score)} | confidence #{format('%.2f', incident.confidence)} | #{incident.classified_at.iso8601}"
         end
-        event.respond("Recent harassment incidents:\n#{lines.join("\n")}")
+        event.respond("#{incidents_header(match[:user_id])}\n#{lines.join("\n")}")
       end
 
       def humanize_signal(name)
         name.to_s.split("_").map(&:capitalize).join(" ")
+      end
+
+      def incidents_header(user_id)
+        return "Recent harassment incidents:" unless user_id
+
+        "Recent harassment incidents for <@#{user_id}>:"
+      end
+
+      def empty_incidents_message(user_id)
+        return "No recent harassment incidents in this channel" unless user_id
+
+        "No recent harassment incidents for <@#{user_id}> in this channel"
       end
     end
   end

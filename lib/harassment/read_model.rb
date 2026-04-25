@@ -29,8 +29,11 @@ module Harassment
       incident
     end
 
-    def recent_incidents(channel_id, limit: 10)
-      @incidents_by_channel[channel_id.to_s]
+    def recent_incidents(channel_id, limit: 10, user_id: nil)
+      incidents = @incidents_by_channel[channel_id.to_s]
+      incidents = filter_incidents_for_user(incidents, user_id) if user_id
+
+      incidents
         .sort_by(&:classified_at)
         .reverse
         .first(limit)
@@ -68,6 +71,13 @@ module Harassment
     end
 
     private
+
+    def filter_incidents_for_user(incidents, user_id)
+      normalized_user_id = user_id.to_s
+      incidents.select do |incident|
+        incident.author_id == normalized_user_id || incident.target_user_ids.include?(normalized_user_id)
+      end
+    end
 
     def edge_key(source_user_id, target_user_id)
       "#{source_user_id}:#{target_user_id}"

@@ -30,10 +30,11 @@ module Harassment
       )
     end
 
-    def recent_incidents(channel_id, limit: 10)
+    def recent_incidents(channel_id, limit: 10, user_id: nil)
       RecentIncidentsReport.build(
         channel_id: channel_id,
-        incidents: @read_model.recent_incidents(channel_id, limit:),
+        user_id: user_id,
+        incidents: @read_model.recent_incidents(channel_id, limit:, user_id:),
       )
     end
   end

@@ -29,6 +29,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
       ),
       recent_incidents: Harassment::RecentIncidentsReport.build(
         channel_id: "321",
+        user_id: nil,
         incidents: [
           Harassment::Incident.new(
             message_id: "1",
@@ -93,9 +94,52 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
     command.handle(event)
 
-    expect(plugin).to have_received(:recent_incidents).with(321, limit: 1)
+    expect(plugin).to have_received(:recent_incidents).with(321, limit: 1, user_id: nil)
     expect(event).to have_received(:respond).with(
       a_string_including("Recent harassment incidents:", "<@456> -> <@789> | aggressive | severity 0.80 | confidence 0.70"),
     )
+  end
+
+  it "responds with filtered incidents for a specific user" do
+    filtered_report = Harassment::RecentIncidentsReport.build(
+      channel_id: "321",
+      user_id: "456",
+      incidents: [
+        Harassment::Incident.new(
+          message_id: "1",
+          server_id: "123",
+          channel_id: "321",
+          author_id: "456",
+          target_user_ids: ["789"],
+          intent: "aggressive",
+          target_type: "individual",
+          severity_score: 0.8,
+          confidence: 0.7,
+          classified_at: Time.utc(2026, 4, 25, 16, 0, 0),
+        ),
+      ],
+    )
+    allow(plugin).to receive(:recent_incidents).and_return(filtered_report)
+    message = instance_double("Message", content: "!moderation harassment incidents <@456> 1")
+    allow(event).to receive(:message).and_return(message)
+
+    command.handle(event)
+
+    expect(plugin).to have_received(:recent_incidents).with(321, limit: 1, user_id: "456")
+    expect(event).to have_received(:respond).with(
+      a_string_including("Recent harassment incidents for <@456>:"),
+    )
+  end
+
+  it "responds with a filtered empty-state message" do
+    allow(plugin).to receive(:recent_incidents).and_return(
+      Harassment::RecentIncidentsReport.build(channel_id: "321", user_id: "456", incidents: []),
+    )
+    message = instance_double("Message", content: "!moderation harassment incidents <@456>")
+    allow(event).to receive(:message).and_return(message)
+
+    command.handle(event)
+
+    expect(event).to have_received(:respond).with("No recent harassment incidents for <@456> in this channel")
   end
 end

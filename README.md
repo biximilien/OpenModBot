@@ -26,6 +26,7 @@ Administrators can manage moderation state with:
 !moderation harassment risk @user
 !moderation harassment pair @user_a @user_b
 !moderation harassment incidents 3
+!moderation harassment incidents @user 3
 ```
 
 Each moderated infraction decreases the user's per-server karma score and records a capped audit history for that user. When a score crosses `KARMA_AUTOMOD_THRESHOLD`, the bot applies `KARMA_AUTOMOD_ACTION` and records the outcome in karma history; users who are already below the threshold do not receive repeated automated actions for every additional infraction. Supported actions are `log_only`, `timeout`, `kick`, and `ban`; the default is `timeout`. Timeout requires the Discord moderate-members permission, which is included in the generated invite URL. If you configure `kick` or `ban`, grant the bot the matching Discord permission in that server. The bot skips punitive automated actions for members with elevated moderation permissions.
@@ -126,6 +127,7 @@ When the `harassment` plugin is enabled, moderators can inspect the derived sign
 !moderation harassment risk @user
 !moderation harassment pair @user_a @user_b
 !moderation harassment incidents 3
+!moderation harassment incidents @user 3
 ```
 
 External plugin packages can follow the same `ModerationGPT::Plugin` hook interface and register with `ModerationGPT::PluginRegistry.register`. Use `PLUGIN_REQUIRES` to load plugin packages before `PLUGINS` is resolved:

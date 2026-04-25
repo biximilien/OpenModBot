@@ -54,7 +54,33 @@ describe Harassment::QueryService do
     report = query_service.recent_incidents("789")
 
     expect(report.channel_id).to eq("789")
+    expect(report.user_id).to be_nil
     expect(report.incidents.length).to eq(1)
     expect(report.incidents.first.intent).to eq("aggressive")
+  end
+
+  it "filters recent incidents by user" do
+    second_event = Harassment::InteractionEvent.build(
+      message_id: 124,
+      server_id: 456,
+      channel_id: 789,
+      author_id: 999,
+      target_user_ids: [888],
+      raw_content: "other incident",
+    )
+    second_record = Harassment::ClassificationRecord.build(
+      message_id: 124,
+      classifier_version: "harassment-v1",
+      classification: { intent: "abusive", target_type: "individual" },
+      severity_score: 0.5,
+      confidence: 0.6,
+      classified_at: Time.utc(2026, 4, 25, 16, 5, 0),
+    )
+    read_model.ingest(event: second_event, record: second_record)
+
+    report = query_service.recent_incidents("789", user_id: "321")
+
+    expect(report.user_id).to eq("321")
+    expect(report.incidents.map(&:message_id)).to eq(["123"])
   end
 end
