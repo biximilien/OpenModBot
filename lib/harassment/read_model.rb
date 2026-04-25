@@ -41,6 +41,11 @@ module Harassment
       edges.sum(&:hostility_score)
     end
 
+    def outgoing_relationships(user_id)
+      source_user_id = user_id.to_s
+      @edges.values.select { |edge| edge.source_user_id == source_user_id }
+    end
+
     private
 
     def edge_key(source_user_id, target_user_id)
