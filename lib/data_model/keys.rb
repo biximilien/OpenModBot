@@ -33,5 +33,13 @@ module DataModel
     def harassment_classification_jobs
       "harassment_classification_jobs"
     end
+
+    def harassment_classification_cache
+      "harassment_classification_cache"
+    end
+
+    def harassment_server_rate_limits
+      "harassment_server_rate_limits"
+    end
   end
 end

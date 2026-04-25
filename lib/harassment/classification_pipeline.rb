@@ -72,6 +72,17 @@ module Harassment
       )
     end
 
+    def defer_job(server_id:, message_id:, classifier_version:, available_at:)
+      deferred_job = fetch_job(server_id:, message_id:, classifier_version:).with_status(
+        ClassificationStatus::PENDING,
+        available_at: available_at,
+        updated_at: available_at,
+      )
+      @classification_jobs.save(deferred_job)
+      @interaction_events.update_classification_status(message_id, ClassificationStatus::PENDING)
+      deferred_job
+    end
+
     private
 
     def update_failed_job(server_id:, message_id:, classifier_version:, status:, error:, available_at:)

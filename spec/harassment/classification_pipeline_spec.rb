@@ -90,4 +90,20 @@ describe Harassment::ClassificationPipeline do
     expect(job.attempt_count).to eq(1)
     expect(interaction_events.find("123").classification_status).to eq(Harassment::ClassificationStatus::FAILED_TERMINAL)
   end
+
+  it "defers jobs without consuming an attempt" do
+    pipeline.enqueue(message_id: "123", classifier_version: "harassment-v1")
+
+    job = pipeline.defer_job(
+      server_id: "456",
+      message_id: "123",
+      classifier_version: "harassment-v1",
+      available_at: Time.utc(2026, 4, 25, 15, 10, 0),
+    )
+
+    expect(job.status).to eq(Harassment::ClassificationStatus::PENDING)
+    expect(job.attempt_count).to eq(0)
+    expect(job.available_at).to eq(Time.utc(2026, 4, 25, 15, 10, 0))
+    expect(interaction_events.find("123").classification_status).to eq(Harassment::ClassificationStatus::PENDING)
+  end
 end

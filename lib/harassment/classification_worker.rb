@@ -12,6 +12,7 @@ module Harassment
       classification_jobs:,
       classification_pipeline:,
       classifier:,
+      rate_limiter: nil,
       context_assembler: nil,
       on_success: nil,
       max_attempts: DEFAULT_MAX_ATTEMPTS,
@@ -21,6 +22,7 @@ module Harassment
       @classification_jobs = classification_jobs
       @classification_pipeline = classification_pipeline
       @classifier = classifier
+      @rate_limiter = rate_limiter
       @context_assembler = context_assembler
       @on_success = on_success
       @max_attempts = Integer(max_attempts)
@@ -42,6 +44,9 @@ module Harassment
       event = @interaction_events.find(job.message_id)
       raise ArgumentError, "interaction event not found for message_id=#{job.message_id}" unless event
 
+      retry_at = reserve_rate_limit(job, as_of:)
+      return nil if retry_at
+
       record = @classifier.classify(
         event: event,
         classifier_version: job.classifier_version,
@@ -54,6 +59,21 @@ module Harassment
     rescue StandardError => e
       handle_failure(job, e, as_of:)
       nil
+    end
+
+    def reserve_rate_limit(job, as_of:)
+      return nil unless @rate_limiter
+
+      retry_at = @rate_limiter.reserve(job.server_id, at: as_of)
+      return nil unless retry_at
+
+      @classification_pipeline.defer_job(
+        server_id: job.server_id,
+        message_id: job.message_id,
+        classifier_version: job.classifier_version,
+        available_at: retry_at,
+      )
+      retry_at
     end
 
     def handle_failure(job, error, as_of:)

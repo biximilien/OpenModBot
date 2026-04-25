@@ -17,6 +17,8 @@ module Environment
   DEFAULT_PERSONALITY = "objective"
   DEFAULT_LOG_FORMAT = "json"
   DEFAULT_HARASSMENT_CLASSIFIER_MODEL = "gpt-4o-2024-08-06"
+  DEFAULT_HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS = 3_600
+  DEFAULT_HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE = 30
 
   def self.validate!
     missing = REQUIRED_VARIABLES.select { |name| missing?(ENV[name]) }
@@ -88,6 +90,14 @@ module Environment
 
   def self.harassment_classifier_model
     ENV.fetch("HARASSMENT_CLASSIFIER_MODEL", DEFAULT_HARASSMENT_CLASSIFIER_MODEL)
+  end
+
+  def self.harassment_classifier_cache_ttl_seconds
+    ENV.fetch("HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS", DEFAULT_HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS).to_i
+  end
+
+  def self.harassment_classifier_rate_limit_per_minute
+    ENV.fetch("HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE", DEFAULT_HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE).to_i
   end
 
   def self.missing?(value)

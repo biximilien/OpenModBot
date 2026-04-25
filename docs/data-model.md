@@ -41,16 +41,30 @@ ModerationGPT stores moderation state in Redis. Redis keys are defined in `DataM
 ### `harassment_classification_records`
 
 - Type: Redis hash
-- Fields: `{message_id}:{classifier_version}`
+- Fields: `{server_id}:{message_id}:{classifier_version}`
 - Values: JSON `Harassment::ClassificationRecord` records
 - Purpose: stores immutable structured classifier output for harassment analysis
 
 ### `harassment_classification_jobs`
 
 - Type: Redis hash
-- Fields: `{message_id}:{classifier_version}`
+- Fields: `{server_id}:{message_id}:{classifier_version}`
 - Values: JSON `Harassment::ClassificationJob` records
 - Purpose: stores idempotent harassment classification job state, retry metadata, and availability timestamps
+
+### `harassment_classification_cache`
+
+- Type: Redis hash
+- Fields: `harassment-cache:{sha256}`
+- Values: JSON entries containing an expiration timestamp and cached `Harassment::ClassificationRecord`
+- Purpose: caches structured classifier output by server, classifier identity, and normalized message/context input
+
+### `harassment_server_rate_limits`
+
+- Type: Redis hash
+- Fields: Discord server IDs as strings
+- Values: JSON arrays of recent classifier-call timestamps
+- Purpose: tracks per-server classifier throughput so heavy processing can be deferred without losing jobs
 
 ## KarmaEvent
 
@@ -108,8 +122,11 @@ Notes:
 
 ```json
 {
+  "server_id": "42",
   "message_id": "1234567890",
   "classifier_version": "harassment-v1",
+  "model_version": "gpt-4o-2024-08-06",
+  "prompt_version": "harassment-prompt-v1",
   "classification": {
     "intent": "aggressive",
     "target_type": "individual",
@@ -131,6 +148,7 @@ Notes:
 
 ```json
 {
+  "server_id": "42",
   "message_id": "1234567890",
   "classifier_version": "harassment-v1",
   "status": "pending",
@@ -145,6 +163,7 @@ Notes:
 
 Notes:
 
-- job keys are idempotent by `message_id` and `classifier_version`
+- job keys are idempotent by `server_id`, `message_id`, and `classifier_version`
 - retries update the same job record rather than creating duplicates
 - failed jobs remain queryable for operational review
+- rate-limit deferrals keep the same job record in `pending` state and move `available_at` forward without incrementing `attempt_count`

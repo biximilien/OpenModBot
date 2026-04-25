@@ -50,6 +50,14 @@ module Harassment
       )
     end
 
+    def cache_identity
+      super.merge(
+        model_version: @model,
+        prompt_version: @prompt_version,
+        schema_name: @schema_name,
+      )
+    end
+
     private
 
     def classifier_input(event, context:)

@@ -82,6 +82,8 @@ Persisted state includes:
 - harassment interaction events
 - harassment classification records
 - harassment classification jobs
+- harassment classification cache entries
+- harassment per-server classifier rate-limit buckets
 
 See [docs/data-model.md](./data-model.md) for the exact Redis structures and field definitions.
 
@@ -105,7 +107,9 @@ Plugin-owned pieces:
 - [lib/harassment/query_service.rb](../lib/harassment/query_service.rb)
 - [lib/plugins/harassment_command.rb](../lib/plugins/harassment_command.rb)
 
-The current runtime stores immutable interaction events, enqueues classification jobs keyed by `message_id` and `classifier_version`, assembles bounded transient context, and processes due jobs asynchronously on a background thread. The harassment plugin provides the classifier version and the harassment-specific prompt/schema definition used by [lib/harassment/open_ai_classifier.rb](../lib/harassment/open_ai_classifier.rb). Successful classification records are then handed to the harassment plugin, which updates its idempotent read model and exposes moderator-facing queries.
+The current runtime stores immutable interaction events, enqueues classification jobs keyed by `message_id` and `classifier_version`, assembles bounded transient context, wraps classifier calls with cache and per-server rate-limit enforcement, and processes due jobs asynchronously on a background thread. The harassment plugin provides the classifier version and the harassment-specific prompt/schema definition used by [lib/harassment/open_ai_classifier.rb](../lib/harassment/open_ai_classifier.rb). Successful classification records are then handed to the harassment plugin, which updates its idempotent read model and exposes moderator-facing queries.
+
+Classifier cache keys are derived from server scope, classifier version, classifier prompt/schema identity, and normalized message/context input. When a server exceeds the configured classifier call budget, the runtime defers the job forward without consuming a retry attempt.
 
 The harassment plugin is passive-only: it does not punish users automatically. Its operator surface currently lives in Discord through:
 

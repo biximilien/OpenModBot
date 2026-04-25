@@ -31,6 +31,10 @@ class FakeRedis
     @hashes[key][field.to_s] = value
   end
 
+  def hdel(key, field)
+    @hashes[key].delete(field.to_s)
+  end
+
   def hgetall(key)
     @hashes[key].dup
   end

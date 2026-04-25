@@ -3,7 +3,7 @@ require_relative "../support/fake_redis"
 
 describe Harassment::Runtime do
   let(:client) { instance_double("OpenAIClient") }
-  let(:classifier) { instance_double("Classifier") }
+  let(:classifier) { instance_double("Classifier", cache_identity: { classifier_class: "RuntimeClassifier" }) }
   let(:recorded) { [] }
   let(:redis) { nil }
   let(:mentioned_user) { instance_double("User", id: 654) }

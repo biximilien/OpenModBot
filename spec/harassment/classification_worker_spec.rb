@@ -16,6 +16,7 @@ describe Harassment::ClassificationWorker do
     )
   end
   let(:classifier) { instance_double("Classifier") }
+  let(:rate_limiter) { nil }
   let(:context_assembler) { instance_double("ContextAssembler") }
   let(:event) do
     Harassment::InteractionEvent.build(
@@ -57,6 +58,7 @@ describe Harassment::ClassificationWorker do
       classification_jobs: classification_jobs,
       classification_pipeline: classification_pipeline,
       classifier: classifier,
+      rate_limiter: rate_limiter,
       context_assembler: context_assembler,
       on_success: ->(event:, record:) { processed << [event, record] },
     )
@@ -116,5 +118,23 @@ describe Harassment::ClassificationWorker do
     job = classification_jobs.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1")
     expect(job.status).to eq(Harassment::ClassificationStatus::FAILED_TERMINAL)
     expect(job.attempt_count).to eq(3)
+  end
+
+  context "when the server rate limiter defers work" do
+    let(:rate_limiter) { instance_double("ServerRateLimiter") }
+
+    it "reschedules the job without consuming an attempt" do
+      allow(rate_limiter).to receive(:reserve).with("456", at: Time.utc(2026, 4, 25, 18, 1, 0)).and_return(Time.utc(2026, 4, 25, 18, 2, 0))
+      allow(classifier).to receive(:classify)
+
+      results = worker.process_due_jobs(as_of: Time.utc(2026, 4, 25, 18, 1, 0))
+
+      job = classification_jobs.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1")
+      expect(results).to eq([])
+      expect(job.status).to eq(Harassment::ClassificationStatus::PENDING)
+      expect(job.attempt_count).to eq(0)
+      expect(job.available_at).to eq(Time.utc(2026, 4, 25, 18, 2, 0))
+      expect(classifier).not_to have_received(:classify)
+    end
   end
 end
