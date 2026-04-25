@@ -6,12 +6,19 @@ module ModerationGPT
         "!moderation harassment pair @user_a @user_b",
         "!moderation harassment incidents [limit]",
         "!moderation harassment incidents @user [limit]",
+        "!moderation harassment incidents 24h [limit]",
+        "!moderation harassment incidents @user 24h [limit]",
       ].freeze
       MAX_INCIDENT_LIMIT = 5
       DEFAULT_INCIDENT_LIMIT = 3
+      WINDOW_ALIASES = {
+        "1h" => 60 * 60,
+        "24h" => 24 * 60 * 60,
+        "7d" => 7 * 24 * 60 * 60,
+      }.freeze
       RISK_PATTERN = /\A!moderation harassment risk <@!?(?<user_id>\d+)>\s*\z/i.freeze
       PAIR_PATTERN = /\A!moderation harassment pair <@!?(?<source_user_id>\d+)>\s+<@!?(?<target_user_id>\d+)>\s*\z/i.freeze
-      INCIDENTS_PATTERN = /\A!moderation harassment incidents(?:\s+<@!?(?<user_id>\d+)>)?(?:\s+(?<limit>\d+))?\s*\z/i.freeze
+      INCIDENTS_PATTERN = /\A!moderation harassment incidents(?:\s+<@!?(?<user_id>\d+)>)?(?:\s+(?<window>1h|24h|7d))?(?:\s+(?<limit>\d+))?\s*\z/i.freeze
 
       def initialize(plugin)
         @plugin = plugin
@@ -87,9 +94,10 @@ module ModerationGPT
 
       def handle_incidents(event, match)
         limit = [[match[:limit]&.to_i || DEFAULT_INCIDENT_LIMIT, 1].max, MAX_INCIDENT_LIMIT].min
-        report = @plugin.recent_incidents(event.channel.id, limit:, user_id: match[:user_id])
+        since = incident_window_start(match[:window])
+        report = @plugin.recent_incidents(event.channel.id, limit:, user_id: match[:user_id], since:)
         if report.incidents.empty?
-          event.respond(empty_incidents_message(match[:user_id]))
+          event.respond(empty_incidents_message(match[:user_id], match[:window]))
           return
         end
 
@@ -97,23 +105,31 @@ module ModerationGPT
           targets = incident.target_user_ids.empty? ? "none" : incident.target_user_ids.map { |user_id| "<@#{user_id}>" }.join(", ")
           "- <@#{incident.author_id}> -> #{targets} | #{incident.intent} | severity #{format('%.2f', incident.severity_score)} | confidence #{format('%.2f', incident.confidence)} | #{incident.classified_at.iso8601}"
         end
-        event.respond("#{incidents_header(match[:user_id])}\n#{lines.join("\n")}")
+        event.respond("#{incidents_header(match[:user_id], match[:window])}\n#{lines.join("\n")}")
       end
 
       def humanize_signal(name)
         name.to_s.split("_").map(&:capitalize).join(" ")
       end
 
-      def incidents_header(user_id)
-        return "Recent harassment incidents:" unless user_id
+      def incidents_header(user_id, window)
+        scope = window ? " in the last #{window}" : ""
+        return "Recent harassment incidents#{scope}:" unless user_id
 
-        "Recent harassment incidents for <@#{user_id}>:"
+        "Recent harassment incidents for <@#{user_id}>#{scope}:"
       end
 
-      def empty_incidents_message(user_id)
-        return "No recent harassment incidents in this channel" unless user_id
+      def empty_incidents_message(user_id, window)
+        scope = window ? " in the last #{window}" : ""
+        return "No recent harassment incidents#{scope} in this channel" unless user_id
 
-        "No recent harassment incidents for <@#{user_id}> in this channel"
+        "No recent harassment incidents for <@#{user_id}>#{scope} in this channel"
+      end
+
+      def incident_window_start(window)
+        return nil unless window
+
+        Time.now.utc - WINDOW_ALIASES.fetch(window)
       end
     end
   end

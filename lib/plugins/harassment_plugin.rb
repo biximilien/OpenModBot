@@ -27,8 +27,8 @@ module ModerationGPT
         @query_service.get_pair_relationship(user_a, user_b, as_of:)
       end
 
-      def recent_incidents(channel_id, limit: 10, user_id: nil)
-        @query_service.recent_incidents(channel_id, limit:, user_id:)
+      def recent_incidents(channel_id, limit: 10, user_id: nil, since: nil)
+        @query_service.recent_incidents(channel_id, limit:, user_id:, since:)
       end
 
       def commands

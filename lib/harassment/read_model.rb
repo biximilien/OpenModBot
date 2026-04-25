@@ -29,9 +29,10 @@ module Harassment
       incident
     end
 
-    def recent_incidents(channel_id, limit: 10, user_id: nil)
+    def recent_incidents(channel_id, limit: 10, user_id: nil, since: nil)
       incidents = @incidents_by_channel[channel_id.to_s]
       incidents = filter_incidents_for_user(incidents, user_id) if user_id
+      incidents = incidents.select { |incident| incident.classified_at >= since.utc } if since
 
       incidents
         .sort_by(&:classified_at)

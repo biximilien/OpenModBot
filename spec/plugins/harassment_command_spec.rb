@@ -30,6 +30,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
       recent_incidents: Harassment::RecentIncidentsReport.build(
         channel_id: "321",
         user_id: nil,
+        since: nil,
         incidents: [
           Harassment::Incident.new(
             message_id: "1",
@@ -94,7 +95,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
     command.handle(event)
 
-    expect(plugin).to have_received(:recent_incidents).with(321, limit: 1, user_id: nil)
+    expect(plugin).to have_received(:recent_incidents).with(321, limit: 1, user_id: nil, since: nil)
     expect(event).to have_received(:respond).with(
       a_string_including("Recent harassment incidents:", "<@456> -> <@789> | aggressive | severity 0.80 | confidence 0.70"),
     )
@@ -125,7 +126,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
     command.handle(event)
 
-    expect(plugin).to have_received(:recent_incidents).with(321, limit: 1, user_id: "456")
+    expect(plugin).to have_received(:recent_incidents).with(321, limit: 1, user_id: "456", since: nil)
     expect(event).to have_received(:respond).with(
       a_string_including("Recent harassment incidents for <@456>:"),
     )
@@ -141,5 +142,55 @@ describe ModerationGPT::Plugins::HarassmentCommand do
     command.handle(event)
 
     expect(event).to have_received(:respond).with("No recent harassment incidents for <@456> in this channel")
+  end
+
+  it "responds with time-windowed incidents" do
+    report = Harassment::RecentIncidentsReport.build(
+      channel_id: "321",
+      user_id: nil,
+      since: Time.utc(2026, 4, 25, 15, 0, 0),
+      incidents: [
+        Harassment::Incident.new(
+          message_id: "1",
+          server_id: "123",
+          channel_id: "321",
+          author_id: "456",
+          target_user_ids: ["789"],
+          intent: "aggressive",
+          target_type: "individual",
+          severity_score: 0.8,
+          confidence: 0.7,
+          classified_at: Time.utc(2026, 4, 25, 16, 0, 0),
+        ),
+      ],
+    )
+    allow(plugin).to receive(:recent_incidents).and_return(report)
+    message = instance_double("Message", content: "!moderation harassment incidents 24h 1")
+    allow(event).to receive(:message).and_return(message)
+    freeze_time = Time.utc(2026, 4, 26, 15, 0, 0)
+    allow(Time).to receive(:now).and_return(freeze_time)
+
+    command.handle(event)
+
+    expect(plugin).to have_received(:recent_incidents).with(
+      321,
+      limit: 1,
+      user_id: nil,
+      since: Time.utc(2026, 4, 25, 15, 0, 0),
+    )
+    expect(event).to have_received(:respond).with(a_string_including("Recent harassment incidents in the last 24h:"))
+  end
+
+  it "responds with time-windowed empty state for a user" do
+    allow(plugin).to receive(:recent_incidents).and_return(
+      Harassment::RecentIncidentsReport.build(channel_id: "321", user_id: "456", since: Time.utc(2026, 4, 25, 15, 0, 0), incidents: []),
+    )
+    message = instance_double("Message", content: "!moderation harassment incidents <@456> 24h")
+    allow(event).to receive(:message).and_return(message)
+    allow(Time).to receive(:now).and_return(Time.utc(2026, 4, 26, 15, 0, 0))
+
+    command.handle(event)
+
+    expect(event).to have_received(:respond).with("No recent harassment incidents for <@456> in the last 24h in this channel")
   end
 end
