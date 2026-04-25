@@ -1,78 +1,11 @@
 require "redis"
 require_relative "../environment"
+require_relative "backend/redis_scripts"
 require_relative "data_model/keys"
 require_relative "data_model/karma_event"
 
 module Backend
   KARMA_AUDIT_LIMIT = 50
-  INCREMENT_KARMA_WITH_AUDIT_SCRIPT = <<~LUA
-    local event = {
-      created_at = ARGV[6],
-      delta = tonumber(ARGV[2]),
-      source = ARGV[3],
-      score = redis.call("HINCRBY", KEYS[1], ARGV[1], ARGV[2]),
-    }
-
-    if ARGV[4] ~= "" then
-      event.actor_id = tonumber(ARGV[4])
-    end
-
-    if ARGV[5] ~= "" then
-      event.reason = ARGV[5]
-    end
-
-    redis.call("LPUSH", KEYS[2], cjson.encode(event))
-    redis.call("LTRIM", KEYS[2], 0, tonumber(ARGV[7]) - 1)
-
-    return event.score
-  LUA
-
-  SET_KARMA_WITH_AUDIT_SCRIPT = <<~LUA
-    local previous = tonumber(redis.call("HGET", KEYS[1], ARGV[1]) or "0")
-    local score = tonumber(ARGV[2])
-    local event = {
-      created_at = ARGV[6],
-      delta = score - previous,
-      score = score,
-      source = ARGV[3],
-    }
-
-    if ARGV[4] ~= "" then
-      event.actor_id = tonumber(ARGV[4])
-    end
-
-    if ARGV[5] ~= "" then
-      event.reason = ARGV[5]
-    end
-
-    redis.call("HSET", KEYS[1], ARGV[1], score)
-    redis.call("LPUSH", KEYS[2], cjson.encode(event))
-    redis.call("LTRIM", KEYS[2], 0, tonumber(ARGV[7]) - 1)
-
-    return score
-  LUA
-
-  RECORD_KARMA_EVENT_SCRIPT = <<~LUA
-    local event = {
-      created_at = ARGV[4],
-      delta = tonumber(ARGV[2]),
-      score = tonumber(ARGV[1]),
-      source = ARGV[3],
-    }
-
-    if ARGV[5] ~= "" then
-      event.actor_id = tonumber(ARGV[5])
-    end
-
-    if ARGV[6] ~= "" then
-      event.reason = ARGV[6]
-    end
-
-    redis.call("LPUSH", KEYS[1], cjson.encode(event))
-    redis.call("LTRIM", KEYS[1], 0, tonumber(ARGV[7]) - 1)
-
-    return event.score
-  LUA
 
   def initialize_backend
     @redis ||= Redis.new(url: Environment.redis_url)
@@ -109,7 +42,7 @@ module Backend
     validated_score = integer!(score, "score")
     created_at = Time.now.utc.iso8601
     @redis.eval(
-      SET_KARMA_WITH_AUDIT_SCRIPT,
+      RedisScripts::SET_KARMA_WITH_AUDIT,
       keys: [DataModel::Keys.karma(server_id), DataModel::Keys.karma_history(server_id, user_id)],
       argv: [user_id.to_s, validated_score, source, optional_redis_arg(actor_id), optional_redis_arg(reason), created_at, KARMA_AUDIT_LIMIT],
     )
@@ -120,7 +53,7 @@ module Backend
     validated_delta = integer!(delta, "delta")
     created_at = Time.now.utc.iso8601
     @redis.eval(
-      RECORD_KARMA_EVENT_SCRIPT,
+      RedisScripts::RECORD_KARMA_EVENT,
       keys: [DataModel::Keys.karma_history(server_id, user_id)],
       argv: [validated_score, validated_delta, source, created_at, optional_redis_arg(actor_id), optional_redis_arg(reason), KARMA_AUDIT_LIMIT],
     )
@@ -151,7 +84,7 @@ module Backend
   def change_user_karma(server_id, user_id, delta, source:, actor_id:, reason:)
     created_at = Time.now.utc.iso8601
     @redis.eval(
-      INCREMENT_KARMA_WITH_AUDIT_SCRIPT,
+      RedisScripts::INCREMENT_KARMA_WITH_AUDIT,
       keys: [DataModel::Keys.karma(server_id), DataModel::Keys.karma_history(server_id, user_id)],
       argv: [user_id.to_s, delta.to_i, source, optional_redis_arg(actor_id), optional_redis_arg(reason), created_at, KARMA_AUDIT_LIMIT],
     )

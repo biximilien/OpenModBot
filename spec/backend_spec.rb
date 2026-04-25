@@ -63,11 +63,11 @@ class FakeRedis
 
   def eval(script, keys:, argv:)
     case script
-    when Backend::INCREMENT_KARMA_WITH_AUDIT_SCRIPT
+    when Backend::RedisScripts::INCREMENT_KARMA_WITH_AUDIT
       eval_increment_karma_with_audit(keys, argv)
-    when Backend::SET_KARMA_WITH_AUDIT_SCRIPT
+    when Backend::RedisScripts::SET_KARMA_WITH_AUDIT
       eval_set_karma_with_audit(keys, argv)
-    when Backend::RECORD_KARMA_EVENT_SCRIPT
+    when Backend::RedisScripts::RECORD_KARMA_EVENT
       eval_record_karma_event(keys, argv)
     else
       raise "Unsupported script"
