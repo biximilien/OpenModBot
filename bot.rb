@@ -35,7 +35,7 @@ strategies = [
   RemoveMessageStrategy.new(app, plugin_registry: plugins),
 ] + plugins.moderation_strategies(app: app, plugin_registry: plugins)
 
-moderation_command = Discord::ModerationCommand.new(app)
+moderation_command = Discord::ModerationCommand.new(app, plugin_commands: plugins.commands)
 message_router = Moderation::MessageRouter.new(strategies)
 ready_handler = Discord::ReadyHandler.new(bot, app)
 

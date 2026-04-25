@@ -132,6 +132,12 @@ Plugin hooks:
 - `moderation_strategies`
 - `commands`
 
+Plugin command objects should respond to:
+
+- `matches?(event)` to decide whether the command should handle a `!moderation ...` message
+- `handle(event)` to respond to the matched command
+- optional `help_lines` to add command usage lines to `!moderation help`
+
 ## Personalities
 
 The personality plugin controls the tone used when the bot rewrites moderated watchlist messages:

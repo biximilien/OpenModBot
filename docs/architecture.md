@@ -31,6 +31,8 @@ Incoming Discord messages flow through [bot.rb](../bot.rb) like this:
 
 `MessageRouter` walks the configured strategies in order and executes the first strategy whose `condition(event)` returns true.
 
+`ModerationCommand` owns the built-in admin commands and can also dispatch plugin-provided admin command objects contributed through the plugin registry.
+
 ## Moderation Pipeline
 
 The moderation pipeline is organized around a base strategy in [lib/moderation/strategy.rb](../lib/moderation/strategy.rb) plus concrete strategy classes in [lib/moderation/strategies](../lib/moderation/strategies).

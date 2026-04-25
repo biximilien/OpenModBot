@@ -46,7 +46,9 @@ describe ModerationGPT::PluginRegistry do
 
       registry = described_class.from_environment
 
-      expect(registry.commands).to eq([:custom_command])
+      expect(registry.commands.length).to eq(1)
+      expect(registry.commands.first).to respond_to(:matches?)
+      expect(registry.commands.first).to respond_to(:handle)
     end
 
     it "raises a clear error when an external plugin require fails" do

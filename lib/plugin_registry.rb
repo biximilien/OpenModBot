@@ -70,7 +70,7 @@ module ModerationGPT
     end
 
     def commands
-      @plugins.flat_map(&:commands)
+      flat_map_hook(:commands)
     end
 
     private

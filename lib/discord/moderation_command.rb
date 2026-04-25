@@ -6,7 +6,7 @@ module Discord
     DEFAULT_HISTORY_LIMIT = 5
     MAX_HISTORY_LIMIT = 10
     USAGE = "Usage: !moderation help".freeze
-    HELP_TEXT = [
+    BASE_HELP_LINES = [
       "Moderation commands:",
       "!moderation watchlist",
       "!moderation watchlist add @user",
@@ -17,12 +17,14 @@ module Discord
       "!moderation karma reset @user",
       "!moderation karma add @user amount",
       "!moderation karma remove @user amount",
-    ].join("\n").freeze
+    ].freeze
+    HELP_TEXT = BASE_HELP_LINES.join("\n").freeze
     TRIGGER_PATTERN = /\A!moderation\b/i.freeze
     COMMAND_PATTERN = /\A!moderation(?:\s+(?<command>help|watchlist|karma))?(?:\s+(?<subcommand>add|remove|reset|history|set))?(?:\s+<@!?(?<user_id>\d+)>)?(?:\s+(?<amount>-?\d+))?\s*\z/i.freeze
 
-    def initialize(store)
+    def initialize(store, plugin_commands: [])
       @store = store
+      @plugin_commands = plugin_commands
     end
 
     def matches?(event)
@@ -50,8 +52,14 @@ module Discord
 
     def respond_to_command(event, match)
       unless match
+        return if handle_plugin_command(event)
+
         event.respond(USAGE)
         return
+      end
+
+      if plugin_command_root?(match)
+        return if handle_plugin_command(event)
       end
 
       case match[:command]
@@ -62,11 +70,38 @@ module Discord
       end
     end
 
+    def plugin_command_root?(match)
+      match[:command].nil? && match[:subcommand].nil? && match[:user_id].nil? && match[:amount].nil?
+    end
+
+    def handle_plugin_command(event)
+      command = @plugin_commands.find { |plugin_command| plugin_command.matches?(event) }
+      return false unless command
+
+      command.handle(event)
+      true
+    end
+
+    def help_text
+      (BASE_HELP_LINES + plugin_help_lines).join("\n")
+    end
+
+    def plugin_help_lines
+      @plugin_commands.flat_map do |command|
+        Array(command.respond_to?(:help_lines) ? command.help_lines : nil)
+      end
+    end
+
     def respond_to_help_command(event, match)
+      unless match
+        event.respond(help_text)
+        return
+      end
+
       if match[:subcommand] || match[:user_id] || match[:amount]
         event.respond(USAGE)
       else
-        event.respond(HELP_TEXT)
+        event.respond(help_text)
       end
     end
 

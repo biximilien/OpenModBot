@@ -24,8 +24,16 @@ describe Discord::ModerationCommand do
   let(:event) { instance_double("Event", message: message, server: server, user: user, respond: true) }
   let(:admin_member) { instance_double("Member", id: 42, permission?: true) }
   let(:members) { [admin_member] }
+  let(:plugin_command) do
+    instance_double(
+      "PluginCommand",
+      matches?: false,
+      handle: true,
+      help_lines: ["!moderation plugin"],
+    )
+  end
 
-  subject(:command) { described_class.new(store) }
+  subject(:command) { described_class.new(store, plugin_commands: [plugin_command]) }
 
   describe "#matches?" do
     context "with a moderation command" do
@@ -60,7 +68,7 @@ describe Discord::ModerationCommand do
       it "responds with available commands" do
         command.handle(event)
 
-        expect(event).to have_received(:respond).with(described_class::HELP_TEXT)
+        expect(event).to have_received(:respond).with("#{described_class::HELP_TEXT}\n!moderation plugin")
       end
     end
 
@@ -70,7 +78,7 @@ describe Discord::ModerationCommand do
       it "responds with available commands" do
         command.handle(event)
 
-        expect(event).to have_received(:respond).with(described_class::HELP_TEXT)
+        expect(event).to have_received(:respond).with("#{described_class::HELP_TEXT}\n!moderation plugin")
       end
     end
 
@@ -137,6 +145,36 @@ describe Discord::ModerationCommand do
         command.handle(event)
 
         expect(event).to have_received(:respond).with(described_class::USAGE)
+      end
+    end
+
+    context "when a plugin command matches" do
+      let(:content) { "!moderation plugin" }
+
+      before do
+        allow(plugin_command).to receive(:matches?).with(event).and_return(true)
+      end
+
+      it "dispatches to the plugin command" do
+        command.handle(event)
+
+        expect(plugin_command).to have_received(:handle).with(event)
+        expect(event).not_to have_received(:respond).with(described_class::USAGE)
+      end
+    end
+
+    context "when a built-in command matches before a plugin command" do
+      let(:content) { "!moderation help" }
+
+      before do
+        allow(plugin_command).to receive(:matches?).with(event).and_return(true)
+      end
+
+      it "keeps the built-in command behavior" do
+        command.handle(event)
+
+        expect(plugin_command).not_to have_received(:handle)
+        expect(event).to have_received(:respond).with("#{described_class::HELP_TEXT}\n!moderation plugin")
       end
     end
 
