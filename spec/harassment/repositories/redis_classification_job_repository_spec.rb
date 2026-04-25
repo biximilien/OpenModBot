@@ -7,6 +7,7 @@ describe Harassment::Repositories::RedisClassificationJobRepository do
   let(:redis) { FakeRedis.new }
   let(:pending_job) do
     Harassment::ClassificationJob.build(
+      server_id: 456,
       message_id: 123,
       classifier_version: "harassment-v1",
       available_at: Time.utc(2026, 4, 25, 15, 0, 0),
@@ -14,6 +15,7 @@ describe Harassment::Repositories::RedisClassificationJobRepository do
   end
   let(:retryable_job) do
     Harassment::ClassificationJob.build(
+      server_id: 456,
       message_id: 124,
       classifier_version: "harassment-v1",
       status: Harassment::ClassificationStatus::FAILED_RETRYABLE,
@@ -26,7 +28,7 @@ describe Harassment::Repositories::RedisClassificationJobRepository do
     second = repository.enqueue_unique(pending_job)
 
     expect(first).to eq(second)
-    expect(repository.find(message_id: "123", classifier_version: "harassment-v1")).to eq(pending_job)
+    expect(repository.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1")).to eq(pending_job)
   end
 
   it "returns due pending and retryable jobs" do
@@ -42,6 +44,6 @@ describe Harassment::Repositories::RedisClassificationJobRepository do
 
     repository.save(updated)
 
-    expect(repository.find(message_id: "123", classifier_version: "harassment-v1")).to eq(updated)
+    expect(repository.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1")).to eq(updated)
   end
 end

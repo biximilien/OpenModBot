@@ -18,6 +18,7 @@ describe Harassment::QueryService do
   end
   let(:record) do
     Harassment::ClassificationRecord.build(
+      server_id: "456",
       message_id: 123,
       classifier_version: "harassment-v1",
       classification: { intent: "aggressive", target_type: "individual" },
@@ -32,8 +33,9 @@ describe Harassment::QueryService do
   end
 
   it "returns a structured user risk report" do
-    report = query_service.get_user_risk("321", as_of: Time.utc(2026, 4, 25, 17, 0, 0))
+    report = query_service.get_user_risk("456", "321", as_of: Time.utc(2026, 4, 25, 17, 0, 0))
 
+    expect(report.server_id).to eq("456")
     expect(report.user_id).to eq("321")
     expect(report.score_version).to eq("harassment-score-v1")
     expect(report.risk_score).to be_between(0.0, 1.0)
@@ -42,8 +44,9 @@ describe Harassment::QueryService do
   end
 
   it "returns a structured pair relationship report" do
-    report = query_service.get_pair_relationship("321", "654", as_of: Time.utc(2026, 4, 25, 17, 0, 0))
+    report = query_service.get_pair_relationship("456", "321", "654", as_of: Time.utc(2026, 4, 25, 17, 0, 0))
 
+    expect(report.server_id).to eq("456")
     expect(report.source_user_id).to eq("321")
     expect(report.target_user_id).to eq("654")
     expect(report.score_version).to eq("harassment-score-v1")
@@ -53,8 +56,9 @@ describe Harassment::QueryService do
   end
 
   it "returns a structured recent incidents report" do
-    report = query_service.recent_incidents("789")
+    report = query_service.recent_incidents("456", "789")
 
+    expect(report.server_id).to eq("456")
     expect(report.channel_id).to eq("789")
     expect(report.user_id).to be_nil
     expect(report.since).to be_nil
@@ -72,6 +76,7 @@ describe Harassment::QueryService do
       raw_content: "other incident",
     )
     second_record = Harassment::ClassificationRecord.build(
+      server_id: "456",
       message_id: 124,
       classifier_version: "harassment-v1",
       classification: { intent: "abusive", target_type: "individual" },
@@ -81,7 +86,7 @@ describe Harassment::QueryService do
     )
     read_model.ingest(event: second_event, record: second_record)
 
-    report = query_service.recent_incidents("789", user_id: "321")
+    report = query_service.recent_incidents("456", "789", user_id: "321")
 
     expect(report.user_id).to eq("321")
     expect(report.incidents.map(&:message_id)).to eq(["123"])
@@ -97,6 +102,7 @@ describe Harassment::QueryService do
       raw_content: "older incident",
     )
     second_record = Harassment::ClassificationRecord.build(
+      server_id: "456",
       message_id: 124,
       classifier_version: "harassment-v1",
       classification: { intent: "abusive", target_type: "individual" },
@@ -107,7 +113,7 @@ describe Harassment::QueryService do
     read_model.ingest(event: second_event, record: second_record)
 
     since = Time.utc(2026, 4, 25, 15, 0, 0)
-    report = query_service.recent_incidents("789", since: since)
+    report = query_service.recent_incidents("456", "789", since: since)
 
     expect(report.since).to eq(since)
     expect(report.incidents.map(&:message_id)).to eq(["123"])

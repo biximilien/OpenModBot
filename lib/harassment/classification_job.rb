@@ -4,6 +4,7 @@ require_relative "classifier_version"
 
 module Harassment
   ClassificationJob = Data.define(
+    :server_id,
     :message_id,
     :classifier_version,
     :status,
@@ -15,6 +16,7 @@ module Harassment
     :updated_at,
   ) do
     def self.build(
+      server_id: "unknown-server",
       message_id:,
       classifier_version:,
       status: ClassificationStatus::PENDING,
@@ -26,6 +28,7 @@ module Harassment
       updated_at: enqueued_at
     )
       new(
+        server_id: identifier!(server_id, "server_id"),
         message_id: identifier!(message_id, "message_id"),
         classifier_version: classifier_version!(classifier_version),
         status: status!(status),

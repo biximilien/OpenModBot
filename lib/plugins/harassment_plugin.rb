@@ -72,16 +72,16 @@ module ModerationGPT
         @read_model.ingest(event:, record:)
       end
 
-      def get_user_risk(user_id, as_of: Time.now.utc)
-        @query_service.get_user_risk(user_id, as_of:)
+      def get_user_risk(server_id, user_id, as_of: Time.now.utc)
+        @query_service.get_user_risk(server_id, user_id, as_of:)
       end
 
-      def get_pair_relationship(user_a, user_b, as_of: Time.now.utc)
-        @query_service.get_pair_relationship(user_a, user_b, as_of:)
+      def get_pair_relationship(server_id, user_a, user_b, as_of: Time.now.utc)
+        @query_service.get_pair_relationship(server_id, user_a, user_b, as_of:)
       end
 
-      def recent_incidents(channel_id, limit: 10, user_id: nil, since: nil)
-        @query_service.recent_incidents(channel_id, limit:, user_id:, since:)
+      def recent_incidents(server_id, channel_id, limit: 10, user_id: nil, since: nil)
+        @query_service.recent_incidents(server_id, channel_id, limit:, user_id:, since:)
       end
 
       def classifier_version

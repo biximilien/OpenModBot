@@ -15,6 +15,7 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
 
   let(:record) do
     Harassment::ClassificationRecord.build(
+      server_id: "456",
       message_id: 123,
       classifier_version: "harassment-v1",
       classification: { intent: "aggressive", target_type: "individual" },
@@ -28,7 +29,7 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
     incident = plugin.record_classification(event:, record:)
 
     expect(incident.intent).to eq("aggressive")
-    expect(plugin.recent_incidents("789").incidents).to eq([incident])
+    expect(plugin.recent_incidents("456", "789").incidents).to eq([incident])
   end
 
   it "owns the harassment classifier version" do
@@ -54,11 +55,11 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
   it "exposes user risk and pair relationships" do
     plugin.record_classification(event:, record:)
 
-    risk_report = plugin.get_user_risk("321", as_of: record.classified_at)
+    risk_report = plugin.get_user_risk("456", "321", as_of: record.classified_at)
 
     expect(risk_report.risk_score).to be_between(0.0, 1.0)
     expect(risk_report.signals.keys).to match_array(%i[asymmetry persistence burst_intensity target_concentration average_severity])
-    expect(plugin.get_pair_relationship("321", "654", as_of: record.classified_at).relationship_edge.interaction_count).to eq(1)
+    expect(plugin.get_pair_relationship("456", "321", "654", as_of: record.classified_at).relationship_edge.interaction_count).to eq(1)
   end
 
   it "is idempotent for duplicate classification deliveries" do
@@ -66,8 +67,8 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
     second = plugin.record_classification(event:, record:)
 
     expect(first).to eq(second)
-    expect(plugin.recent_incidents("789").incidents.length).to eq(1)
-    expect(plugin.get_pair_relationship("321", "654").relationship_edge.interaction_count).to eq(1)
+    expect(plugin.recent_incidents("456", "789").incidents.length).to eq(1)
+    expect(plugin.get_pair_relationship("456", "321", "654").relationship_edge.interaction_count).to eq(1)
   end
 
   it "exposes a harassment moderation command" do

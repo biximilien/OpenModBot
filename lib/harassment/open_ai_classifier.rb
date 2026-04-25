@@ -34,6 +34,7 @@ module Harassment
       payload = parse_response_payload(response)
 
       ClassificationRecord.build(
+        server_id: event.server_id,
         message_id: event.message_id,
         classifier_version: classifier_version,
         model_version: @model,

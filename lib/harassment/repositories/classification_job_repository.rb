@@ -7,7 +7,7 @@ module Harassment
         raise NotImplementedError, "#{self.class} must implement #enqueue_unique"
       end
 
-      def find(message_id:, classifier_version:)
+      def find(server_id:, message_id:, classifier_version:)
         raise NotImplementedError, "#{self.class} must implement #find"
       end
 

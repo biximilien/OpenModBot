@@ -1,13 +1,15 @@
 module Harassment
   UserRiskReport = Data.define(
+    :server_id,
     :user_id,
     :score_version,
     :risk_score,
     :relationship_count,
     :signals,
   ) do
-    def self.build(user_id:, score_version:, risk_score:, relationship_count:, signals: {})
+    def self.build(server_id:, user_id:, score_version:, risk_score:, relationship_count:, signals: {})
       new(
+        server_id: server_id.to_s,
         user_id: user_id.to_s,
         score_version: score_version.to_s,
         risk_score: Float(risk_score),

@@ -41,6 +41,7 @@ describe Harassment::ClassificationPipeline do
   it "records a successful classification idempotently" do
     pipeline.enqueue(message_id: "123", classifier_version: "harassment-v1")
     record = Harassment::ClassificationRecord.build(
+      server_id: "456",
       message_id: "123",
       classifier_version: "harassment-v1",
       classification: { intent: "aggressive" },
@@ -54,7 +55,7 @@ describe Harassment::ClassificationPipeline do
     expect(first).to eq(record)
     expect(second).to eq(record)
     expect(interaction_events.find("123").classification_status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
-    expect(classification_jobs.find(message_id: "123", classifier_version: "harassment-v1").status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
+    expect(classification_jobs.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1").status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
   end
 
   it "records retryable failures with attempt tracking" do
@@ -62,6 +63,7 @@ describe Harassment::ClassificationPipeline do
     pipeline.enqueue(message_id: "123", classifier_version: "harassment-v1")
 
     job = pipeline.record_retryable_failure(
+      server_id: "456",
       message_id: "123",
       classifier_version: "harassment-v1",
       error: StandardError.new("temporary failure"),
@@ -78,6 +80,7 @@ describe Harassment::ClassificationPipeline do
     pipeline.enqueue(message_id: "123", classifier_version: "harassment-v1")
 
     job = pipeline.record_terminal_failure(
+      server_id: "456",
       message_id: "123",
       classifier_version: "harassment-v1",
       error: StandardError.new("permanent failure"),

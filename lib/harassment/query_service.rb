@@ -10,11 +10,13 @@ module Harassment
       @signal_analyzer = signal_analyzer
     end
 
-    def get_user_risk(user_id, as_of: Time.now.utc)
+    def get_user_risk(server_id, user_id, as_of: Time.now.utc)
       normalized_user_id = user_id.to_s
-      analysis = @signal_analyzer.analyze_user(normalized_user_id, as_of:)
+      normalized_server_id = server_id.to_s
+      analysis = @signal_analyzer.analyze_user(normalized_server_id, normalized_user_id, as_of:)
 
       UserRiskReport.build(
+        server_id: normalized_server_id,
         user_id: normalized_user_id,
         score_version: analysis.fetch(:score_version),
         risk_score: analysis.fetch(:harassment_score),
@@ -23,20 +25,22 @@ module Harassment
       )
     end
 
-    def get_pair_relationship(user_a, user_b, as_of: Time.now.utc)
+    def get_pair_relationship(server_id, user_a, user_b, as_of: Time.now.utc)
       PairRelationshipReport.build(
+        server_id: server_id,
         source_user_id: user_a,
         target_user_id: user_b,
-        relationship_edge: @read_model.get_pair_relationship(user_a, user_b, as_of:),
+        relationship_edge: @read_model.get_pair_relationship(server_id, user_a, user_b, as_of:),
       )
     end
 
-    def recent_incidents(channel_id, limit: 10, user_id: nil, since: nil)
+    def recent_incidents(server_id, channel_id, limit: 10, user_id: nil, since: nil)
       RecentIncidentsReport.build(
+        server_id: server_id,
         channel_id: channel_id,
         user_id: user_id,
         since: since,
-        incidents: @read_model.recent_incidents(channel_id, limit:, user_id:, since:),
+        incidents: @read_model.recent_incidents(server_id, channel_id, limit:, user_id:, since:),
       )
     end
   end

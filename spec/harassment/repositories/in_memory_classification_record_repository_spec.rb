@@ -5,6 +5,7 @@ describe Harassment::Repositories::InMemoryClassificationRecordRepository do
 
   let(:first_record) do
     Harassment::ClassificationRecord.build(
+      server_id: 456,
       message_id: 123,
       classifier_version: "harassment-v1",
       classification: {},
@@ -16,6 +17,7 @@ describe Harassment::Repositories::InMemoryClassificationRecordRepository do
 
   let(:second_record) do
     Harassment::ClassificationRecord.build(
+      server_id: 456,
       message_id: 123,
       classifier_version: "harassment-v2",
       classification: { intent: "aggressive" },
@@ -28,7 +30,7 @@ describe Harassment::Repositories::InMemoryClassificationRecordRepository do
   it "stores and retrieves records by message id and classifier version" do
     repository.save(first_record)
 
-    found = repository.find(message_id: "123", classifier_version: "harassment-v1")
+    found = repository.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1")
 
     expect(found).to eq(first_record)
   end
@@ -36,20 +38,20 @@ describe Harassment::Repositories::InMemoryClassificationRecordRepository do
   it "rejects duplicate records for the same message and classifier version" do
     repository.save(first_record)
 
-    expect { repository.save(first_record) }.to raise_error(ArgumentError, "classification record already exists for 123:harassment-v1")
+    expect { repository.save(first_record) }.to raise_error(ArgumentError, "classification record already exists for 456:123:harassment-v1")
   end
 
   it "returns all records for a message ordered by classification time" do
     repository.save(second_record)
     repository.save(first_record)
 
-    expect(repository.all_for_message("123")).to eq([first_record, second_record])
+    expect(repository.all_for_message(server_id: "456", message_id: "123")).to eq([first_record, second_record])
   end
 
   it "returns the latest record for a message" do
     repository.save(first_record)
     repository.save(second_record)
 
-    expect(repository.latest_for_message("123")).to eq(second_record)
+    expect(repository.latest_for_message(server_id: "456", message_id: "123")).to eq(second_record)
   end
 end

@@ -11,7 +11,7 @@ module Harassment
       end
 
       def enqueue_unique(job)
-        key = repository_key(job.message_id, job.classifier_version)
+        key = repository_key(job.server_id, job.message_id, job.classifier_version)
         payload = @redis.hget(@key, key)
         return deserialize_job(payload) if payload
 
@@ -19,13 +19,13 @@ module Harassment
         job
       end
 
-      def find(message_id:, classifier_version:)
-        payload = @redis.hget(@key, repository_key(message_id, classifier_version))
+      def find(server_id:, message_id:, classifier_version:)
+        payload = @redis.hget(@key, repository_key(server_id, message_id, classifier_version))
         payload ? deserialize_job(payload) : nil
       end
 
       def save(job)
-        @redis.hset(@key, repository_key(job.message_id, job.classifier_version), JSON.generate(serialize_job(job)))
+        @redis.hset(@key, repository_key(job.server_id, job.message_id, job.classifier_version), JSON.generate(serialize_job(job)))
         job
       end
 
@@ -45,14 +45,15 @@ module Harassment
         [ClassificationStatus::PENDING, ClassificationStatus::FAILED_RETRYABLE].include?(status)
       end
 
-      def repository_key(message_id, classifier_version)
+      def repository_key(server_id, message_id, classifier_version)
+        normalized_server_id = server_id.to_s
         normalized_version =
           case classifier_version
           when ClassifierVersion then classifier_version.value
           else ClassifierVersion.build(classifier_version).value
           end
 
-        "#{message_id}:#{normalized_version}"
+        "#{normalized_server_id}:#{message_id}:#{normalized_version}"
       end
 
       def serialize_job(job)

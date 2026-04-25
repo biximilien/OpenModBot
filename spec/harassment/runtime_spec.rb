@@ -32,6 +32,7 @@ describe Harassment::Runtime do
 
   let(:record) do
     Harassment::ClassificationRecord.build(
+      server_id: "456",
       message_id: "123",
       classifier_version: "harassment-v1",
       classification: {
@@ -70,7 +71,7 @@ describe Harassment::Runtime do
     expect(recorded.first.first).to be_a(Harassment::InteractionEvent)
     expect(recorded.first.first.classification_status).to eq(Harassment::ClassificationStatus::PENDING)
     expect(runtime.interaction_events.find("123").classification_status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
-    expect(runtime.classification_records.latest_for_message("123")).to eq(record)
+    expect(runtime.classification_records.latest_for_message(server_id: "456", message_id: "123")).to eq(record)
   end
 
   context "with Redis-backed repositories" do
@@ -84,8 +85,8 @@ describe Harassment::Runtime do
       second_runtime = described_class.new(redis: redis, classifier_version: "harassment-v1", classifier: classifier)
 
       expect(second_runtime.interaction_events.find("123")&.classification_status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
-      expect(second_runtime.classification_records.latest_for_message("123")).to eq(record)
-      expect(second_runtime.classification_jobs.find(message_id: "123", classifier_version: "harassment-v1")&.status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
+      expect(second_runtime.classification_records.latest_for_message(server_id: "456", message_id: "123")).to eq(record)
+      expect(second_runtime.classification_jobs.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1")&.status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
     end
   end
 end

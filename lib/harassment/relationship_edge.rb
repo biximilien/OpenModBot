@@ -2,6 +2,7 @@ require "time"
 
 module Harassment
   RelationshipEdge = Data.define(
+    :server_id,
     :source_user_id,
     :target_user_id,
     :score_version,
@@ -11,6 +12,7 @@ module Harassment
     :last_interaction_at,
   ) do
     def self.build(
+      server_id: "unknown-server",
       source_user_id:,
       target_user_id:,
       score_version: "unknown-score-version",
@@ -20,6 +22,7 @@ module Harassment
       last_interaction_at: nil
     )
       new(
+        server_id: identifier!(server_id, "server_id"),
         source_user_id: identifier!(source_user_id, "source_user_id"),
         target_user_id: identifier!(target_user_id, "target_user_id"),
         score_version: identifier!(score_version, "score_version"),
@@ -32,6 +35,7 @@ module Harassment
 
     def decay_to(as_of:, decay_policy:)
       self.class.build(
+        server_id: server_id,
         source_user_id: source_user_id,
         target_user_id: target_user_id,
         score_version: score_version,

@@ -60,6 +60,7 @@ module Harassment
       if retryable?(job, error)
         retry_at = as_of + retry_delay(job)
         @classification_pipeline.record_retryable_failure(
+          server_id: job.server_id,
           message_id: job.message_id,
           classifier_version: job.classifier_version,
           error: error,
@@ -67,6 +68,7 @@ module Harassment
         )
       else
         @classification_pipeline.record_terminal_failure(
+          server_id: job.server_id,
           message_id: job.message_id,
           classifier_version: job.classifier_version,
           error: error,

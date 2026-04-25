@@ -10,6 +10,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
     instance_double(
       "HarassmentPlugin",
       get_user_risk: Harassment::UserRiskReport.build(
+        server_id: "123",
         user_id: "456",
         score_version: "harassment-score-v1",
         risk_score: 0.72,
@@ -23,9 +24,11 @@ describe ModerationGPT::Plugins::HarassmentCommand do
         },
       ),
       get_pair_relationship: Harassment::PairRelationshipReport.build(
+        server_id: "123",
         source_user_id: "456",
         target_user_id: "789",
         relationship_edge: Harassment::RelationshipEdge.build(
+          server_id: "123",
           source_user_id: "456",
           target_user_id: "789",
           score_version: "harassment-score-v1",
@@ -35,6 +38,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
         ),
       ),
       recent_incidents: Harassment::RecentIncidentsReport.build(
+        server_id: "123",
         channel_id: "321",
         user_id: nil,
         since: nil,
@@ -59,8 +63,9 @@ describe ModerationGPT::Plugins::HarassmentCommand do
   subject(:command) { described_class.new(plugin) }
 
   let(:channel) { instance_double("Channel", id: 321) }
+  let(:server) { instance_double("Server", id: 123) }
   let(:message) { instance_double("Message", content: "!moderation harassment risk <@456>") }
-  let(:event) { instance_double("Event", message: message, channel: channel, respond: true) }
+  let(:event) { instance_double("Event", message: message, server: server, channel: channel, respond: true) }
 
   it "matches risk commands" do
     message = instance_double("Message", content: "!moderation harassment risk <@456>")
@@ -103,7 +108,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
     command.handle(event)
 
-    expect(plugin).to have_received(:recent_incidents).with(321, limit: 1, user_id: nil, since: nil)
+    expect(plugin).to have_received(:recent_incidents).with(123, 321, limit: 1, user_id: nil, since: nil)
     expect(event).to have_received(:respond).with(
       a_string_including("Recent harassment incidents:", "<@456> -> <@789> | aggressive | severity 0.80 | confidence 0.70"),
     )
@@ -111,6 +116,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
   it "responds with filtered incidents for a specific user" do
     filtered_report = Harassment::RecentIncidentsReport.build(
+      server_id: "123",
       channel_id: "321",
       user_id: "456",
       incidents: [
@@ -134,7 +140,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
     command.handle(event)
 
-    expect(plugin).to have_received(:recent_incidents).with(321, limit: 1, user_id: "456", since: nil)
+    expect(plugin).to have_received(:recent_incidents).with(123, 321, limit: 1, user_id: "456", since: nil)
     expect(event).to have_received(:respond).with(
       a_string_including("Recent harassment incidents for <@456>:"),
     )
@@ -142,7 +148,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
   it "responds with a filtered empty-state message" do
     allow(plugin).to receive(:recent_incidents).and_return(
-      Harassment::RecentIncidentsReport.build(channel_id: "321", user_id: "456", incidents: []),
+      Harassment::RecentIncidentsReport.build(server_id: "123", channel_id: "321", user_id: "456", incidents: []),
     )
     message = instance_double("Message", content: "!moderation harassment incidents <@456>")
     allow(event).to receive(:message).and_return(message)
@@ -154,6 +160,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
   it "responds with time-windowed incidents" do
     report = Harassment::RecentIncidentsReport.build(
+      server_id: "123",
       channel_id: "321",
       user_id: nil,
       since: Time.utc(2026, 4, 25, 15, 0, 0),
@@ -181,6 +188,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
     command.handle(event)
 
     expect(plugin).to have_received(:recent_incidents).with(
+      123,
       321,
       limit: 1,
       user_id: nil,
@@ -191,7 +199,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
   it "responds with time-windowed empty state for a user" do
     allow(plugin).to receive(:recent_incidents).and_return(
-      Harassment::RecentIncidentsReport.build(channel_id: "321", user_id: "456", since: Time.utc(2026, 4, 25, 15, 0, 0), incidents: []),
+      Harassment::RecentIncidentsReport.build(server_id: "123", channel_id: "321", user_id: "456", since: Time.utc(2026, 4, 25, 15, 0, 0), incidents: []),
     )
     message = instance_double("Message", content: "!moderation harassment incidents <@456> 24h")
     allow(event).to receive(:message).and_return(message)
@@ -204,6 +212,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
   it "accepts a user, limit, and window in flexible order" do
     report = Harassment::RecentIncidentsReport.build(
+      server_id: "123",
       channel_id: "321",
       user_id: "456",
       since: Time.utc(2026, 4, 25, 15, 0, 0),
@@ -230,6 +239,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
     command.handle(event)
 
     expect(plugin).to have_received(:recent_incidents).with(
+      123,
       321,
       limit: 1,
       user_id: "456",

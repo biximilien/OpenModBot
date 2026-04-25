@@ -3,6 +3,7 @@ require_relative "classifier_version"
 
 module Harassment
   ClassificationRecord = Data.define(
+    :server_id,
     :message_id,
     :classifier_version,
     :model_version,
@@ -13,6 +14,7 @@ module Harassment
     :classified_at,
   ) do
     def self.build(
+      server_id: "unknown-server",
       message_id:,
       classifier_version:,
       model_version: "unknown-model",
@@ -23,6 +25,7 @@ module Harassment
       classified_at: Time.now.utc
     )
       new(
+        server_id: identifier!(server_id, "server_id"),
         message_id: identifier!(message_id, "message_id"),
         classifier_version: classifier_version!(classifier_version),
         model_version: identifier!(model_version, "model_version"),

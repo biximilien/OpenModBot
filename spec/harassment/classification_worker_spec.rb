@@ -30,6 +30,7 @@ describe Harassment::ClassificationWorker do
   end
   let(:record) do
     Harassment::ClassificationRecord.build(
+      server_id: "456",
       message_id: "123",
       classifier_version: "harassment-v1",
       classification: {
@@ -79,8 +80,8 @@ describe Harassment::ClassificationWorker do
       context: { recent_channel_messages: [], recent_pair_interactions: [], participant_labels: {} },
       classified_at: Time.utc(2026, 4, 25, 18, 1, 0),
     )
-    expect(classification_records.latest_for_message("123")).to eq(record)
-    expect(classification_jobs.find(message_id: "123", classifier_version: "harassment-v1").status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
+    expect(classification_records.latest_for_message(server_id: "456", message_id: "123")).to eq(record)
+    expect(classification_jobs.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1").status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
     expect(processed).to eq([[event, record]])
   end
 
@@ -89,7 +90,7 @@ describe Harassment::ClassificationWorker do
 
     worker.process_due_jobs(as_of: Time.utc(2026, 4, 25, 18, 1, 0))
 
-    job = classification_jobs.find(message_id: "123", classifier_version: "harassment-v1")
+    job = classification_jobs.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1")
     expect(job.status).to eq(Harassment::ClassificationStatus::FAILED_RETRYABLE)
     expect(job.attempt_count).to eq(1)
     expect(job.available_at).to eq(Time.utc(2026, 4, 25, 18, 2, 0))
@@ -100,7 +101,7 @@ describe Harassment::ClassificationWorker do
 
     worker.process_due_jobs(as_of: Time.utc(2026, 4, 25, 18, 1, 0))
 
-    job = classification_jobs.find(message_id: "123", classifier_version: "harassment-v1")
+    job = classification_jobs.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1")
     expect(job.status).to eq(Harassment::ClassificationStatus::FAILED_TERMINAL)
     expect(job.attempt_count).to eq(1)
   end
@@ -112,7 +113,7 @@ describe Harassment::ClassificationWorker do
     worker.process_due_jobs(as_of: Time.utc(2026, 4, 25, 18, 6, 0))
     worker.process_due_jobs(as_of: Time.utc(2026, 4, 25, 18, 36, 0))
 
-    job = classification_jobs.find(message_id: "123", classifier_version: "harassment-v1")
+    job = classification_jobs.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1")
     expect(job.status).to eq(Harassment::ClassificationStatus::FAILED_TERMINAL)
     expect(job.attempt_count).to eq(3)
   end

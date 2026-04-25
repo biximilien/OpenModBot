@@ -15,10 +15,10 @@ module Harassment
       @read_model = read_model
     end
 
-    def analyze_user(user_id, as_of: Time.now.utc)
-      incidents = @read_model.incidents_for_author(user_id)
-      outgoing_edges = @read_model.outgoing_relationships(user_id, as_of:)
-      incoming_edges = @read_model.incoming_relationships(user_id, as_of:)
+    def analyze_user(server_id, user_id, as_of: Time.now.utc)
+      incidents = @read_model.incidents_for_author(server_id, user_id)
+      outgoing_edges = @read_model.outgoing_relationships(server_id, user_id, as_of:)
+      incoming_edges = @read_model.incoming_relationships(server_id, user_id, as_of:)
 
       signals = {
         asymmetry: asymmetry_score(outgoing_edges:, incoming_edges:),

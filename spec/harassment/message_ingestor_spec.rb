@@ -45,7 +45,7 @@ describe Harassment::MessageIngestor do
     expect(interaction_event.target_user_ids).to eq(["654"])
     expect(interaction_event.content_retention_expires_at).to eq(Time.utc(2026, 5, 25, 17, 0, 0))
 
-    job = classification_jobs.find(message_id: "123", classifier_version: "harassment-v1")
+    job = classification_jobs.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1")
     expect(job).not_to be_nil
     expect(job.status).to eq(Harassment::ClassificationStatus::PENDING)
   end

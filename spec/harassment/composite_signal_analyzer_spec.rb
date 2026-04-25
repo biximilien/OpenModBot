@@ -16,6 +16,7 @@ describe Harassment::CompositeSignalAnalyzer do
       raw_content: "message #{message_id}",
     )
     record = Harassment::ClassificationRecord.build(
+      server_id: "456",
       message_id: message_id,
       classifier_version: "harassment-v1",
       classification: { intent: "aggressive", target_type: "individual" },
@@ -32,7 +33,7 @@ describe Harassment::CompositeSignalAnalyzer do
     build_event(message_id: 3, author_id: 321, target_user_ids: [999], classified_at: Time.utc(2026, 4, 25, 12, 0, 0), severity_score: 0.4, confidence: 0.5)
     build_event(message_id: 4, author_id: 654, target_user_ids: [321], classified_at: Time.utc(2026, 4, 25, 15, 58, 0), severity_score: 0.2, confidence: 0.5)
 
-    analysis = analyzer.analyze_user("321", as_of: Time.utc(2026, 4, 25, 16, 0, 0))
+    analysis = analyzer.analyze_user("456", "321", as_of: Time.utc(2026, 4, 25, 16, 0, 0))
 
     expect(analysis[:relationship_count]).to eq(2)
     expect(analysis[:signals][:asymmetry]).to be > 0.0
