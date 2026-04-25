@@ -3,6 +3,7 @@ require_relative "repositories/in_memory_classification_job_repository"
 require_relative "repositories/in_memory_classification_record_repository"
 require_relative "repositories/in_memory_interaction_event_repository"
 require_relative "repositories/in_memory_server_rate_limit_repository"
+require_relative "repositories/postgres_interaction_event_repository"
 require_relative "repositories/redis_classification_cache_repository"
 require_relative "repositories/redis_classification_job_repository"
 require_relative "repositories/redis_classification_record_repository"
@@ -11,8 +12,9 @@ require_relative "repositories/redis_server_rate_limit_repository"
 
 module Harassment
   class RepositoryFactory
-    def initialize(backend:, redis: nil)
+    def initialize(backend:, redis: nil, connection: nil)
       @redis = redis
+      @connection = connection
       @backend = normalize_backend(backend)
     end
 
@@ -22,6 +24,8 @@ module Harassment
         Repositories::InMemoryInteractionEventRepository.new
       when "redis"
         Repositories::RedisInteractionEventRepository.new(redis: redis!)
+      when "postgres"
+        Repositories::PostgresInteractionEventRepository.new(connection: connection!)
       else
         raise NotImplementedError, "Postgres harassment interaction repositories are not implemented yet"
       end
@@ -86,6 +90,12 @@ module Harassment
       return @redis if @redis
 
       raise ArgumentError, "redis backend requires a Redis client"
+    end
+
+    def connection!
+      return @connection if @connection
+
+      raise ArgumentError, "postgres backend requires a database connection"
     end
   end
 end

@@ -22,9 +22,10 @@ describe Harassment::RepositoryFactory do
     expect(factory.server_rate_limits).to be_a(Harassment::Repositories::RedisServerRateLimitRepository)
   end
 
-  it "raises clearly for the not-yet-implemented postgres backend" do
-    factory = described_class.new(backend: "postgres")
+  it "returns the Postgres interaction repository and keeps later repositories explicit" do
+    factory = described_class.new(backend: "postgres", connection: Object.new)
 
-    expect { factory.interaction_events }.to raise_error(NotImplementedError, /Postgres harassment interaction repositories are not implemented yet/)
+    expect(factory.interaction_events).to be_a(Harassment::Repositories::PostgresInteractionEventRepository)
+    expect { factory.classification_records }.to raise_error(NotImplementedError, /Postgres harassment classification-record repositories are not implemented yet/)
   end
 end
