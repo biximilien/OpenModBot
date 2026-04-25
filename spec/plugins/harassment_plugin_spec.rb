@@ -49,4 +49,9 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
     expect(plugin.recent_incidents("789").incidents.length).to eq(1)
     expect(plugin.get_pair_relationship("321", "654").relationship_edge.interaction_count).to eq(1)
   end
+
+  it "exposes a harassment moderation command" do
+    expect(plugin.commands.length).to eq(1)
+    expect(plugin.commands.first.help_lines).to include("!moderation harassment risk @user")
+  end
 end

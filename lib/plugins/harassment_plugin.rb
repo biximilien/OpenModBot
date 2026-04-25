@@ -1,6 +1,7 @@
 require_relative "../plugin"
 require_relative "../harassment/query_service"
 require_relative "../harassment/read_model"
+require_relative "harassment_command"
 
 module ModerationGPT
   module Plugins
@@ -28,6 +29,10 @@ module ModerationGPT
 
       def recent_incidents(channel_id, limit: 10)
         @query_service.recent_incidents(channel_id, limit:)
+      end
+
+      def commands
+        [HarassmentCommand.new(self)]
       end
     end
   end

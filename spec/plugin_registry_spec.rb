@@ -38,7 +38,8 @@ describe ModerationGPT::PluginRegistry do
       registry = described_class.from_environment
 
       expect(registry).to be_a(described_class)
-      expect(registry.commands).to eq([])
+      expect(registry.commands.length).to eq(1)
+      expect(registry.commands.first.help_lines).to include("!moderation harassment risk @user")
       expect(registry.find_plugin(ModerationGPT::Plugins::HarassmentPlugin)).to be_a(ModerationGPT::Plugins::HarassmentPlugin)
     end
 

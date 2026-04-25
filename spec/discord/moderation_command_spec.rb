@@ -163,6 +163,20 @@ describe Discord::ModerationCommand do
       end
     end
 
+    context "when a harassment risk plugin command matches" do
+      let(:content) { "!moderation harassment risk <@456>" }
+
+      before do
+        allow(plugin_command).to receive(:matches?).with(event).and_return(true)
+      end
+
+      it "dispatches to the plugin command" do
+        command.handle(event)
+
+        expect(plugin_command).to have_received(:handle).with(event)
+      end
+    end
+
     context "when a built-in command matches before a plugin command" do
       let(:content) { "!moderation help" }
 
