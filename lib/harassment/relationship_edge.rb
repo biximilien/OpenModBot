@@ -12,10 +12,10 @@ module Harassment
     :last_interaction_at,
   ) do
     def self.build(
-      server_id: "unknown-server",
+      server_id:,
       source_user_id:,
       target_user_id:,
-      score_version: "unknown-score-version",
+      score_version:,
       hostility_score: 0.0,
       positive_score: 0.0,
       interaction_count: 0,

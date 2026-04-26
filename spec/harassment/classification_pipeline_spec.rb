@@ -44,6 +44,8 @@ describe Harassment::ClassificationPipeline do
       server_id: "456",
       message_id: "123",
       classifier_version: "harassment-v1",
+      model_version: "gpt-4o-2024-08-06",
+      prompt_version: "harassment-prompt-v1",
       classification: { intent: "aggressive" },
       severity_score: 0.8,
       confidence: 0.9,

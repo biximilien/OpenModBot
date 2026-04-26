@@ -30,7 +30,7 @@ module Harassment
       }
 
       {
-        score_version: outgoing_edges.first&.score_version || incoming_edges.first&.score_version || "unknown-score-version",
+        score_version: outgoing_edges.first&.score_version || incoming_edges.first&.score_version || read_model_score_version,
         signals: signals,
         harassment_score: weighted_score(signals),
         relationship_count: outgoing_edges.length,
@@ -38,6 +38,12 @@ module Harassment
     end
 
     private
+
+    def read_model_score_version
+      return @read_model.score_version if @read_model.respond_to?(:score_version)
+
+      raise ArgumentError, "read model must expose score_version when no relationships are available"
+    end
 
     def asymmetry_score(outgoing_edges:, incoming_edges:)
       outgoing = outgoing_edges.sum(&:hostility_score)

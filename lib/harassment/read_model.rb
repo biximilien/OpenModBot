@@ -5,6 +5,8 @@ require_relative "repositories/in_memory_relationship_edge_repository"
 
 module Harassment
   class ReadModel
+    attr_reader :score_version
+
     def initialize(
       decay_policy: DecayPolicy.new,
       score_version: "harassment-score-v1",

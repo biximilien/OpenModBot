@@ -5,6 +5,7 @@ describe Harassment::ClassificationRecord do
     classified_at = Time.utc(2026, 4, 25, 12, 30, 0)
 
     record = described_class.build(
+      server_id: 456,
       message_id: 123,
       classifier_version: "harassment-v1",
       model_version: "gpt-4o-2024-08-06",
@@ -28,28 +29,45 @@ describe Harassment::ClassificationRecord do
     expect(record.classified_at).to eq(classified_at)
   end
 
-  it "defaults lineage fields for legacy records" do
-    record = described_class.build(
-      message_id: 123,
-      classifier_version: "harassment-v1",
-      classification: {},
-      severity_score: 0.4,
-      confidence: 0.5,
-    )
-
-    expect(record.model_version).to eq("unknown-model")
-    expect(record.prompt_version).to eq("unknown-prompt")
-  end
-
-  it "rejects scores outside the 0..1 range" do
+  it "requires identity and lineage fields" do
     expect do
       described_class.build(
         message_id: 123,
         classifier_version: "harassment-v1",
         classification: {},
+        severity_score: 0.4,
+        confidence: 0.5,
+      )
+    end.to raise_error(ArgumentError, /missing keywords: :server_id, :model_version, :prompt_version/)
+  end
+
+  it "rejects scores outside the 0..1 range" do
+    expect do
+      described_class.build(
+        server_id: 456,
+        message_id: 123,
+        classifier_version: "harassment-v1",
+        model_version: "gpt-4o-2024-08-06",
+        prompt_version: "harassment-prompt-v1",
+        classification: {},
         severity_score: 1.5,
         confidence: 0.5,
       )
     end.to raise_error(ArgumentError, "severity_score must be between 0.0 and 1.0")
+  end
+
+  it "rejects empty lineage fields" do
+    expect do
+      described_class.build(
+        server_id: 456,
+        message_id: 123,
+        classifier_version: "harassment-v1",
+        model_version: " ",
+        prompt_version: "harassment-prompt-v1",
+        classification: {},
+        severity_score: 0.4,
+        confidence: 0.5,
+      )
+    end.to raise_error(ArgumentError, "model_version must not be empty")
   end
 end

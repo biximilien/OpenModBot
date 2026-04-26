@@ -16,7 +16,7 @@ module Harassment
     :updated_at,
   ) do
     def self.build(
-      server_id: "unknown-server",
+      server_id:,
       message_id:,
       classifier_version:,
       status: ClassificationStatus::PENDING,

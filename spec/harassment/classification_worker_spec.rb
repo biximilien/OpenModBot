@@ -35,6 +35,8 @@ describe Harassment::ClassificationWorker do
       server_id: "456",
       message_id: "123",
       classifier_version: "harassment-v1",
+      model_version: "gpt-4o-2024-08-06",
+      prompt_version: "harassment-prompt-v1",
       classification: {
         intent: "aggressive",
         target_type: "individual",

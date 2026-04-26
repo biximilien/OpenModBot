@@ -19,6 +19,8 @@ describe Harassment::CompositeSignalAnalyzer do
       server_id: "456",
       message_id: message_id,
       classifier_version: "harassment-v1",
+      model_version: "gpt-4o-2024-08-06",
+      prompt_version: "harassment-prompt-v1",
       classification: { intent: "aggressive", target_type: "individual" },
       severity_score: severity_score,
       confidence: confidence,

@@ -14,11 +14,11 @@ module Harassment
     :classified_at,
   ) do
     def self.build(
-      server_id: "unknown-server",
+      server_id:,
       message_id:,
       classifier_version:,
-      model_version: "unknown-model",
-      prompt_version: "unknown-prompt",
+      model_version:,
+      prompt_version:,
       classification:,
       severity_score:,
       confidence:,

@@ -6,6 +6,7 @@ describe Harassment::RelationshipEdge do
     last_interaction_at = Time.utc(2026, 4, 25, 13, 0, 0)
 
     edge = described_class.build(
+      server_id: 789,
       source_user_id: 123,
       target_user_id: 456,
       score_version: "harassment-score-v1",
@@ -27,8 +28,10 @@ describe Harassment::RelationshipEdge do
   it "rejects negative scores or counts" do
     expect do
       described_class.build(
+        server_id: 789,
         source_user_id: 123,
         target_user_id: 456,
+        score_version: "harassment-score-v1",
         hostility_score: -0.1,
       )
     end.to raise_error(ArgumentError, "hostility_score must be non-negative")
@@ -36,6 +39,7 @@ describe Harassment::RelationshipEdge do
 
   it "decays scores to a later point in time" do
     edge = described_class.build(
+      server_id: 789,
       source_user_id: 123,
       target_user_id: 456,
       score_version: "harassment-score-v1",
@@ -52,5 +56,11 @@ describe Harassment::RelationshipEdge do
     expect(decayed.positive_score).to be_within(0.0001).of(0.25)
     expect(decayed.score_version).to eq("harassment-score-v1")
     expect(decayed.interaction_count).to eq(1)
+  end
+
+  it "requires server identity and score version" do
+    expect do
+      described_class.build(source_user_id: 123, target_user_id: 456)
+    end.to raise_error(ArgumentError, /missing keywords: :server_id, :score_version/)
   end
 end
