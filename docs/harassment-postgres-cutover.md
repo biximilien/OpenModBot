@@ -80,6 +80,8 @@ Use Postgres for the harassment runtime state:
    - `classification_records`
    - `classification_jobs`
 
+   Also confirm that `relationship_edges` shows the expected Postgres counts after the rebuild step.
+
    Also confirm that the spot checks report `matches=true` for the sampled:
 
    - `interaction_events`
@@ -130,5 +132,5 @@ Because Redis remains the source before cutover and the backend switch is config
 
 - The bootstrap script is idempotent for already-migrated durable records.
 - The relationship-edge rebuild script clears and rebuilds the current `score_version` projection from stored classified events and their latest stored classification records.
-- The verification script compares counts broadly and also performs a small sample of row-level spot checks.
+- The verification script compares counts broadly, reports Postgres relationship-edge counts, and performs a small sample of row-level spot checks.
 - Cache and rate-limit state are not bootstrapped; they start fresh after cutover.

@@ -2,6 +2,7 @@ require "harassment/postgres_verifier"
 require "harassment/repositories/postgres_classification_job_repository"
 require "harassment/repositories/postgres_classification_record_repository"
 require "harassment/repositories/postgres_interaction_event_repository"
+require "harassment/repositories/postgres_relationship_edge_repository"
 require "harassment/repositories/redis_classification_job_repository"
 require "harassment/repositories/redis_classification_record_repository"
 require "harassment/repositories/redis_interaction_event_repository"
@@ -17,6 +18,7 @@ describe Harassment::PostgresVerifier do
   let(:target_interaction_events) { Harassment::Repositories::PostgresInteractionEventRepository.new(connection: connection) }
   let(:target_classification_records) { Harassment::Repositories::PostgresClassificationRecordRepository.new(connection: connection) }
   let(:target_classification_jobs) { Harassment::Repositories::PostgresClassificationJobRepository.new(connection: connection) }
+  let(:target_relationship_edges) { Harassment::Repositories::PostgresRelationshipEdgeRepository.new(connection: connection) }
 
   subject(:verifier) { described_class.new(redis: redis, connection: connection) }
 
@@ -51,6 +53,17 @@ describe Harassment::PostgresVerifier do
     target_interaction_events.save(event)
     target_classification_records.save(record)
     target_classification_jobs.enqueue_unique(job)
+    target_relationship_edges.save(
+      Harassment::RelationshipEdge.build(
+        server_id: 456,
+        source_user_id: 321,
+        target_user_id: 654,
+        score_version: "harassment-score-v1",
+        hostility_score: 0.4,
+        interaction_count: 1,
+        last_interaction_at: Time.utc(2026, 4, 25, 12, 0, 5),
+      ),
+    )
   end
 
   it "reports matching totals and per-server counts" do
@@ -65,6 +78,10 @@ describe Harassment::PostgresVerifier do
     )
     expect(summary[:classification_records][:matches]).to eq(true)
     expect(summary[:classification_jobs][:matches]).to eq(true)
+    expect(summary[:relationship_edges]).to eq(
+      total: 1,
+      by_server: { "456" => 1 },
+    )
     expect(summary[:spot_checks]).to eq(
       interaction_events: {
         sampled: 1,

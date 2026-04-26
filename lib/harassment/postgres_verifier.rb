@@ -60,6 +60,7 @@ module Harassment
         classification_jobs: spot_check_classification_jobs(limit: spot_check_limit),
       }
       summary[:known_message_ids] = verify_known_message_ids(Array(verify_message_ids))
+      summary[:relationship_edges] = postgres_counts_for("relationship_edges")
       summary
     end
 

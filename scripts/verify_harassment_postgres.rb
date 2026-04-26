@@ -14,13 +14,19 @@ summary = verifier.run(verify_message_ids: message_ids)
 
 puts "Harassment Postgres verification"
 summary.each do |name, counts|
-  next if name == :spot_checks
+  next if name == :spot_checks || name == :relationship_edges
 
   puts "- #{name}: redis_total=#{counts[:redis_total]} postgres_total=#{counts[:postgres_total]} matches=#{counts[:matches]}"
   counts[:redis_by_server].each do |server_id, redis_count|
     postgres_count = counts[:postgres_by_server].fetch(server_id, 0)
     puts "  - server #{server_id}: redis=#{redis_count} postgres=#{postgres_count}"
   end
+end
+
+relationship_edges = summary.fetch(:relationship_edges)
+puts "- relationship_edges: postgres_total=#{relationship_edges[:total]}"
+relationship_edges[:by_server].each do |server_id, count|
+  puts "  - server #{server_id}: postgres=#{count}"
 end
 
 puts "Spot checks"

@@ -153,7 +153,7 @@ You can scope the rebuild to a specific server:
 ruby scripts/rebuild_harassment_relationship_edges.rb 123456789012345678
 ```
 
-To compare Redis and Postgres harassment counts and a small set of sampled rows before cutover, run:
+To compare Redis and Postgres harassment counts, inspect Postgres relationship-edge totals, and run a small set of sampled row checks before cutover, run:
 
 ```bash
 ruby scripts/verify_harassment_postgres.rb

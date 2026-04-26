@@ -79,6 +79,10 @@ class FakePostgresConnection
       [{ "count" => @classification_jobs.length }]
     when /SELECT guild_id, COUNT\(\*\) AS count\s+FROM classification_jobs\s+GROUP BY guild_id/im
       grouped_counts(@classification_jobs)
+    when /SELECT COUNT\(\*\) AS count\s+FROM relationship_edges/im
+      [{ "count" => @relationship_edges.length }]
+    when /SELECT guild_id, COUNT\(\*\) AS count\s+FROM relationship_edges\s+GROUP BY guild_id/im
+      grouped_counts(@relationship_edges)
     else
       raise "Unsupported SQL: #{sql}"
     end
