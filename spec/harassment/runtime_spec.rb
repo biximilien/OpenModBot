@@ -1,11 +1,13 @@
 require "harassment/runtime"
 require_relative "../support/fake_redis"
+require_relative "../support/fake_postgres_connection"
 
 describe Harassment::Runtime do
   let(:client) { instance_double("OpenAIClient") }
   let(:classifier) { instance_double("Classifier", cache_identity: { classifier_class: "RuntimeClassifier" }) }
   let(:recorded) { [] }
   let(:redis) { nil }
+  let(:connection) { nil }
   let(:mentioned_user) { instance_double("User", id: 654) }
   let(:message) do
     instance_double(
@@ -24,6 +26,7 @@ describe Harassment::Runtime do
   subject(:runtime) do
     described_class.new(
       redis: redis,
+      connection: connection,
       classifier_version: "harassment-v1",
       classifier: classifier,
       on_classification: ->(event:, record:) { recorded << [event, record] },
@@ -87,6 +90,36 @@ describe Harassment::Runtime do
       expect(second_runtime.interaction_events.find("123")&.classification_status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
       expect(second_runtime.classification_records.latest_for_message(server_id: "456", message_id: "123")).to eq(record)
       expect(second_runtime.classification_jobs.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1")&.status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
+    end
+  end
+
+  context "with Postgres core repositories and Redis operational repositories" do
+    let(:redis) { FakeRedis.new }
+    let(:connection) { FakePostgresConnection.new }
+
+    subject(:runtime) do
+      described_class.new(
+        redis: redis,
+        connection: connection,
+        storage_backend: "postgres",
+        classifier_version: "harassment-v1",
+        classifier: classifier,
+        on_classification: ->(event:, record:) { recorded << [event, record] },
+      )
+    end
+
+    it "uses Postgres for durable classification state while keeping runtime processing intact" do
+      runtime.ingest_message(event)
+      allow(classifier).to receive(:classify).and_return(record)
+
+      results = runtime.process_due_classifications(as_of: Time.utc(2026, 4, 25, 16, 1, 0))
+
+      expect(results).to eq([record])
+      expect(runtime.interaction_events).to be_a(Harassment::Repositories::PostgresInteractionEventRepository)
+      expect(runtime.classification_records).to be_a(Harassment::Repositories::PostgresClassificationRecordRepository)
+      expect(runtime.classification_jobs).to be_a(Harassment::Repositories::PostgresClassificationJobRepository)
+      expect(runtime.classification_records.latest_for_message(server_id: "456", message_id: "123")).to eq(record)
+      expect(runtime.classification_jobs.find(server_id: "456", message_id: "123", classifier_version: "harassment-v1")&.status).to eq(Harassment::ClassificationStatus::CLASSIFIED)
     end
   end
 end

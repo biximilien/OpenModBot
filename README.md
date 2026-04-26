@@ -129,7 +129,7 @@ The `harassment` plugin passively captures interaction events, enqueues harassme
 
 In the current implementation, the core platform owns the harassment runtime: Discord message ingestion, Redis-backed event and job storage, transient context assembly, classifier-output caching, per-server rate limiting, and background classification processing. The plugin owns the harassment classifier version, prompt/schema definition, read model, scoring, moderator-facing queries, and Discord command output.
 
-`HARASSMENT_STORAGE_BACKEND` currently supports `redis` in production code today. `postgres` is now an explicit migration target with schema groundwork in `db/harassment/001_initial_schema.sql`, but the Postgres repository implementations are not wired in yet.
+`HARASSMENT_STORAGE_BACKEND=postgres` now routes the durable harassment pipeline spine through Postgres-backed repositories for interaction events, classification records, and classification jobs. During this migration phase, classifier caching and per-server rate limiting still use the existing Redis-backed operational path.
 
 Classifier context is assembled transiently from retained interaction events and sent to OpenAI with pseudonymous participant labels rather than raw Discord IDs.
 

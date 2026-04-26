@@ -28,6 +28,7 @@ harassment_runtime =
   if harassment_plugin
     Harassment::Runtime.new(
       redis: app.redis,
+      connection: (Environment.harassment_storage_backend == "postgres" ? app.database_connection : nil),
       storage_backend: Environment.harassment_storage_backend,
       classifier_version: harassment_plugin.classifier_version,
       classifier: harassment_plugin.build_classifier(client: app),

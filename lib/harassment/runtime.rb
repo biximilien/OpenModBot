@@ -13,6 +13,7 @@ module Harassment
 
     def initialize(
       redis: nil,
+      connection: nil,
       storage_backend: nil,
       interaction_events: nil,
       classification_records: nil,
@@ -25,12 +26,17 @@ module Harassment
       classifier_rate_limit_per_minute: Environment.harassment_classifier_rate_limit_per_minute,
       on_classification: nil
     )
-      factory = RepositoryFactory.new(backend: storage_backend, redis:)
-      @interaction_events = interaction_events || factory.interaction_events
-      @classification_records = classification_records || factory.classification_records
-      @classification_jobs = classification_jobs || factory.classification_jobs
-      @classification_cache = classification_cache || factory.classification_cache
-      @server_rate_limits = server_rate_limits || factory.server_rate_limits
+      core_factory = RepositoryFactory.new(backend: storage_backend, redis:, connection:)
+      operational_factory = RepositoryFactory.new(
+        backend: operational_backend(storage_backend, redis),
+        redis:,
+        connection:,
+      )
+      @interaction_events = interaction_events || core_factory.interaction_events
+      @classification_records = classification_records || core_factory.classification_records
+      @classification_jobs = classification_jobs || core_factory.classification_jobs
+      @classification_cache = classification_cache || operational_factory.classification_cache
+      @server_rate_limits = server_rate_limits || operational_factory.server_rate_limits
       @classifier_version = classifier_version.is_a?(ClassifierVersion) ? classifier_version : ClassifierVersion.build(classifier_version)
       @classifier = wrap_classifier(classifier, ttl_seconds: classifier_cache_ttl_seconds)
       @rate_limiter = build_rate_limiter(limit_per_minute: classifier_rate_limit_per_minute)
@@ -64,6 +70,14 @@ module Harassment
       @classification_worker.process_due_jobs(as_of:, limit:)
     end
     private
+
+    def operational_backend(storage_backend, redis)
+      backend = storage_backend.to_s.strip.downcase
+      return nil if backend.empty?
+      return backend unless backend == "postgres"
+
+      redis ? "redis" : "memory"
+    end
 
     def wrap_classifier(classifier, ttl_seconds:)
       return classifier unless Integer(ttl_seconds).positive?
