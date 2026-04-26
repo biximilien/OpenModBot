@@ -7,6 +7,7 @@ class FakePostgresConnection
     @classification_records = []
     @classification_jobs = []
     @classification_cache_entries = []
+    @relationship_edges = []
     @server_rate_limits = []
   end
 
@@ -50,6 +51,14 @@ class FakePostgresConnection
       delete_classification_cache_entry(params[0])
     when /INSERT INTO classification_cache_entries/i
       upsert_classification_cache_entry(params)
+    when /SELECT \*\s+FROM relationship_edges\s+WHERE guild_id = \$1\s+AND source_user_id = \$2\s+AND target_user_id = \$3\s+AND score_version = \$4\s+LIMIT 1/im
+      find_relationship_edge(params[0], params[1], params[2], params[3])
+    when /INSERT INTO relationship_edges/i
+      upsert_relationship_edge(params)
+    when /SELECT \*\s+FROM relationship_edges\s+WHERE guild_id = \$1\s+AND source_user_id = \$2\s+AND score_version = \$3/im
+      outgoing_relationship_edges(params[0], params[1], params[2])
+    when /SELECT \*\s+FROM relationship_edges\s+WHERE guild_id = \$1\s+AND target_user_id = \$2\s+AND score_version = \$3/im
+      incoming_relationship_edges(params[0], params[1], params[2])
     when /SELECT \*\s+FROM server_rate_limits\s+WHERE guild_id = \$1\s+LIMIT 1/im
       find_server_rate_limit(params[0])
     when /INSERT INTO server_rate_limits/i
@@ -291,6 +300,66 @@ class FakePostgresConnection
       @classification_cache_entries << row
     end
     [row]
+  end
+
+  def find_relationship_edge(guild_id, source_user_id, target_user_id, score_version)
+    row = @relationship_edges.find do |edge|
+      edge["guild_id"] == guild_id.to_s &&
+        edge["source_user_id"] == source_user_id.to_s &&
+        edge["target_user_id"] == target_user_id.to_s &&
+        edge["score_version"] == score_version.to_s
+    end
+    row ? [row] : []
+  end
+
+  def upsert_relationship_edge(params)
+    guild_id, source_user_id, target_user_id, score_version, hostility_score, positive_score, interaction_count, last_interaction_at = params
+    row = @relationship_edges.find do |edge|
+      edge["guild_id"] == guild_id.to_s &&
+        edge["source_user_id"] == source_user_id.to_s &&
+        edge["target_user_id"] == target_user_id.to_s &&
+        edge["score_version"] == score_version.to_s
+    end
+
+    if row
+      row["hostility_score"] = hostility_score
+      row["positive_score"] = positive_score
+      row["interaction_count"] = interaction_count
+      row["last_interaction_at"] = last_interaction_at
+    else
+      row = {
+        "guild_id" => guild_id,
+        "source_user_id" => source_user_id,
+        "target_user_id" => target_user_id,
+        "score_version" => score_version,
+        "hostility_score" => hostility_score,
+        "positive_score" => positive_score,
+        "interaction_count" => interaction_count,
+        "last_interaction_at" => last_interaction_at,
+      }
+      @relationship_edges << row
+    end
+    [row]
+  end
+
+  def outgoing_relationship_edges(guild_id, source_user_id, score_version)
+    @relationship_edges
+      .select do |edge|
+        edge["guild_id"] == guild_id.to_s &&
+          edge["source_user_id"] == source_user_id.to_s &&
+          edge["score_version"] == score_version.to_s
+      end
+      .sort_by { |edge| edge["target_user_id"] }
+  end
+
+  def incoming_relationship_edges(guild_id, target_user_id, score_version)
+    @relationship_edges
+      .select do |edge|
+        edge["guild_id"] == guild_id.to_s &&
+          edge["target_user_id"] == target_user_id.to_s &&
+          edge["score_version"] == score_version.to_s
+      end
+      .sort_by { |edge| edge["source_user_id"] }
   end
 
   def find_server_rate_limit(guild_id)

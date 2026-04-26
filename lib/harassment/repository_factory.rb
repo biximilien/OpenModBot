@@ -2,11 +2,13 @@ require_relative "repositories/in_memory_classification_cache_repository"
 require_relative "repositories/in_memory_classification_job_repository"
 require_relative "repositories/in_memory_classification_record_repository"
 require_relative "repositories/in_memory_interaction_event_repository"
+require_relative "repositories/in_memory_relationship_edge_repository"
 require_relative "repositories/in_memory_server_rate_limit_repository"
 require_relative "repositories/postgres_classification_job_repository"
 require_relative "repositories/postgres_classification_record_repository"
 require_relative "repositories/postgres_classification_cache_repository"
 require_relative "repositories/postgres_interaction_event_repository"
+require_relative "repositories/postgres_relationship_edge_repository"
 require_relative "repositories/postgres_server_rate_limit_repository"
 require_relative "repositories/redis_classification_cache_repository"
 require_relative "repositories/redis_classification_job_repository"
@@ -84,6 +86,17 @@ module Harassment
         Repositories::PostgresServerRateLimitRepository.new(connection: connection!)
       else
         raise NotImplementedError, "unsupported harassment rate-limit backend: #{@backend}"
+      end
+    end
+
+    def relationship_edges
+      case @backend
+      when "memory", "redis"
+        Repositories::InMemoryRelationshipEdgeRepository.new
+      when "postgres"
+        Repositories::PostgresRelationshipEdgeRepository.new(connection: connection!)
+      else
+        raise NotImplementedError, "unsupported harassment relationship-edge backend: #{@backend}"
       end
     end
 

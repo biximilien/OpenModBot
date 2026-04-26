@@ -75,4 +75,18 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
     expect(plugin.commands.length).to eq(1)
     expect(plugin.commands.first.help_lines).to include("!moderation harassment risk @user")
   end
+
+  it "switches to Postgres relationship-edge storage on boot when configured" do
+    fake_connection = FakePostgresConnection.new
+    app = instance_double("Application", database_connection: fake_connection)
+    original_backend = ENV["HARASSMENT_STORAGE_BACKEND"]
+    ENV["HARASSMENT_STORAGE_BACKEND"] = "postgres"
+
+    plugin.boot(app: app)
+    plugin.record_classification(event:, record:)
+
+    expect(plugin.get_pair_relationship("456", "321", "654", as_of: record.classified_at).relationship_edge.interaction_count).to eq(1)
+  ensure
+    ENV["HARASSMENT_STORAGE_BACKEND"] = original_backend
+  end
 end

@@ -79,8 +79,9 @@ The harassment runtime can store its own pipeline state in either Redis or Postg
   - `classification_jobs`
   - `classification_cache_entries`
   - `server_rate_limits`
+  - `relationship_edges`
 
-The Redis-to-Postgres bootstrap path migrates interaction events, classification records, and classification jobs. Cache and rate-limit state are operational only and are not bootstrapped.
+The Redis-to-Postgres bootstrap path migrates interaction events, classification records, and classification jobs. Cache, rate-limit, and relationship-edge projection state are not bootstrapped.
 
 ## KarmaEvent
 

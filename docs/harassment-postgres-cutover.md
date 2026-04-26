@@ -11,6 +11,7 @@ Use Postgres for the harassment runtime state:
 - classification jobs
 - classification cache entries
 - server rate-limit buckets
+- relationship-edge projections
 
 ## Preconditions
 
@@ -113,4 +114,4 @@ Because Redis remains the source before cutover and the backend switch is config
 
 - The bootstrap script is idempotent for already-migrated durable records.
 - The verification script compares counts broadly and also performs a small sample of row-level spot checks.
-- Cache and rate-limit state are not bootstrapped; they start fresh after cutover.
+- Cache, rate-limit, and relationship-edge projection state are not bootstrapped; they start fresh after cutover.

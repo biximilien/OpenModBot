@@ -10,6 +10,7 @@ describe Harassment::RepositoryFactory do
     expect(factory.classification_jobs).to be_a(Harassment::Repositories::InMemoryClassificationJobRepository)
     expect(factory.classification_cache).to be_a(Harassment::Repositories::InMemoryClassificationCacheRepository)
     expect(factory.server_rate_limits).to be_a(Harassment::Repositories::InMemoryServerRateLimitRepository)
+    expect(factory.relationship_edges).to be_a(Harassment::Repositories::InMemoryRelationshipEdgeRepository)
   end
 
   it "uses redis repositories when redis is available and no backend is provided" do
@@ -20,6 +21,7 @@ describe Harassment::RepositoryFactory do
     expect(factory.classification_jobs).to be_a(Harassment::Repositories::RedisClassificationJobRepository)
     expect(factory.classification_cache).to be_a(Harassment::Repositories::RedisClassificationCacheRepository)
     expect(factory.server_rate_limits).to be_a(Harassment::Repositories::RedisServerRateLimitRepository)
+    expect(factory.relationship_edges).to be_a(Harassment::Repositories::InMemoryRelationshipEdgeRepository)
   end
 
   it "returns Postgres repositories across the harassment runtime surface" do
@@ -30,5 +32,6 @@ describe Harassment::RepositoryFactory do
     expect(factory.classification_jobs).to be_a(Harassment::Repositories::PostgresClassificationJobRepository)
     expect(factory.classification_cache).to be_a(Harassment::Repositories::PostgresClassificationCacheRepository)
     expect(factory.server_rate_limits).to be_a(Harassment::Repositories::PostgresServerRateLimitRepository)
+    expect(factory.relationship_edges).to be_a(Harassment::Repositories::PostgresRelationshipEdgeRepository)
   end
 end

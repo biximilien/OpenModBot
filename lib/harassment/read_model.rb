@@ -1,15 +1,20 @@
 require_relative "incident"
 require_relative "decay_policy"
 require_relative "relationship_edge"
+require_relative "repositories/in_memory_relationship_edge_repository"
 
 module Harassment
   class ReadModel
-    def initialize(decay_policy: DecayPolicy.new, score_version: "harassment-score-v1")
+    def initialize(
+      decay_policy: DecayPolicy.new,
+      score_version: "harassment-score-v1",
+      edge_repository: Repositories::InMemoryRelationshipEdgeRepository.new
+    )
       @incidents_by_channel = Hash.new { |hash, key| hash[key] = [] }
-      @edges = {}
       @processed_classifications = {}
       @decay_policy = decay_policy
       @score_version = score_version.to_s
+      @edge_repository = edge_repository
     end
 
     def ingest(event:, record:)
@@ -20,10 +25,19 @@ module Harassment
       @incidents_by_channel[channel_key(incident.server_id, incident.channel_id)] << incident
 
       incident.target_user_ids.each do |target_user_id|
-        edge = @edges.fetch(edge_key(incident.server_id, incident.author_id, target_user_id)) do
-          RelationshipEdge.build(server_id: incident.server_id, source_user_id: incident.author_id, target_user_id: target_user_id, score_version: @score_version)
-        end
-        @edges[edge_key(incident.server_id, incident.author_id, target_user_id)] = update_edge(edge, incident)
+        edge =
+          @edge_repository.find(
+            server_id: incident.server_id,
+            source_user_id: incident.author_id,
+            target_user_id: target_user_id,
+            score_version: @score_version,
+          ) || RelationshipEdge.build(
+            server_id: incident.server_id,
+            source_user_id: incident.author_id,
+            target_user_id: target_user_id,
+            score_version: @score_version,
+          )
+        @edge_repository.save(update_edge(edge, incident))
       end
 
       @processed_classifications[processed_key] = incident
@@ -42,7 +56,7 @@ module Harassment
     end
 
     def get_pair_relationship(server_id, user_a, user_b, as_of: Time.now.utc)
-      edge = @edges[edge_key(server_id, user_a, user_b)]
+      edge = @edge_repository.find(server_id:, source_user_id: user_a, target_user_id: user_b, score_version: @score_version)
       edge&.decay_to(as_of:, decay_policy: @decay_policy)
     end
 
@@ -54,19 +68,15 @@ module Harassment
     end
 
     def outgoing_relationships(server_id, user_id, as_of: Time.now.utc)
-      normalized_server_id = server_id.to_s
-      source_user_id = user_id.to_s
-      @edges.values
-            .select { |edge| edge.server_id == normalized_server_id && edge.source_user_id == source_user_id }
-            .map { |edge| edge.decay_to(as_of:, decay_policy: @decay_policy) }
+      @edge_repository
+        .outgoing(server_id:, source_user_id: user_id, score_version: @score_version)
+        .map { |edge| edge.decay_to(as_of:, decay_policy: @decay_policy) }
     end
 
     def incoming_relationships(server_id, user_id, as_of: Time.now.utc)
-      normalized_server_id = server_id.to_s
-      target_user_id = user_id.to_s
-      @edges.values
-            .select { |edge| edge.server_id == normalized_server_id && edge.target_user_id == target_user_id }
-            .map { |edge| edge.decay_to(as_of:, decay_policy: @decay_policy) }
+      @edge_repository
+        .incoming(server_id:, target_user_id: user_id, score_version: @score_version)
+        .map { |edge| edge.decay_to(as_of:, decay_policy: @decay_policy) }
     end
 
     def incidents_for_author(server_id, user_id)
@@ -82,10 +92,6 @@ module Harassment
       incidents.select do |incident|
         incident.author_id == normalized_user_id || incident.target_user_ids.include?(normalized_user_id)
       end
-    end
-
-    def edge_key(server_id, source_user_id, target_user_id)
-      "#{server_id}:#{source_user_id}:#{target_user_id}"
     end
 
     def channel_key(server_id, channel_id)

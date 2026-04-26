@@ -3,6 +3,7 @@ require_relative "../../environment"
 require_relative "../harassment/open_ai_classifier"
 require_relative "../harassment/query_service"
 require_relative "../harassment/read_model"
+require_relative "../harassment/repository_factory"
 require_relative "harassment_command"
 
 module ModerationGPT
@@ -68,6 +69,20 @@ module ModerationGPT
         @query_service = Harassment::QueryService.new(read_model: @read_model)
       end
 
+      def boot(app:, **)
+        return unless Environment.harassment_storage_backend == "postgres"
+
+        configure_read_model(
+          Harassment::ReadModel.new(
+            score_version: SCORE_VERSION,
+            edge_repository: Harassment::RepositoryFactory.new(
+              backend: "postgres",
+              connection: app.database_connection,
+            ).relationship_edges,
+          ),
+        )
+      end
+
       def record_classification(event:, record:)
         @read_model.ingest(event:, record:)
       end
@@ -109,6 +124,13 @@ module ModerationGPT
 
       def commands
         [HarassmentCommand.new(self)]
+      end
+
+      private
+
+      def configure_read_model(read_model)
+        @read_model = read_model
+        @query_service = Harassment::QueryService.new(read_model: @read_model)
       end
     end
   end
