@@ -70,10 +70,7 @@ module Harassment
       end
 
       def classification_status!(value)
-        normalized = string!(value, "classification_status")
-        return normalized if ClassificationStatus::ALL.include?(normalized)
-
-        raise ArgumentError, "classification_status must be one of: #{ClassificationStatus::ALL.join(', ')}"
+        ClassificationStatus.normalize!(string!(value, "classification_status"), field_name: "classification_status")
       end
 
       def identifier!(value, name)

@@ -166,7 +166,7 @@ class FakePostgresConnection
           Time.parse(event["created_at"]).utc < cutoff
       end
       .sort_by { |event| Time.parse(event["created_at"]).utc }
-      .first(limit.to_i)
+      .last(limit.to_i)
   end
 
   def recent_between_participants(server_id, before, participant_ids, limit)
@@ -179,7 +179,7 @@ class FakePostgresConnection
           interaction_involves_participants?(event, ids)
       end
       .sort_by { |event| Time.parse(event["created_at"]).utc }
-      .first(limit.to_i)
+      .last(limit.to_i)
   end
 
   def interaction_involves_participants?(event, participant_ids)

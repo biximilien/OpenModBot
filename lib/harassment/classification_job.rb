@@ -75,10 +75,7 @@ module Harassment
       end
 
       def status!(value)
-        normalized = value.to_s
-        return normalized if ClassificationStatus::ALL.include?(normalized)
-
-        raise ArgumentError, "status must be one of: #{ClassificationStatus::ALL.join(', ')}"
+        ClassificationStatus.normalize!(value)
       end
 
       def non_negative_integer!(value, name)

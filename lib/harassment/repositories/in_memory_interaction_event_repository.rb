@@ -78,16 +78,7 @@ module Harassment
       end
 
       def normalize_status(status)
-        return status if ClassificationStatus::ALL.include?(status)
-
-        InteractionEvent.build(
-          message_id: "validation",
-          server_id: "validation",
-          channel_id: "validation",
-          author_id: "validation",
-          raw_content: "validation",
-          classification_status: status,
-        ).classification_status
+        ClassificationStatus.normalize!(status, field_name: "classification_status")
       end
     end
   end

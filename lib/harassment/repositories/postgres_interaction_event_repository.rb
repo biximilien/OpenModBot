@@ -132,12 +132,12 @@ module Harassment
               WHERE guild_id = $1
                 AND channel_id = $2
                 AND created_at < $3
-              ORDER BY created_at ASC
+              ORDER BY created_at DESC
               LIMIT $4
             SQL
             [server_id.to_s, channel_id.to_s, before.utc.iso8601(9), Integer(limit)],
           ),
-        ).map { |row| deserialize_event(row) }
+        ).map { |row| deserialize_event(row) }.sort_by(&:timestamp)
       end
 
       def recent_between_participants(server_id:, participant_ids:, before:, limit:)
@@ -152,12 +152,12 @@ module Harassment
                   author_id = ANY($3::text[])
                   OR target_user_ids ?| $3::text[]
                 )
-              ORDER BY created_at ASC
+              ORDER BY created_at DESC
               LIMIT $4
             SQL
             [server_id.to_s, before.utc.iso8601(9), Array(participant_ids).map(&:to_s), Integer(limit)],
           ),
-        ).map { |row| deserialize_event(row) }
+        ).map { |row| deserialize_event(row) }.sort_by(&:timestamp)
       end
 
       private
@@ -197,16 +197,7 @@ module Harassment
       end
 
       def normalize_status(status)
-        return status if ClassificationStatus::ALL.include?(status)
-
-        InteractionEvent.build(
-          message_id: "validation",
-          server_id: "validation",
-          channel_id: "validation",
-          author_id: "validation",
-          raw_content: "validation",
-          classification_status: status,
-        ).classification_status
+        ClassificationStatus.normalize!(status, field_name: "classification_status")
       end
     end
   end

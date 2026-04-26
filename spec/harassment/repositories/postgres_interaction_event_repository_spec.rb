@@ -68,19 +68,30 @@ describe Harassment::Repositories::PostgresInteractionEventRepository do
         content_retention_expires_at: Time.utc(2026, 4, 26, 12, 0, 0),
       ),
     )
+    repository.save(
+      Harassment::InteractionEvent.build(
+        message_id: 125,
+        server_id: 456,
+        channel_id: 789,
+        author_id: 321,
+        target_user_ids: [654],
+        timestamp: Time.utc(2026, 4, 25, 12, 10, 0),
+        raw_content: "newest message",
+      ),
+    )
 
     expect(
-      repository.recent_in_channel(server_id: "456", channel_id: "789", before: Time.utc(2026, 4, 25, 12, 6, 0), limit: 5).map(&:message_id),
-    ).to eq(%w[123 124])
+      repository.recent_in_channel(server_id: "456", channel_id: "789", before: Time.utc(2026, 4, 25, 12, 11, 0), limit: 2).map(&:message_id),
+    ).to eq(%w[124 125])
     expect(
       repository.recent_between_participants(
         server_id: "456",
         participant_ids: %w[321 654],
-        before: Time.utc(2026, 4, 25, 12, 6, 0),
-        limit: 5,
+        before: Time.utc(2026, 4, 25, 12, 11, 0),
+        limit: 2,
       ).map(&:message_id),
-    ).to eq(%w[123 124])
-    expect(repository.list_by_classification_status(Harassment::ClassificationStatus::PENDING).map(&:message_id)).to eq(%w[123 124])
+    ).to eq(%w[124 125])
+    expect(repository.list_by_classification_status(Harassment::ClassificationStatus::PENDING).map(&:message_id)).to eq(%w[123 124 125])
     expect(repository.list_with_expired_content(as_of: Time.utc(2026, 4, 27, 12, 0, 0)).map(&:message_id)).to eq(["124"])
 
     redacted = repository.redact_content("124", server_id: "456", redacted_at: Time.utc(2026, 4, 27, 12, 0, 0))

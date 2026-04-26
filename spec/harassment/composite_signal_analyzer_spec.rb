@@ -45,4 +45,14 @@ describe Harassment::CompositeSignalAnalyzer do
     expect(analysis[:signals][:average_severity]).to be > 0.0
     expect(analysis[:harassment_score]).to be_between(0.0, 1.0)
   end
+
+  it "uses the read model score version when the user has no relationships" do
+    read_model = Harassment::ReadModel.new(score_version: "harassment-score-v2")
+    analyzer = described_class.new(read_model: read_model)
+
+    analysis = analyzer.analyze_user("456", "321", as_of: Time.utc(2026, 4, 25, 16, 0, 0))
+
+    expect(analysis[:score_version]).to eq("harassment-score-v2")
+    expect(analysis[:relationship_count]).to eq(0)
+  end
 end
