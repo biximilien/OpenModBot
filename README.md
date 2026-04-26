@@ -139,7 +139,7 @@ ruby scripts/bootstrap_harassment_postgres.rb
 
 This script is idempotent for already-migrated interaction events, classification records, and classification jobs.
 
-Classifier cache entries and per-server rate-limit buckets are operational state and are not bootstrapped. They start fresh on cutover. Relationship-edge projections also start fresh today; they are rebuilt only from new post-cutover classifications in the current implementation.
+Classifier cache entries and per-server rate-limit buckets are operational state and are not bootstrapped. They start fresh on cutover. Relationship-edge projections are rebuilt separately from stored classified interaction events and classification records.
 
 To rebuild relationship-edge projections from stored harassment interaction events and classification records, run:
 
@@ -152,6 +152,8 @@ You can scope the rebuild to a specific server:
 ```bash
 ruby scripts/rebuild_harassment_relationship_edges.rb 123456789012345678
 ```
+
+When the harassment plugin boots against durable repositories, moderator-facing `risk` and `recent incidents` queries are reconstructed from stored interaction events and classification records rather than relying only on process-local incident memory.
 
 To compare Redis and Postgres harassment counts, inspect Postgres relationship-edge totals, and run a small set of sampled row checks before cutover, run:
 

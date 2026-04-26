@@ -1,4 +1,7 @@
 require "plugins/harassment_plugin"
+require "harassment/repositories/postgres_classification_record_repository"
+require "harassment/repositories/postgres_interaction_event_repository"
+require_relative "../support/fake_postgres_connection"
 
 describe ModerationGPT::Plugins::HarassmentPlugin do
   subject(:plugin) { described_class.new }
@@ -78,7 +81,7 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
 
   it "switches to Postgres relationship-edge storage on boot when configured" do
     fake_connection = FakePostgresConnection.new
-    app = instance_double("Application", database_connection: fake_connection)
+    app = instance_double("Application", database_connection: fake_connection, redis: nil)
     original_backend = ENV["HARASSMENT_STORAGE_BACKEND"]
     ENV["HARASSMENT_STORAGE_BACKEND"] = "postgres"
 
@@ -86,6 +89,25 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
     plugin.record_classification(event:, record:)
 
     expect(plugin.get_pair_relationship("456", "321", "654", as_of: record.classified_at).relationship_edge.interaction_count).to eq(1)
+  ensure
+    ENV["HARASSMENT_STORAGE_BACKEND"] = original_backend
+  end
+
+  it "reconstructs recent incidents from Postgres-backed durable data after boot" do
+    fake_connection = FakePostgresConnection.new
+    Harassment::Repositories::PostgresInteractionEventRepository.new(connection: fake_connection).save(
+      event.with_classification_status(Harassment::ClassificationStatus::CLASSIFIED),
+    )
+    Harassment::Repositories::PostgresClassificationRecordRepository.new(connection: fake_connection).save(record)
+    app = instance_double("Application", database_connection: fake_connection, redis: nil)
+    original_backend = ENV["HARASSMENT_STORAGE_BACKEND"]
+    ENV["HARASSMENT_STORAGE_BACKEND"] = "postgres"
+
+    plugin.boot(app: app)
+    report = plugin.recent_incidents("456", "789")
+
+    expect(report.incidents.map(&:message_id)).to eq(["123"])
+    expect(report.incidents.first.intent).to eq("aggressive")
   ensure
     ENV["HARASSMENT_STORAGE_BACKEND"] = original_backend
   end

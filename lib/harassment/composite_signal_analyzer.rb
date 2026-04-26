@@ -11,12 +11,13 @@ module Harassment
       average_severity: 0.15,
     }.freeze
 
-    def initialize(read_model:)
+    def initialize(read_model:, incident_query: read_model)
       @read_model = read_model
+      @incident_query = incident_query
     end
 
     def analyze_user(server_id, user_id, as_of: Time.now.utc)
-      incidents = @read_model.incidents_for_author(server_id, user_id)
+      incidents = @incident_query.incidents_for_author(server_id, user_id)
       outgoing_edges = @read_model.outgoing_relationships(server_id, user_id, as_of:)
       incoming_edges = @read_model.incoming_relationships(server_id, user_id, as_of:)
 

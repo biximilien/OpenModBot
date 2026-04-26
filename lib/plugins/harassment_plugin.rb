@@ -1,6 +1,7 @@
 require_relative "../plugin"
 require_relative "../../environment"
 require_relative "../harassment/open_ai_classifier"
+require_relative "../harassment/incident_query"
 require_relative "../harassment/query_service"
 require_relative "../harassment/read_model"
 require_relative "../harassment/repository_factory"
@@ -70,16 +71,29 @@ module ModerationGPT
       end
 
       def boot(app:, **)
-        return unless Environment.harassment_storage_backend == "postgres"
+        factory = Harassment::RepositoryFactory.new(
+          backend: Environment.harassment_storage_backend,
+          redis: app.redis,
+          connection: (Environment.harassment_storage_backend == "postgres" ? app.database_connection : nil),
+        )
+        incident_query = Harassment::IncidentQuery.new(
+          interaction_events: factory.interaction_events,
+          classification_records: factory.classification_records,
+        )
 
-        configure_read_model(
-          Harassment::ReadModel.new(
-            score_version: SCORE_VERSION,
-            edge_repository: Harassment::RepositoryFactory.new(
-              backend: "postgres",
-              connection: app.database_connection,
-            ).relationship_edges,
-          ),
+        read_model =
+          if Environment.harassment_storage_backend == "postgres"
+            Harassment::ReadModel.new(
+              score_version: SCORE_VERSION,
+              edge_repository: factory.relationship_edges,
+            )
+          else
+            @read_model
+          end
+
+        configure_queries(
+          read_model: read_model,
+          incident_query: incident_query,
         )
       end
 
@@ -131,6 +145,14 @@ module ModerationGPT
       def configure_read_model(read_model)
         @read_model = read_model
         @query_service = Harassment::QueryService.new(read_model: @read_model)
+      end
+
+      def configure_queries(read_model:, incident_query:)
+        @read_model = read_model
+        @query_service = Harassment::QueryService.new(
+          read_model: @read_model,
+          incident_query: incident_query,
+        )
       end
     end
   end

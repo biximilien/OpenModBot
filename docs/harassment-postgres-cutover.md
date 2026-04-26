@@ -60,6 +60,8 @@ Use Postgres for the harassment runtime state:
 
    This rebuilds the current `score_version` relationship-edge projections from stored classified interaction events and their latest stored classification records.
 
+   The moderator-facing incident and risk queries also read from those stored interaction events and classification records after boot, so they do not rely only on process-local incident state.
+
 4. **Verify Redis and Postgres counts plus spot checks**
 
    Run:

@@ -105,7 +105,9 @@ The current runtime stores immutable interaction events, enqueues classification
 
 Classifier cache keys are derived from server scope, classifier version, classifier prompt/schema identity, and normalized message/context input. When a server exceeds the configured classifier call budget, the runtime defers the job forward without consuming a retry attempt.
 
-When `HARASSMENT_STORAGE_BACKEND=postgres` is enabled, the runtime uses Postgres-backed repositories for interaction events, classification records, classification jobs, classifier cache entries, per-server rate-limit buckets, and relationship-edge projections. The Redis bootstrap path migrates the durable interaction, classification, and job records; cache/rate-limit state and relationship-edge projections reset on cutover.
+When `HARASSMENT_STORAGE_BACKEND=postgres` is enabled, the runtime uses Postgres-backed repositories for interaction events, classification records, classification jobs, classifier cache entries, per-server rate-limit buckets, and relationship-edge projections. The Redis bootstrap path migrates the durable interaction, classification, and job records; cache/rate-limit state resets on cutover, while relationship-edge projections can be rebuilt from stored classified events and their latest stored classification records.
+
+The moderator-facing incident and risk surface no longer depends only on process-local incident memory when durable repositories are available. The harassment query layer can reconstruct incidents from stored classified interaction events plus stored classification records, which keeps `recent incidents` and incident-derived risk signals meaningful across restarts.
 
 The harassment plugin is passive-only: it does not punish users automatically. Its operator surface currently lives in Discord through:
 

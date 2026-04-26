@@ -5,8 +5,13 @@ require_relative "user_risk_report"
 
 module Harassment
   class QueryService
-    def initialize(read_model:, signal_analyzer: CompositeSignalAnalyzer.new(read_model:))
+    def initialize(
+      read_model:,
+      incident_query: read_model,
+      signal_analyzer: CompositeSignalAnalyzer.new(read_model:, incident_query:)
+    )
       @read_model = read_model
+      @incident_query = incident_query
       @signal_analyzer = signal_analyzer
     end
 
@@ -40,7 +45,7 @@ module Harassment
         channel_id: channel_id,
         user_id: user_id,
         since: since,
-        incidents: @read_model.recent_incidents(server_id, channel_id, limit:, user_id:, since:),
+        incidents: @incident_query.recent_incidents(server_id, channel_id, limit:, user_id:, since:),
       )
     end
   end
