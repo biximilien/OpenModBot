@@ -127,9 +127,9 @@ Built-in plugins:
 
 The `harassment` plugin passively captures interaction events, enqueues harassment classification work, and records classified incidents in its own read model without applying automated enforcement.
 
-In the current implementation, the core platform owns the harassment runtime: Discord message ingestion, Redis-backed event and job storage, transient context assembly, classifier-output caching, per-server rate limiting, and background classification processing. The plugin owns the harassment classifier version, prompt/schema definition, read model, scoring, moderator-facing queries, and Discord command output.
+In the current implementation, the core platform owns the harassment runtime: Discord message ingestion, backend-owned event and job storage, transient context assembly, classifier-output caching, per-server rate limiting, and background classification processing. The plugin owns the harassment classifier version, prompt/schema definition, read model, scoring, moderator-facing queries, and Discord command output.
 
-`HARASSMENT_STORAGE_BACKEND=postgres` now routes the durable harassment pipeline spine through Postgres-backed repositories for interaction events, classification records, and classification jobs. During this migration phase, classifier caching and per-server rate limiting still use the existing Redis-backed operational path.
+`HARASSMENT_STORAGE_BACKEND=postgres` now routes the harassment runtime through Postgres-backed repositories for interaction events, classification records, classification jobs, classifier cache entries, and per-server rate-limit buckets.
 
 To bootstrap the current Redis harassment state into Postgres before cutover, run:
 
@@ -138,6 +138,8 @@ ruby scripts/bootstrap_harassment_postgres.rb
 ```
 
 This script is idempotent for already-migrated interaction events, classification records, and classification jobs.
+
+Classifier cache entries and per-server rate-limit buckets are operational state and are not bootstrapped. They start fresh on cutover.
 
 To compare Redis and Postgres harassment counts and a small set of sampled rows before cutover, run:
 

@@ -71,20 +71,14 @@ OpenAI requests are wrapped in `Telemetry.in_span(...)`, but telemetry exporting
 
 ## Persistence Model
 
-[lib/backend.rb](../lib/backend.rb) stores application state in Redis. The key definitions live in [lib/data_model/keys.rb](../lib/data_model/keys.rb), and karma audit entries are represented by [lib/data_model/karma_event.rb](../lib/data_model/karma_event.rb).
+[lib/backend.rb](../lib/backend.rb) stores the original moderation state in Redis. The key definitions live in [lib/data_model/keys.rb](../lib/data_model/keys.rb), and karma audit entries are represented by [lib/data_model/karma_event.rb](../lib/data_model/karma_event.rb).
 
-Persisted state includes:
+Redis-backed state includes:
 
 - known Discord servers
 - per-server watchlists
 - per-server user karma scores
 - capped per-user karma history
-- harassment interaction events
-- harassment classification records
-- harassment classification jobs
-- harassment classification cache entries
-- harassment per-server classifier rate-limit buckets
-
 See [docs/data-model.md](./data-model.md) for the exact Redis structures and field definitions.
 
 ## Harassment Pipeline
@@ -98,7 +92,7 @@ Platform-owned runtime pieces:
 - [lib/harassment/classification_pipeline.rb](../lib/harassment/classification_pipeline.rb)
 - [lib/harassment/classification_worker.rb](../lib/harassment/classification_worker.rb)
 - [lib/harassment/context_assembler.rb](../lib/harassment/context_assembler.rb)
-- Redis-backed repositories under [lib/harassment/repositories](../lib/harassment/repositories)
+- backend-specific repositories under [lib/harassment/repositories](../lib/harassment/repositories)
 
 Plugin-owned pieces:
 
@@ -111,7 +105,7 @@ The current runtime stores immutable interaction events, enqueues classification
 
 Classifier cache keys are derived from server scope, classifier version, classifier prompt/schema identity, and normalized message/context input. When a server exceeds the configured classifier call budget, the runtime defers the job forward without consuming a retry attempt.
 
-When `HARASSMENT_STORAGE_BACKEND=postgres` is enabled, the runtime uses Postgres-backed repositories for interaction events, classification records, and classification jobs. Cache entries and rate-limit buckets remain on the operational Redis path during the migration.
+When `HARASSMENT_STORAGE_BACKEND=postgres` is enabled, the runtime uses Postgres-backed repositories for interaction events, classification records, classification jobs, classifier cache entries, and per-server rate-limit buckets. The Redis bootstrap path migrates the durable interaction, classification, and job records; cache and rate-limit state reset on cutover.
 
 The harassment plugin is passive-only: it does not punish users automatically. Its operator surface currently lives in Discord through:
 

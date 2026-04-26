@@ -5,7 +5,9 @@ require_relative "repositories/in_memory_interaction_event_repository"
 require_relative "repositories/in_memory_server_rate_limit_repository"
 require_relative "repositories/postgres_classification_job_repository"
 require_relative "repositories/postgres_classification_record_repository"
+require_relative "repositories/postgres_classification_cache_repository"
 require_relative "repositories/postgres_interaction_event_repository"
+require_relative "repositories/postgres_server_rate_limit_repository"
 require_relative "repositories/redis_classification_cache_repository"
 require_relative "repositories/redis_classification_job_repository"
 require_relative "repositories/redis_classification_record_repository"
@@ -65,8 +67,10 @@ module Harassment
         Repositories::InMemoryClassificationCacheRepository.new
       when "redis"
         Repositories::RedisClassificationCacheRepository.new(redis: redis!)
+      when "postgres"
+        Repositories::PostgresClassificationCacheRepository.new(connection: connection!)
       else
-        raise NotImplementedError, "Postgres harassment classification-cache repositories are not implemented yet"
+        raise NotImplementedError, "unsupported harassment classification-cache backend: #{@backend}"
       end
     end
 
@@ -76,8 +80,10 @@ module Harassment
         Repositories::InMemoryServerRateLimitRepository.new
       when "redis"
         Repositories::RedisServerRateLimitRepository.new(redis: redis!)
+      when "postgres"
+        Repositories::PostgresServerRateLimitRepository.new(connection: connection!)
       else
-        raise NotImplementedError, "Postgres harassment rate-limit repositories are not implemented yet"
+        raise NotImplementedError, "unsupported harassment rate-limit backend: #{@backend}"
       end
     end
 

@@ -93,13 +93,11 @@ describe Harassment::Runtime do
     end
   end
 
-  context "with Postgres core repositories and Redis operational repositories" do
-    let(:redis) { FakeRedis.new }
+  context "with fully Postgres-backed repositories" do
     let(:connection) { FakePostgresConnection.new }
 
     subject(:runtime) do
       described_class.new(
-        redis: redis,
         connection: connection,
         storage_backend: "postgres",
         classifier_version: "harassment-v1",

@@ -1,16 +1,16 @@
 # Harassment Postgres Cutover
 
-This runbook is the intended path for moving the harassment pipeline from Redis-backed durable state to the mixed Postgres cutover path.
+This runbook is the intended path for moving the harassment pipeline from Redis-backed state to the Postgres-backed runtime path.
 
 ## Goal
 
-Use Postgres for the durable harassment pipeline core:
+Use Postgres for the harassment runtime state:
 
 - interaction events
 - classification records
 - classification jobs
-
-while leaving cache and rate-limiting on Redis during the migration phase.
+- classification cache entries
+- server rate-limit buckets
 
 ## Preconditions
 
@@ -107,10 +107,10 @@ If the Postgres cutover misbehaves:
 2. restart the bot
 3. keep Postgres data for investigation; do not delete it immediately
 
-Because Redis remains the operational source before cutover and cache/rate-limit state stays there during the mixed phase, rollback is only a configuration change plus restart.
+Because Redis remains the source before cutover and the backend switch is configuration-driven, rollback is only a configuration change plus restart.
 
 ## Notes
 
 - The bootstrap script is idempotent for already-migrated durable records.
 - The verification script compares counts broadly and also performs a small sample of row-level spot checks.
-- Cache and rate-limit repositories are intentionally still Redis-backed in this phase.
+- Cache and rate-limit state are not bootstrapped; they start fresh after cutover.

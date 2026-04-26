@@ -6,6 +6,8 @@ class FakePostgresConnection
     @interaction_events = []
     @classification_records = []
     @classification_jobs = []
+    @classification_cache_entries = []
+    @server_rate_limits = []
   end
 
   def exec_params(sql, params)
@@ -42,6 +44,16 @@ class FakePostgresConnection
       update_classification_job(params)
     when /SELECT \*\s+FROM classification_jobs\s+WHERE available_at <= \$1\s+AND status IN \('pending', 'failed_retryable'\)/im
       due_classification_jobs(params[0])
+    when /SELECT \*\s+FROM classification_cache_entries\s+WHERE cache_key = \$1\s+LIMIT 1/im
+      find_classification_cache_entry(params[0])
+    when /DELETE FROM classification_cache_entries\s+WHERE cache_key = \$1/im
+      delete_classification_cache_entry(params[0])
+    when /INSERT INTO classification_cache_entries/i
+      upsert_classification_cache_entry(params)
+    when /SELECT \*\s+FROM server_rate_limits\s+WHERE guild_id = \$1\s+LIMIT 1/im
+      find_server_rate_limit(params[0])
+    when /INSERT INTO server_rate_limits/i
+      upsert_server_rate_limit(params)
     when /SELECT COUNT\(\*\) AS count\s+FROM interaction_events/im
       [{ "count" => @interaction_events.length }]
     when /SELECT guild_id, COUNT\(\*\) AS count\s+FROM interaction_events\s+GROUP BY guild_id/im
@@ -252,6 +264,53 @@ class FakePostgresConnection
           %w[pending failed_retryable].include?(job["status"])
       end
       .sort_by { |job| Time.parse(job["available_at"]).utc }
+  end
+
+  def find_classification_cache_entry(cache_key)
+    row = @classification_cache_entries.find { |entry| entry["cache_key"] == cache_key.to_s }
+    row ? [row] : []
+  end
+
+  def delete_classification_cache_entry(cache_key)
+    @classification_cache_entries.reject! { |entry| entry["cache_key"] == cache_key.to_s }
+    []
+  end
+
+  def upsert_classification_cache_entry(params)
+    cache_key, record_payload, expires_at = params
+    row = @classification_cache_entries.find { |entry| entry["cache_key"] == cache_key.to_s }
+    if row
+      row["record_payload"] = record_payload
+      row["expires_at"] = expires_at
+    else
+      row = {
+        "cache_key" => cache_key,
+        "record_payload" => record_payload,
+        "expires_at" => expires_at,
+      }
+      @classification_cache_entries << row
+    end
+    [row]
+  end
+
+  def find_server_rate_limit(guild_id)
+    row = @server_rate_limits.find { |entry| entry["guild_id"] == guild_id.to_s }
+    row ? [row] : []
+  end
+
+  def upsert_server_rate_limit(params)
+    guild_id, timestamps = params
+    row = @server_rate_limits.find { |entry| entry["guild_id"] == guild_id.to_s }
+    if row
+      row["timestamps"] = timestamps
+    else
+      row = {
+        "guild_id" => guild_id,
+        "timestamps" => timestamps,
+      }
+      @server_rate_limits << row
+    end
+    [row]
   end
 
   def grouped_counts(rows)

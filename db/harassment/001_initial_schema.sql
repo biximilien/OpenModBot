@@ -64,6 +64,28 @@ CREATE UNIQUE INDEX classification_jobs_guild_message_classifier_uidx
 CREATE INDEX classification_jobs_available_status_idx
   ON classification_jobs (available_at, status);
 
+CREATE TABLE classification_cache_entries (
+  id BIGSERIAL PRIMARY KEY,
+  cache_key TEXT NOT NULL,
+  record_payload JSONB NOT NULL,
+  expires_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE UNIQUE INDEX classification_cache_entries_cache_key_uidx
+  ON classification_cache_entries (cache_key);
+
+CREATE INDEX classification_cache_entries_expires_at_idx
+  ON classification_cache_entries (expires_at);
+
+CREATE TABLE server_rate_limits (
+  id BIGSERIAL PRIMARY KEY,
+  guild_id TEXT NOT NULL,
+  timestamps JSONB NOT NULL DEFAULT '[]'::jsonb
+);
+
+CREATE UNIQUE INDEX server_rate_limits_guild_uidx
+  ON server_rate_limits (guild_id);
+
 CREATE TABLE relationship_edges (
   id BIGSERIAL PRIMARY KEY,
   guild_id TEXT NOT NULL,

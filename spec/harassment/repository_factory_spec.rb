@@ -22,12 +22,13 @@ describe Harassment::RepositoryFactory do
     expect(factory.server_rate_limits).to be_a(Harassment::Repositories::RedisServerRateLimitRepository)
   end
 
-  it "returns the Postgres interaction repository and keeps later repositories explicit" do
+  it "returns Postgres repositories across the harassment runtime surface" do
     factory = described_class.new(backend: "postgres", connection: Object.new)
 
     expect(factory.interaction_events).to be_a(Harassment::Repositories::PostgresInteractionEventRepository)
     expect(factory.classification_records).to be_a(Harassment::Repositories::PostgresClassificationRecordRepository)
     expect(factory.classification_jobs).to be_a(Harassment::Repositories::PostgresClassificationJobRepository)
-    expect { factory.classification_cache }.to raise_error(NotImplementedError, /Postgres harassment classification-cache repositories are not implemented yet/)
+    expect(factory.classification_cache).to be_a(Harassment::Repositories::PostgresClassificationCacheRepository)
+    expect(factory.server_rate_limits).to be_a(Harassment::Repositories::PostgresServerRateLimitRepository)
   end
 end

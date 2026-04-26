@@ -1,6 +1,6 @@
 # Data Model
 
-ModerationGPT stores moderation state in Redis. Redis keys are defined in `DataModel::Keys`; JSON audit records are defined by `DataModel::KarmaEvent`.
+ModerationGPT stores its original moderation state in Redis. Redis keys are defined in `DataModel::Keys`; JSON audit records are defined by `DataModel::KarmaEvent`.
 
 ## Keys
 
@@ -65,6 +65,22 @@ ModerationGPT stores moderation state in Redis. Redis keys are defined in `DataM
 - Fields: Discord server IDs as strings
 - Values: JSON arrays of recent classifier-call timestamps
 - Purpose: tracks per-server classifier throughput so heavy processing can be deferred without losing jobs
+
+## Harassment Storage Backend
+
+The harassment runtime can store its own pipeline state in either Redis or Postgres, depending on `HARASSMENT_STORAGE_BACKEND`.
+
+- `redis`:
+  uses the Redis keys above for interaction events, classification records, classification jobs, classifier cache entries, and server rate limits
+- `postgres`:
+  uses the tables in `db/harassment/001_initial_schema.sql` for:
+  - `interaction_events`
+  - `classification_records`
+  - `classification_jobs`
+  - `classification_cache_entries`
+  - `server_rate_limits`
+
+The Redis-to-Postgres bootstrap path migrates interaction events, classification records, and classification jobs. Cache and rate-limit state are operational only and are not bootstrapped.
 
 ## KarmaEvent
 
