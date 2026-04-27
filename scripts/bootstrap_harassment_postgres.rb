@@ -9,7 +9,7 @@ require_relative "../lib/harassment/repositories/postgres_classification_job_rep
 app = ModerationGPT::Application.new
 plugins = ModerationGPT::PluginRegistry.from_environment
 postgres_plugin = plugins.find_plugin(ModerationGPT::Plugins::PostgresPlugin)
-raise "bootstrap_harassment_postgres requires the postgres plugin to be enabled" unless postgres_plugin
+raise "bootstrap_harassment_postgres requires PLUGINS=postgres and DATABASE_URL to be configured" unless postgres_plugin
 
 connection = postgres_plugin.database_connection
 

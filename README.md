@@ -119,6 +119,14 @@ The bot emits structured logs by default using JSON lines. Each entry includes a
 
 Use `LOG_FORMAT=plain` if you want a more human-oriented log format during local development.
 
+## Operations
+
+Enabled plugins are booted during startup. Boot failures are intentional hard failures because they usually mean required configuration or infrastructure is missing, such as enabling `postgres` without a usable `DATABASE_URL`.
+
+Runtime plugin hooks are isolated after boot. If a hook fails while handling messages or contributing optional behavior, the bot logs `plugin_hook_failed` and continues processing unrelated work.
+
+The harassment background worker logs `harassment_worker_failed` when one processing pass fails, then continues polling due jobs. Repeated worker failures usually indicate an unhealthy classifier, repository, or database dependency and should be treated as operational alerts.
+
 ## Plugins
 
 Optional built-in plugins can be enabled with `PLUGINS`, using comma-separated names:
@@ -156,6 +164,12 @@ PLUGINS=postgres
 ruby scripts/bootstrap_harassment_postgres.rb
 ```
 
+With Docker Compose, use:
+
+```bash
+BUNDLE_WITH=postgres PLUGINS=postgres docker compose --profile postgres run --rm bot ruby scripts/bootstrap_harassment_postgres.rb
+```
+
 This script is idempotent for already-migrated interaction events, classification records, and classification jobs.
 
 Classifier cache entries and per-server rate-limit buckets are operational state and are not bootstrapped. They start fresh on cutover. Relationship-edge projections are rebuilt separately from stored classified interaction events and classification records.
@@ -165,6 +179,12 @@ To rebuild relationship-edge projections from stored harassment interaction even
 ```bash
 PLUGINS=postgres
 ruby scripts/rebuild_harassment_relationship_edges.rb
+```
+
+With Docker Compose, use:
+
+```bash
+BUNDLE_WITH=postgres PLUGINS=postgres docker compose --profile postgres run --rm bot ruby scripts/rebuild_harassment_relationship_edges.rb
 ```
 
 You can scope the rebuild to a specific server:
@@ -183,6 +203,12 @@ To compare Redis and Postgres harassment counts, inspect Postgres relationship-e
 ```bash
 PLUGINS=postgres
 ruby scripts/verify_harassment_postgres.rb
+```
+
+With Docker Compose, use:
+
+```bash
+BUNDLE_WITH=postgres PLUGINS=postgres docker compose --profile postgres run --rm bot ruby scripts/verify_harassment_postgres.rb
 ```
 
 To verify specific known message IDs as part of the cutover check, pass them as arguments:
@@ -277,4 +303,4 @@ OTEL_EXPORTER_OTLP_HEADERS=x-honeycomb-team=secretkey
 OTEL_SERVICE_NAME=ModerationGPT
 ```
 
-OpenTelemetry is disabled by default. Identifier anonymization still runs when telemetry is disabled. Enable the telemetry plugin explicitly with `PLUGINS=telemetry`, then set `TELEMETRY_ENABLED=true` to turn on OpenTelemetry inside that plugin. Install optional telemetry dependencies with `bundle config set --local with telemetry` before `bundle install` when enabling OpenTelemetry locally. For Docker, build with `BUNDLE_WITH=telemetry docker compose build`.
+OpenTelemetry is disabled by default. Identifier anonymization still runs when telemetry is disabled. Enable the telemetry plugin explicitly with `PLUGINS=telemetry`, then set `TELEMETRY_ENABLED=true` to turn on OpenTelemetry inside that plugin. Install optional telemetry dependencies with `bundle config set --local with telemetry` before `bundle install` when enabling OpenTelemetry locally. For Docker, build with `BUNDLE_WITH=telemetry docker compose build`. When combining optional groups in Docker, use `BUNDLE_WITH=postgres:telemetry`.

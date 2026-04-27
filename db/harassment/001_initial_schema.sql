@@ -21,6 +21,16 @@ CREATE INDEX interaction_events_guild_author_created_idx
 CREATE INDEX interaction_events_guild_channel_created_idx
   ON interaction_events (guild_id, channel_id, created_at);
 
+CREATE INDEX interaction_events_guild_status_channel_created_idx
+  ON interaction_events (guild_id, classification_status, channel_id, created_at);
+
+CREATE INDEX interaction_events_guild_status_author_created_idx
+  ON interaction_events (guild_id, classification_status, author_id, created_at);
+
+CREATE INDEX interaction_events_target_user_ids_gin_idx
+  ON interaction_events
+  USING GIN (target_user_ids);
+
 CREATE TABLE classification_records (
   id BIGSERIAL PRIMARY KEY,
   guild_id TEXT NOT NULL,
@@ -102,7 +112,7 @@ CREATE UNIQUE INDEX relationship_edges_guild_source_target_score_uidx
   ON relationship_edges (guild_id, source_user_id, target_user_id, score_version);
 
 CREATE INDEX relationship_edges_guild_source_idx
-  ON relationship_edges (guild_id, source_user_id);
+  ON relationship_edges (guild_id, source_user_id, score_version);
 
 CREATE INDEX relationship_edges_guild_target_idx
-  ON relationship_edges (guild_id, target_user_id);
+  ON relationship_edges (guild_id, target_user_id, score_version);

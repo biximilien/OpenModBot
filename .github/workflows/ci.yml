@@ -30,6 +30,9 @@ jobs:
       - name: Run test suite
         run: bundle exec rspec --format documentation
 
+      - name: Check Ruby syntax
+        run: ruby -e "Dir['{lib,scripts}/**/*.rb'].each { |file| system('ruby', '-c', file) || exit(1) }"
+
   docker-build:
     runs-on: ubuntu-latest
 
@@ -39,3 +42,6 @@ jobs:
 
       - name: Build Docker image
         run: docker build .
+
+      - name: Build Docker image with optional groups
+        run: docker build --build-arg BUNDLE_WITH=postgres:telemetry .

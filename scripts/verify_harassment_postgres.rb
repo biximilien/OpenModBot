@@ -6,7 +6,7 @@ require_relative "../lib/harassment/persistence/postgres_verifier"
 app = ModerationGPT::Application.new
 plugins = ModerationGPT::PluginRegistry.from_environment
 postgres_plugin = plugins.find_plugin(ModerationGPT::Plugins::PostgresPlugin)
-raise "verify_harassment_postgres requires the postgres plugin to be enabled" unless postgres_plugin
+raise "verify_harassment_postgres requires PLUGINS=postgres and DATABASE_URL to be configured" unless postgres_plugin
 
 message_ids = ARGV
 
