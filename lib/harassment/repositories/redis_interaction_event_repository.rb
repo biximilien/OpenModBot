@@ -41,6 +41,19 @@ module Harassment
         all_events.select { |event| event.classification_status == normalized_status }
       end
 
+      def list_classified_for_server(server_id, channel_id: nil, author_id: nil, since: nil, limit: nil)
+        events = all_events.select do |event|
+          event.server_id == server_id.to_s &&
+            event.classification_status == ClassificationStatus::CLASSIFIED &&
+            (channel_id.nil? || event.channel_id == channel_id.to_s) &&
+            (author_id.nil? || event.author_id == author_id.to_s) &&
+            (since.nil? || event.timestamp >= since.utc)
+        end
+
+        sorted = events.sort_by(&:timestamp)
+        limit ? sorted.last(Integer(limit)) : sorted
+      end
+
       def list_with_expired_content(as_of: Time.now.utc)
         all_events.select { |event| event.retention_expired?(as_of:) }
       end

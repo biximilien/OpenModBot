@@ -10,20 +10,19 @@ module Harassment
     end
 
     def recent_incidents(server_id, channel_id, limit: 10, user_id: nil, since: nil)
-      IncidentCollection.new(classified_incidents_for_server(server_id))
+      IncidentCollection.new(classified_incidents(server_id, channel_id:, since:))
         .recent(server_id:, channel_id:, limit:, user_id:, since:)
     end
 
     def incidents_for_author(server_id, user_id)
-      IncidentCollection.new(classified_incidents_for_server(server_id)).for_author(server_id:, user_id:)
+      IncidentCollection.new(classified_incidents(server_id, author_id: user_id)).for_author(server_id:, user_id:)
     end
 
     private
 
-    def classified_incidents_for_server(server_id)
+    def classified_incidents(server_id, channel_id: nil, author_id: nil, since: nil, limit: nil)
       @interaction_events
-        .list_by_classification_status(ClassificationStatus::CLASSIFIED)
-        .select { |event| event.server_id == server_id.to_s }
+        .list_classified_for_server(server_id, channel_id:, author_id:, since:, limit:)
         .filter_map { |event| build_incident(event) }
     end
 

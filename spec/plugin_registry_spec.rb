@@ -115,6 +115,15 @@ describe ModerationGPT::PluginRegistry do
       expect(registry.commands).to eq([:command])
     end
 
+    it "raises boot failures so required plugin configuration cannot be skipped" do
+      broken = instance_double("Plugin")
+      allow(broken).to receive(:boot).and_raise(StandardError, "boom")
+      allow($logger).to receive(:error)
+
+      expect { described_class.new([broken]).boot(app: :app) }.to raise_error(StandardError, "boom")
+      expect($logger).not_to have_received(:error)
+    end
+
     it "returns the first plugin rewrite instructions" do
       first = instance_double("Plugin", rewrite_instructions: nil)
       second = instance_double("Plugin", rewrite_instructions: "Rewrite this way.")

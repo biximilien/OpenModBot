@@ -17,11 +17,11 @@ module Harassment
         Thread.current.name = "harassment-worker" if Thread.current.respond_to?(:name=)
 
         loop do
-          @runtime.process_due_classifications
+          process_once
           sleep @interval_seconds
         end
-      rescue StandardError => e
-        Logging.error("harassment_worker_stopped", error_class: e.class.name, error_message: e.message)
+      ensure
+        @thread = nil
       end
     end
 
@@ -32,6 +32,15 @@ module Harassment
 
     def running?
       !@thread.nil?
+    end
+
+    private
+
+    def process_once
+      @runtime.process_due_classifications
+    rescue StandardError => e
+      Logging.error("harassment_worker_failed", error_class: e.class.name, error_message: e.message)
+      nil
     end
   end
 end

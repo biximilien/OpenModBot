@@ -20,6 +20,10 @@ module Harassment
         raise NotImplementedError, "#{self.class} must implement #list_by_classification_status"
       end
 
+      def list_classified_for_server(_server_id, channel_id: nil, author_id: nil, since: nil, limit: nil)
+        raise NotImplementedError, "#{self.class} must implement #list_classified_for_server"
+      end
+
       def list_with_expired_content(as_of: Time.now.utc)
         raise NotImplementedError, "#{self.class} must implement #list_with_expired_content"
       end

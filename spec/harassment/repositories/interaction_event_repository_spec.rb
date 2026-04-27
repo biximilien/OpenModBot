@@ -31,6 +31,10 @@ describe Harassment::Repositories::InteractionEventRepository do
     expect { repository.list_by_classification_status(Harassment::ClassificationStatus::PENDING) }.to raise_error(NotImplementedError, /must implement #list_by_classification_status/)
   end
 
+  it "requires subclasses to implement #list_classified_for_server" do
+    expect { repository.list_classified_for_server("456") }.to raise_error(NotImplementedError, /must implement #list_classified_for_server/)
+  end
+
   it "requires subclasses to implement #list_with_expired_content" do
     expect { repository.list_with_expired_content }.to raise_error(NotImplementedError, /must implement #list_with_expired_content/)
   end

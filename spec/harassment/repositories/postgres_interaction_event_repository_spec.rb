@@ -92,9 +92,46 @@ describe Harassment::Repositories::PostgresInteractionEventRepository do
       ).map(&:message_id),
     ).to eq(%w[124 125])
     expect(repository.list_by_classification_status(Harassment::ClassificationStatus::PENDING).map(&:message_id)).to eq(%w[123 124 125])
+    expect(repository.list_classified_for_server("456")).to eq([])
     expect(repository.list_with_expired_content(as_of: Time.utc(2026, 4, 27, 12, 0, 0)).map(&:message_id)).to eq(["124"])
 
     redacted = repository.redact_content("124", server_id: "456", redacted_at: Time.utc(2026, 4, 27, 12, 0, 0))
     expect(redacted.raw_content).to eq("[REDACTED]")
+  end
+
+  it "lists classified events scoped by server, channel, author, and time" do
+    classified = event.with_classification_status(Harassment::ClassificationStatus::CLASSIFIED)
+    repository.save(classified)
+    repository.save(
+      Harassment::InteractionEvent.build(
+        message_id: 124,
+        server_id: 456,
+        channel_id: 999,
+        author_id: 321,
+        timestamp: Time.utc(2026, 4, 25, 12, 5, 0),
+        raw_content: "other channel",
+        classification_status: Harassment::ClassificationStatus::CLASSIFIED,
+      ),
+    )
+    repository.save(
+      Harassment::InteractionEvent.build(
+        message_id: 125,
+        server_id: 456,
+        channel_id: 789,
+        author_id: 999,
+        timestamp: Time.utc(2026, 4, 25, 12, 10, 0),
+        raw_content: "other author",
+        classification_status: Harassment::ClassificationStatus::CLASSIFIED,
+      ),
+    )
+
+    result = repository.list_classified_for_server(
+      "456",
+      channel_id: "789",
+      author_id: "321",
+      since: Time.utc(2026, 4, 25, 11, 59, 0),
+    )
+
+    expect(result.map(&:message_id)).to eq(["123"])
   end
 end

@@ -24,6 +24,8 @@ class FakePostgresConnection
       update_classification_status(params[1], params[2], guild_id: params[0])
     when /SELECT \*\s+FROM interaction_events\s+WHERE classification_status = \$1/im
       list_by_status(params[0])
+    when /SELECT \*\s+FROM interaction_events\s+WHERE guild_id = \$1\s+AND classification_status = \$2/im
+      list_classified_for_server(params[0], channel_id: params[2], author_id: params[3], since: params[4], limit: params[5])
     when /SELECT \*\s+FROM interaction_events\s+WHERE content_retention_expires_at IS NOT NULL/im
       list_expired(params[0])
     when /UPDATE interaction_events\s+SET raw_content = \$3,\s+content_redacted_at = \$4/im
@@ -136,6 +138,20 @@ class FakePostgresConnection
     @interaction_events
       .select { |event| event["classification_status"] == status }
       .sort_by { |event| parse_utc(event["created_at"]) }
+  end
+
+  def list_classified_for_server(server_id, channel_id:, author_id:, since:, limit:)
+    rows = @interaction_events
+      .select do |event|
+        event["guild_id"] == server_id.to_s &&
+          event["classification_status"] == Harassment::ClassificationStatus::CLASSIFIED &&
+          (channel_id.nil? || event["channel_id"] == channel_id.to_s) &&
+          (author_id.nil? || event["author_id"] == author_id.to_s) &&
+          (since.nil? || parse_utc(event["created_at"]) >= parse_utc(since))
+      end
+      .sort_by { |event| parse_utc(event["created_at"]) }
+
+    limit ? rows.last(limit.to_i) : rows
   end
 
   def list_expired(as_of)

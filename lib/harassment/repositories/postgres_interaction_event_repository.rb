@@ -90,6 +90,32 @@ module Harassment
         ).map { |row| deserialize_event(row) }
       end
 
+      def list_classified_for_server(server_id, channel_id: nil, author_id: nil, since: nil, limit: nil)
+        rows(
+          @connection.exec_params(
+            <<~SQL,
+              SELECT *
+              FROM interaction_events
+              WHERE guild_id = $1
+                AND classification_status = $2
+                AND ($3::text IS NULL OR channel_id = $3)
+                AND ($4::text IS NULL OR author_id = $4)
+                AND ($5::timestamptz IS NULL OR created_at >= $5)
+              ORDER BY created_at DESC
+              LIMIT $6
+            SQL
+            [
+              server_id.to_s,
+              ClassificationStatus::CLASSIFIED,
+              channel_id&.to_s,
+              author_id&.to_s,
+              since&.utc&.iso8601(9),
+              limit ? Integer(limit) : nil,
+            ],
+          ),
+        ).map { |row| deserialize_event(row) }.sort_by(&:timestamp)
+      end
+
       def list_with_expired_content(as_of: Time.now.utc)
         rows(
           @connection.exec_params(

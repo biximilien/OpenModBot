@@ -73,4 +73,22 @@ describe Harassment::IncidentQuery do
 
     expect(incidents.map(&:message_id)).to eq(["123"])
   end
+
+  it "asks the event repository for scoped classified events" do
+    interaction_events = instance_double("InteractionEventRepository")
+    classification_records = instance_double("ClassificationRecordRepository", latest_for_message: nil)
+    query = described_class.new(interaction_events:, classification_records:)
+
+    allow(interaction_events).to receive(:list_classified_for_server).and_return([])
+
+    query.recent_incidents("456", "789", limit: 3, since: Time.utc(2026, 4, 25, 15, 0, 0))
+
+    expect(interaction_events).to have_received(:list_classified_for_server).with(
+      "456",
+      channel_id: "789",
+      author_id: nil,
+      since: Time.utc(2026, 4, 25, 15, 0, 0),
+      limit: nil,
+    )
+  end
 end

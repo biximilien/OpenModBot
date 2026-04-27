@@ -40,7 +40,7 @@ module ModerationGPT
     end
 
     def boot(**context)
-      each_plugin(:boot, **context)
+      @plugins.each { |plugin| plugin.public_send(:boot, **context) }
     end
 
     def ready(**context)
