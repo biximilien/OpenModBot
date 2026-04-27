@@ -1,16 +1,16 @@
 require "harassment/open_ai_classifier"
-require "plugins/harassment_plugin"
+require "harassment/classifier_definition"
 
 describe Harassment::OpenAIClassifier do
   let(:client) { instance_double("OpenAIClient") }
   let(:schema_name) { "custom_harassment_schema" }
   let(:response_schema) do
-    ModerationGPT::Plugins::HarassmentPlugin::CLASSIFIER_RESPONSE_SCHEMA
+    Harassment::ClassifierDefinition::RESPONSE_SCHEMA
   end
   let(:instructions) do
-    ModerationGPT::Plugins::HarassmentPlugin::CLASSIFIER_INSTRUCTIONS
+    Harassment::ClassifierDefinition::INSTRUCTIONS
   end
-  let(:prompt_version) { ModerationGPT::Plugins::HarassmentPlugin::PROMPT_VERSION }
+  let(:prompt_version) { Harassment::ClassifierDefinition::PROMPT_VERSION }
   let(:event) do
     Harassment::InteractionEvent.build(
       message_id: 123,

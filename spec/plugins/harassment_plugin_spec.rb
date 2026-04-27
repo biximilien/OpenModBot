@@ -1,6 +1,5 @@
 require "plugins/harassment_plugin"
-require "harassment/repositories/postgres_classification_record_repository"
-require "harassment/repositories/postgres_interaction_event_repository"
+require "harassment/plugin_bootstrap"
 require_relative "../support/fake_postgres_connection"
 
 describe ModerationGPT::Plugins::HarassmentPlugin do
@@ -114,20 +113,6 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
 
     expect(report.incidents.map(&:message_id)).to eq(["123"])
     expect(report.incidents.first.intent).to eq("aggressive")
-  ensure
-    ENV["HARASSMENT_STORAGE_BACKEND"] = original_backend
-  end
-
-  it "raises clearly when Postgres storage is configured without the Postgres plugin" do
-    app = instance_double("Application", redis: nil)
-    plugin_registry = instance_double("PluginRegistry", find_plugin: nil)
-    original_backend = ENV["HARASSMENT_STORAGE_BACKEND"]
-    ENV["HARASSMENT_STORAGE_BACKEND"] = "postgres"
-
-    expect { plugin.boot(app: app, plugin_registry: plugin_registry) }.to raise_error(
-      RuntimeError,
-      "HARASSMENT_STORAGE_BACKEND=postgres requires the postgres plugin to be enabled",
-    )
   ensure
     ENV["HARASSMENT_STORAGE_BACKEND"] = original_backend
   end

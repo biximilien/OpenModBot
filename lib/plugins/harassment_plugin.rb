@@ -1,103 +1,35 @@
 require_relative "../plugin"
 require_relative "../../environment"
-require_relative "../harassment/open_ai_classifier"
-require_relative "../harassment/incident_query"
+require_relative "../harassment/classifier_definition"
+require_relative "../harassment/plugin_bootstrap"
 require_relative "../harassment/query_service"
 require_relative "../harassment/read_model"
-require_relative "../harassment/repository_factory"
 require_relative "harassment_command"
-require_relative "postgres_plugin"
 
 module ModerationGPT
   module Plugins
     class HarassmentPlugin < Plugin
-      INTENTS = %w[neutral friendly teasing aggressive abusive threatening].freeze
-      TARGET_TYPES = %w[individual group self none].freeze
-      TOXICITY_DIMENSIONS = %w[insult threat profanity exclusion harassment].freeze
-      CLASSIFIER_VERSION = "harassment-v1".freeze
-      PROMPT_VERSION = "harassment-prompt-v1".freeze
       SCORE_VERSION = "harassment-score-v1".freeze
-      CLASSIFIER_SCHEMA_NAME = "harassment_classification".freeze
-      CLASSIFIER_RESPONSE_SCHEMA = {
-        type: "object",
-        additionalProperties: false,
-        required: %w[intent target_type toxicity_dimensions severity_score confidence],
-        properties: {
-          intent: {
-            type: "string",
-            enum: INTENTS,
-          },
-          target_type: {
-            type: "string",
-            enum: TARGET_TYPES,
-          },
-          toxicity_dimensions: {
-            type: "object",
-            additionalProperties: false,
-            required: TOXICITY_DIMENSIONS,
-            properties: TOXICITY_DIMENSIONS.to_h { |dimension| [dimension, { type: "boolean" }] },
-          },
-          severity_score: {
-            type: "number",
-            minimum: 0.0,
-            maximum: 1.0,
-          },
-          confidence: {
-            type: "number",
-            minimum: 0.0,
-            maximum: 1.0,
-          },
-        },
-      }.freeze
-      CLASSIFIER_INSTRUCTIONS = <<~TEXT.freeze
-        Classify a Discord moderation event for harassment analysis.
-        Return only structured JSON that matches the supplied schema.
-        Use the message content and target metadata to infer:
-        - intent
-        - target_type
-        - toxicity_dimensions
-        - severity_score
-        - confidence
-        Do not recommend punishment or policy actions.
-        Treat this as semantic labeling only.
-      TEXT
 
       attr_reader :read_model
 
       def initialize(
-        read_model: Harassment::ReadModel.new(score_version: SCORE_VERSION)
+        read_model: Harassment::ReadModel.new(score_version: SCORE_VERSION),
+        classifier_definition: Harassment::ClassifierDefinition.new
       )
         @read_model = read_model
+        @classifier_definition = classifier_definition
         @query_service = Harassment::QueryService.new(read_model: @read_model)
       end
 
       def boot(app:, plugin_registry: nil, **)
-        storage_backend = Environment.harassment_storage_backend
-        connection = postgres_connection(plugin_registry:) if storage_backend == "postgres"
-        factory = Harassment::RepositoryFactory.new(
-          backend: storage_backend,
-          redis: app.redis,
-          connection: connection,
-        )
-        incident_query = Harassment::IncidentQuery.new(
-          interaction_events: factory.interaction_events,
-          classification_records: factory.classification_records,
-        )
-
-        read_model =
-          if storage_backend == "postgres"
-            Harassment::ReadModel.new(
-              score_version: SCORE_VERSION,
-              edge_repository: factory.relationship_edges,
-            )
-          else
-            @read_model
-          end
-
-        configure_queries(
-          read_model: read_model,
-          incident_query: incident_query,
-        )
+        configured = Harassment::PluginBootstrap.new(
+          app: app,
+          plugin_registry: plugin_registry,
+          score_version: score_version,
+          current_read_model: @read_model,
+        ).build
+        configure_queries(**configured)
       end
 
       def record_classification(event:, record:)
@@ -117,11 +49,11 @@ module ModerationGPT
       end
 
       def classifier_version
-        CLASSIFIER_VERSION
+        @classifier_definition.classifier_version
       end
 
       def prompt_version
-        PROMPT_VERSION
+        @classifier_definition.prompt_version
       end
 
       def score_version
@@ -129,14 +61,7 @@ module ModerationGPT
       end
 
       def build_classifier(client:, model: Environment.harassment_classifier_model)
-        Harassment::OpenAIClassifier.new(
-          client: client,
-          model: model,
-          instructions: CLASSIFIER_INSTRUCTIONS,
-          schema_name: CLASSIFIER_SCHEMA_NAME,
-          response_schema: CLASSIFIER_RESPONSE_SCHEMA,
-          prompt_version: prompt_version,
-        )
+        @classifier_definition.build(client:, model:)
       end
 
       def commands
@@ -145,24 +70,9 @@ module ModerationGPT
 
       private
 
-      def configure_read_model(read_model)
+      def configure_queries(read_model:, query_service:)
         @read_model = read_model
-        @query_service = Harassment::QueryService.new(read_model: @read_model)
-      end
-
-      def configure_queries(read_model:, incident_query:)
-        @read_model = read_model
-        @query_service = Harassment::QueryService.new(
-          read_model: @read_model,
-          incident_query: incident_query,
-        )
-      end
-
-      def postgres_connection(plugin_registry:)
-        postgres_plugin = plugin_registry&.find_plugin(ModerationGPT::Plugins::PostgresPlugin)
-        return postgres_plugin.database_connection if postgres_plugin
-
-        raise "HARASSMENT_STORAGE_BACKEND=postgres requires the postgres plugin to be enabled"
+        @query_service = query_service
       end
     end
   end
