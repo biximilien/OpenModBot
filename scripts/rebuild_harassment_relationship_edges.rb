@@ -2,7 +2,7 @@ require_relative "../environment"
 require_relative "../lib/plugin_registry"
 require_relative "../lib/harassment/relationship_edge_rebuilder"
 require_relative "../lib/harassment/repository_factory"
-require_relative "../lib/plugins/harassment_plugin"
+require_relative "../lib/harassment/score_definition"
 
 plugins = ModerationGPT::PluginRegistry.from_environment
 postgres_plugin = plugins.find_plugin(ModerationGPT::Plugins::PostgresPlugin)
@@ -12,21 +12,20 @@ factory = Harassment::RepositoryFactory.new(
   backend: "postgres",
   connection: postgres_plugin.database_connection,
 )
-plugin = ModerationGPT::Plugins::HarassmentPlugin.new
 server_id = ARGV[0]
 
 rebuilder = Harassment::RelationshipEdgeRebuilder.new(
   interaction_events: factory.interaction_events,
   classification_records: factory.classification_records,
   relationship_edges: factory.relationship_edges,
-  score_version: plugin.score_version,
+  score_version: Harassment::ScoreDefinition::VERSION,
   server_id: server_id,
 )
 
 summary = rebuilder.run
 
 puts "Harassment relationship-edge rebuild complete"
-puts "- score_version=#{plugin.score_version}"
+puts "- score_version=#{Harassment::ScoreDefinition::VERSION}"
 puts "- server_scope=#{server_id || 'all'}"
 summary.each do |name, count|
   puts "- #{name}=#{count}"

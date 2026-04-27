@@ -29,50 +29,31 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
     )
   end
 
-  it "records classified events in its read model" do
-    incident = plugin.record_classification(event:, record:)
+  it "exposes classification and query services" do
+    incident = plugin.classification_service.record(event:, record:)
 
     expect(incident.intent).to eq("aggressive")
-    expect(plugin.recent_incidents("456", "789").incidents).to eq([incident])
-  end
-
-  it "owns the harassment classifier version" do
-    expect(plugin.classifier_version).to eq("harassment-v1")
-  end
-
-  it "owns the harassment prompt version" do
-    expect(plugin.prompt_version).to eq("harassment-prompt-v1")
-  end
-
-  it "owns the harassment score version" do
-    expect(plugin.score_version).to eq("harassment-score-v1")
-  end
-
-  it "builds the harassment classifier definition" do
-    client = instance_double("OpenAIClient")
-
-    classifier = plugin.build_classifier(client:, model: "gpt-4o-test")
-
-    expect(classifier).to be_a(Harassment::OpenAIClassifier)
+    expect(plugin.query_service.recent_incidents("456", "789").incidents).to eq([incident])
+    expect(plugin.classification_service.classifier_version).to eq("harassment-v1")
   end
 
   it "exposes user risk and pair relationships" do
-    plugin.record_classification(event:, record:)
+    plugin.classification_service.record(event:, record:)
 
-    risk_report = plugin.get_user_risk("456", "321", as_of: record.classified_at)
+    risk_report = plugin.query_service.get_user_risk("456", "321", as_of: record.classified_at)
 
     expect(risk_report.risk_score).to be_between(0.0, 1.0)
     expect(risk_report.signals.keys).to match_array(%i[asymmetry persistence burst_intensity target_concentration average_severity])
-    expect(plugin.get_pair_relationship("456", "321", "654", as_of: record.classified_at).relationship_edge.interaction_count).to eq(1)
+    expect(plugin.query_service.get_pair_relationship("456", "321", "654", as_of: record.classified_at).relationship_edge.interaction_count).to eq(1)
   end
 
   it "is idempotent for duplicate classification deliveries" do
-    first = plugin.record_classification(event:, record:)
-    second = plugin.record_classification(event:, record:)
+    first = plugin.classification_service.record(event:, record:)
+    second = plugin.classification_service.record(event:, record:)
 
     expect(first).to eq(second)
-    expect(plugin.recent_incidents("456", "789").incidents.length).to eq(1)
-    expect(plugin.get_pair_relationship("456", "321", "654").relationship_edge.interaction_count).to eq(1)
+    expect(plugin.query_service.recent_incidents("456", "789").incidents.length).to eq(1)
+    expect(plugin.query_service.get_pair_relationship("456", "321", "654").relationship_edge.interaction_count).to eq(1)
   end
 
   it "exposes a harassment moderation command" do
@@ -89,9 +70,9 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
     ENV["HARASSMENT_STORAGE_BACKEND"] = "postgres"
 
     plugin.boot(app: app, plugin_registry: plugin_registry)
-    plugin.record_classification(event:, record:)
+    plugin.classification_service.record(event:, record:)
 
-    expect(plugin.get_pair_relationship("456", "321", "654", as_of: record.classified_at).relationship_edge.interaction_count).to eq(1)
+    expect(plugin.query_service.get_pair_relationship("456", "321", "654", as_of: record.classified_at).relationship_edge.interaction_count).to eq(1)
   ensure
     ENV["HARASSMENT_STORAGE_BACKEND"] = original_backend
   end
@@ -109,7 +90,7 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
     ENV["HARASSMENT_STORAGE_BACKEND"] = "postgres"
 
     plugin.boot(app: app, plugin_registry: plugin_registry)
-    report = plugin.recent_incidents("456", "789")
+    report = plugin.query_service.recent_incidents("456", "789")
 
     expect(report.incidents.map(&:message_id)).to eq(["123"])
     expect(report.incidents.first.intent).to eq("aggressive")

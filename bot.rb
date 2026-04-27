@@ -31,13 +31,14 @@ harassment_runtime =
       raise "HARASSMENT_STORAGE_BACKEND=postgres requires the postgres plugin to be enabled"
     end
 
+    harassment_classification = harassment_plugin.classification_service
     Harassment::Runtime.new(
       redis: app.redis,
       connection: (Environment.harassment_storage_backend == "postgres" ? postgres_plugin.database_connection : nil),
       storage_backend: Environment.harassment_storage_backend,
-      classifier_version: harassment_plugin.classifier_version,
-      classifier: harassment_plugin.build_classifier(client: app),
-      on_classification: ->(event:, record:) { harassment_plugin.record_classification(event:, record:) },
+      classifier_version: harassment_classification.classifier_version,
+      classifier: harassment_classification.build_classifier(client: app),
+      on_classification: ->(event:, record:) { harassment_classification.record(event:, record:) },
     )
   end
 harassment_worker_thread = nil
