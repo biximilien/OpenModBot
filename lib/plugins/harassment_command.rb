@@ -20,8 +20,8 @@ module ModerationGPT
       RISK_PATTERN = /\A!moderation harassment risk <@!?(?<user_id>\d+)>\s*\z/i.freeze
       PAIR_PATTERN = /\A!moderation harassment pair <@!?(?<source_user_id>\d+)>\s+<@!?(?<target_user_id>\d+)>\s*\z/i.freeze
 
-      def initialize(plugin)
-        @plugin = plugin
+      def initialize(query_service)
+        @query_service = query_service
       end
 
       def matches?(event)
@@ -59,7 +59,7 @@ module ModerationGPT
       end
 
       def handle_risk(event, match)
-        report = @plugin.get_user_risk(event.server.id, match[:user_id], as_of: Time.now.utc)
+        report = @query_service.get_user_risk(event.server.id, match[:user_id], as_of: Time.now.utc)
         signal_lines = report.signals.sort_by { |name, _| name.to_s }.map do |name, value|
           "- #{humanize_signal(name)}: #{format('%.2f', value)}"
         end
@@ -76,7 +76,7 @@ module ModerationGPT
       end
 
       def handle_pair(event, match)
-        report = @plugin.get_pair_relationship(event.server.id, match[:source_user_id], match[:target_user_id], as_of: Time.now.utc)
+        report = @query_service.get_pair_relationship(event.server.id, match[:source_user_id], match[:target_user_id], as_of: Time.now.utc)
         unless report.found?
           event.respond("No harassment relationship found for <@#{match[:source_user_id]}> -> <@#{match[:target_user_id]}>")
           return
@@ -97,7 +97,7 @@ module ModerationGPT
       def handle_incidents(event, match)
         limit = [[match[:limit]&.to_i || DEFAULT_INCIDENT_LIMIT, 1].max, MAX_INCIDENT_LIMIT].min
         since = incident_window_start(match[:window])
-        report = @plugin.recent_incidents(event.server.id, event.channel.id, limit:, user_id: match[:user_id], since:)
+        report = @query_service.recent_incidents(event.server.id, event.channel.id, limit:, user_id: match[:user_id], since:)
         if report.incidents.empty?
           event.respond(empty_incidents_message(match[:user_id], match[:window]))
           return

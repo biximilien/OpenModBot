@@ -6,9 +6,9 @@ require "harassment/relationship_edge"
 require "harassment/user_risk_report"
 
 describe ModerationGPT::Plugins::HarassmentCommand do
-  let(:plugin) do
+  let(:query_service) do
     instance_double(
-      "HarassmentPlugin",
+      "Harassment::QueryService",
       get_user_risk: Harassment::UserRiskReport.build(
         server_id: "123",
         user_id: "456",
@@ -60,7 +60,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
     )
   end
 
-  subject(:command) { described_class.new(plugin) }
+  subject(:command) { described_class.new(query_service) }
 
   let(:channel) { instance_double("Channel", id: 321) }
   let(:server) { instance_double("Server", id: 123) }
@@ -108,7 +108,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
     command.handle(event)
 
-    expect(plugin).to have_received(:recent_incidents).with(123, 321, limit: 1, user_id: nil, since: nil)
+    expect(query_service).to have_received(:recent_incidents).with(123, 321, limit: 1, user_id: nil, since: nil)
     expect(event).to have_received(:respond).with(
       a_string_including("Recent harassment incidents:", "<@456> -> <@789> | aggressive | severity 0.80 | confidence 0.70"),
     )
@@ -134,20 +134,20 @@ describe ModerationGPT::Plugins::HarassmentCommand do
         ),
       ],
     )
-    allow(plugin).to receive(:recent_incidents).and_return(filtered_report)
+    allow(query_service).to receive(:recent_incidents).and_return(filtered_report)
     message = instance_double("Message", content: "!moderation harassment incidents <@456> 1")
     allow(event).to receive(:message).and_return(message)
 
     command.handle(event)
 
-    expect(plugin).to have_received(:recent_incidents).with(123, 321, limit: 1, user_id: "456", since: nil)
+    expect(query_service).to have_received(:recent_incidents).with(123, 321, limit: 1, user_id: "456", since: nil)
     expect(event).to have_received(:respond).with(
       a_string_including("Recent harassment incidents for <@456>:"),
     )
   end
 
   it "responds with a filtered empty-state message" do
-    allow(plugin).to receive(:recent_incidents).and_return(
+    allow(query_service).to receive(:recent_incidents).and_return(
       Harassment::RecentIncidentsReport.build(server_id: "123", channel_id: "321", user_id: "456", incidents: []),
     )
     message = instance_double("Message", content: "!moderation harassment incidents <@456>")
@@ -179,7 +179,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
         ),
       ],
     )
-    allow(plugin).to receive(:recent_incidents).and_return(report)
+    allow(query_service).to receive(:recent_incidents).and_return(report)
     message = instance_double("Message", content: "!moderation harassment incidents 24h 1")
     allow(event).to receive(:message).and_return(message)
     freeze_time = Time.utc(2026, 4, 26, 15, 0, 0)
@@ -187,7 +187,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
 
     command.handle(event)
 
-    expect(plugin).to have_received(:recent_incidents).with(
+    expect(query_service).to have_received(:recent_incidents).with(
       123,
       321,
       limit: 1,
@@ -198,7 +198,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
   end
 
   it "responds with time-windowed empty state for a user" do
-    allow(plugin).to receive(:recent_incidents).and_return(
+    allow(query_service).to receive(:recent_incidents).and_return(
       Harassment::RecentIncidentsReport.build(server_id: "123", channel_id: "321", user_id: "456", since: Time.utc(2026, 4, 25, 15, 0, 0), incidents: []),
     )
     message = instance_double("Message", content: "!moderation harassment incidents <@456> 24h")
@@ -231,14 +231,14 @@ describe ModerationGPT::Plugins::HarassmentCommand do
         ),
       ],
     )
-    allow(plugin).to receive(:recent_incidents).and_return(report)
+    allow(query_service).to receive(:recent_incidents).and_return(report)
     message = instance_double("Message", content: "!moderation harassment incidents <@456> 1 24h")
     allow(event).to receive(:message).and_return(message)
     allow(Time).to receive(:now).and_return(Time.utc(2026, 4, 26, 15, 0, 0))
 
     command.handle(event)
 
-    expect(plugin).to have_received(:recent_incidents).with(
+    expect(query_service).to have_received(:recent_incidents).with(
       123,
       321,
       limit: 1,

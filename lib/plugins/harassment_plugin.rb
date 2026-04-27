@@ -65,7 +65,7 @@ module ModerationGPT
       end
 
       def commands
-        [HarassmentCommand.new(self)]
+        [HarassmentCommand.new(@query_service)]
       end
 
       private
