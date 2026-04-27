@@ -1,4 +1,4 @@
-require "harassment/worker_runner"
+require "harassment/runtime/worker_runner"
 
 describe Harassment::WorkerRunner do
   it "starts the worker loop only once" do

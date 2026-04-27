@@ -1,3 +1,5 @@
+require "json"
+
 module Harassment
   module PostgresVerificationHelpers
     private
@@ -8,6 +10,10 @@ module Harassment
 
     def first_row(result)
       rows(result).first || {}
+    end
+
+    def redis_rows_for(redis, key)
+      redis.hgetall(key).values.map { |payload| JSON.parse(payload) }
     end
 
     def build_spot_check_summary(source_rows)

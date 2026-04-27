@@ -1,5 +1,5 @@
 require "harassment/persistence/repository_factory"
-require_relative "../support/fake_redis"
+require_relative "../../support/fake_redis"
 
 describe Harassment::RepositoryFactory do
   it "uses in-memory repositories when no backend or redis client is provided" do

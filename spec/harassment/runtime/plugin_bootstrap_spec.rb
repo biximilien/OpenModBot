@@ -1,8 +1,8 @@
-require "harassment/plugin_bootstrap"
+require "harassment/runtime/plugin_bootstrap"
 require "harassment/repositories/postgres_classification_record_repository"
 require "harassment/repositories/postgres_interaction_event_repository"
-require_relative "../support/fake_postgres_connection"
-require_relative "../support/fake_redis"
+require_relative "../../support/fake_postgres_connection"
+require_relative "../../support/fake_redis"
 
 describe Harassment::PluginBootstrap do
   let(:read_model) { Harassment::ReadModel.new(score_version: "harassment-score-v1") }

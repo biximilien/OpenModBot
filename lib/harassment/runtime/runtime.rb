@@ -1,12 +1,12 @@
-require_relative "classifier/cached_classifier"
-require_relative "classification/pipeline"
-require_relative "classification/worker"
-require_relative "interaction/context_assembler"
-require_relative "interaction/message_ingestor"
-require_relative "interaction/retention_manager"
-require_relative "persistence/repository_factory"
+require_relative "../classifier/cached_classifier"
+require_relative "../classification/pipeline"
+require_relative "../classification/worker"
+require_relative "../interaction/context_assembler"
+require_relative "../interaction/message_ingestor"
+require_relative "../interaction/retention_manager"
+require_relative "../persistence/repository_factory"
 require_relative "server_rate_limiter"
-require_relative "../../environment"
+require_relative "../../../environment"
 
 module Harassment
   class Runtime

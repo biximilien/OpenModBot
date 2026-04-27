@@ -1,6 +1,6 @@
-require "harassment/runtime"
-require_relative "../support/fake_redis"
-require_relative "../support/fake_postgres_connection"
+require "harassment/runtime/runtime"
+require_relative "../../support/fake_redis"
+require_relative "../../support/fake_postgres_connection"
 
 describe Harassment::Runtime do
   let(:client) { instance_double("OpenAIClient") }

@@ -1,4 +1,4 @@
-require "harassment/server_rate_limiter"
+require "harassment/runtime/server_rate_limiter"
 require "harassment/repositories/in_memory_server_rate_limit_repository"
 
 describe Harassment::ServerRateLimiter do

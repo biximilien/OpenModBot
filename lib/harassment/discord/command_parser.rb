@@ -1,5 +1,6 @@
 module Harassment
-  class DiscordCommandParser
+  module Discord
+    class CommandParser
     WINDOW_ALIASES = {
       "1h" => 60 * 60,
       "24h" => 24 * 60 * 60,
@@ -54,6 +55,7 @@ module Harassment
       end
 
       { user_id:, window:, limit: }
+    end
     end
   end
 end

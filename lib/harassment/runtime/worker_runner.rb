@@ -1,4 +1,4 @@
-require_relative "../logging"
+require_relative "../../logging"
 
 module Harassment
   class WorkerRunner

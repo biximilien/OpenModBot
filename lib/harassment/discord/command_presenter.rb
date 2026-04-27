@@ -1,5 +1,6 @@
 module Harassment
-  class DiscordCommandPresenter
+  module Discord
+    class CommandPresenter
     def risk(report, user_id:)
       signal_lines = report.signals.sort_by { |name, _| name.to_s }.map do |name, value|
         "- #{humanize_signal(name)}: #{format('%.2f', value)}"
@@ -55,6 +56,7 @@ module Harassment
       return "No recent harassment incidents#{scope} in this channel" unless user_id
 
       "No recent harassment incidents for <@#{user_id}>#{scope} in this channel"
+    end
     end
   end
 end

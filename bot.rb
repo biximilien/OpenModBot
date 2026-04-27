@@ -14,8 +14,8 @@ require_relative "lib/moderation/message_router"
 require_relative "lib/telemetry"
 require_relative "lib/plugin_registry"
 require_relative "lib/logging"
-require_relative "lib/harassment/runtime"
-require_relative "lib/harassment/worker_runner"
+require_relative "lib/harassment/runtime/runtime"
+require_relative "lib/harassment/runtime/worker_runner"
 require_relative "lib/plugins/harassment_plugin"
 
 $logger = Logging.build_logger(STDOUT)

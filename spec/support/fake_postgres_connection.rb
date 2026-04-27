@@ -1,7 +1,10 @@
 require "json"
 require "time"
+require_relative "fake_postgres/time_helpers"
 
 class FakePostgresConnection
+  include FakePostgres::TimeHelpers
+
   def initialize
     @interaction_events = []
     @classification_records = []
@@ -132,17 +135,17 @@ class FakePostgresConnection
   def list_by_status(status)
     @interaction_events
       .select { |event| event["classification_status"] == status }
-      .sort_by { |event| Time.parse(event["created_at"]).utc }
+      .sort_by { |event| parse_utc(event["created_at"]) }
   end
 
   def list_expired(as_of)
-    cutoff = Time.parse(as_of).utc
+    cutoff = parse_utc(as_of)
     @interaction_events
       .select do |event|
         expires_at = event["content_retention_expires_at"]
-        expires_at && Time.parse(expires_at).utc <= cutoff && event["content_redacted_at"].nil?
+        expires_at && parse_utc(expires_at) <= cutoff && event["content_redacted_at"].nil?
       end
-      .sort_by { |event| Time.parse(event["created_at"]).utc }
+      .sort_by { |event| parse_utc(event["created_at"]) }
   end
 
   def redact_content(message_id, raw_content, redacted_at, guild_id:)
@@ -158,27 +161,27 @@ class FakePostgresConnection
   end
 
   def recent_in_channel(server_id, channel_id, before, limit)
-    cutoff = Time.parse(before).utc
+    cutoff = parse_utc(before)
     @interaction_events
       .select do |event|
         event["guild_id"] == server_id.to_s &&
           event["channel_id"] == channel_id.to_s &&
-          Time.parse(event["created_at"]).utc < cutoff
+          parse_utc(event["created_at"]) < cutoff
       end
-      .sort_by { |event| Time.parse(event["created_at"]).utc }
+      .sort_by { |event| parse_utc(event["created_at"]) }
       .last(limit.to_i)
   end
 
   def recent_between_participants(server_id, before, participant_ids, limit)
-    cutoff = Time.parse(before).utc
+    cutoff = parse_utc(before)
     ids = Array(participant_ids).map(&:to_s)
     @interaction_events
       .select do |event|
         event["guild_id"] == server_id.to_s &&
-          Time.parse(event["created_at"]).utc < cutoff &&
+          parse_utc(event["created_at"]) < cutoff &&
           interaction_involves_participants?(event, ids)
       end
-      .sort_by { |event| Time.parse(event["created_at"]).utc }
+      .sort_by { |event| parse_utc(event["created_at"]) }
       .last(limit.to_i)
   end
 
@@ -222,7 +225,7 @@ class FakePostgresConnection
   def all_classification_records_for_message(guild_id, message_id)
     @classification_records
       .select { |record| record["guild_id"] == guild_id.to_s && record["message_id"] == message_id.to_s }
-      .sort_by { |record| Time.parse(record["classified_at"]).utc }
+      .sort_by { |record| parse_utc(record["classified_at"]) }
   end
 
   def latest_classification_record_for_message(guild_id, message_id)
@@ -283,13 +286,13 @@ class FakePostgresConnection
   end
 
   def due_classification_jobs(as_of)
-    cutoff = Time.parse(as_of).utc
+    cutoff = parse_utc(as_of)
     @classification_jobs
       .select do |job|
-        Time.parse(job["available_at"]).utc <= cutoff &&
+        parse_utc(job["available_at"]) <= cutoff &&
           %w[pending failed_retryable].include?(job["status"])
       end
-      .sort_by { |job| Time.parse(job["available_at"]).utc }
+      .sort_by { |job| parse_utc(job["available_at"]) }
   end
 
   def find_classification_cache_entry(cache_key)
@@ -418,3 +421,4 @@ class FakePostgresConnection
       .map { |guild_id, entries| { "guild_id" => guild_id, "count" => entries.length } }
   end
 end
+

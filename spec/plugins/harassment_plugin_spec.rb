@@ -1,5 +1,5 @@
 require "plugins/harassment_plugin"
-require "harassment/plugin_bootstrap"
+require "harassment/runtime/plugin_bootstrap"
 require_relative "../support/fake_postgres_connection"
 
 describe ModerationGPT::Plugins::HarassmentPlugin do

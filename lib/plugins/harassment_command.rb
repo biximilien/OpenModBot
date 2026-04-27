@@ -1,5 +1,5 @@
-require_relative "../harassment/discord_command_parser"
-require_relative "../harassment/discord_command_presenter"
+require_relative "../harassment/discord/command_parser"
+require_relative "../harassment/discord/command_presenter"
 
 module ModerationGPT
   module Plugins
@@ -15,7 +15,7 @@ module ModerationGPT
       MAX_INCIDENT_LIMIT = 5
       DEFAULT_INCIDENT_LIMIT = 3
 
-      def initialize(query_service, parser: Harassment::DiscordCommandParser.new, presenter: Harassment::DiscordCommandPresenter.new)
+      def initialize(query_service, parser: Harassment::Discord::CommandParser.new, presenter: Harassment::Discord::CommandPresenter.new)
         @query_service = query_service
         @parser = parser
         @presenter = presenter
@@ -62,7 +62,7 @@ module ModerationGPT
       def incident_window_start(window)
         return nil unless window
 
-        Time.now.utc - Harassment::DiscordCommandParser::WINDOW_ALIASES.fetch(window)
+        Time.now.utc - Harassment::Discord::CommandParser::WINDOW_ALIASES.fetch(window)
       end
     end
   end

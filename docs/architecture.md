@@ -91,7 +91,7 @@ The harassment pipeline is split between a platform runtime and plugin-composed 
 
 Platform-owned runtime pieces:
 
-- [lib/harassment/runtime.rb](../lib/harassment/runtime.rb)
+- [lib/harassment/runtime/runtime.rb](../lib/harassment/runtime/runtime.rb)
 - [lib/harassment/interaction/message_ingestor.rb](../lib/harassment/interaction/message_ingestor.rb)
 - [lib/harassment/classification/pipeline.rb](../lib/harassment/classification/pipeline.rb)
 - [lib/harassment/classification/worker.rb](../lib/harassment/classification/worker.rb)

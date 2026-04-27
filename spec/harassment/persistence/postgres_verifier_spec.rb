@@ -6,8 +6,8 @@ require "harassment/repositories/postgres_relationship_edge_repository"
 require "harassment/repositories/redis_classification_job_repository"
 require "harassment/repositories/redis_classification_record_repository"
 require "harassment/repositories/redis_interaction_event_repository"
-require_relative "../support/fake_postgres_connection"
-require_relative "../support/fake_redis"
+require_relative "../../support/fake_postgres_connection"
+require_relative "../../support/fake_redis"
 
 describe Harassment::PostgresVerifier do
   let(:redis) { FakeRedis.new }

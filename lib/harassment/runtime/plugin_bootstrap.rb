@@ -1,9 +1,9 @@
-require_relative "incident/query"
-require_relative "query_service"
-require_relative "risk/read_model"
-require_relative "persistence/repository_factory"
-require_relative "../plugins/postgres_plugin"
-require_relative "../../environment"
+require_relative "../incident/query"
+require_relative "../query_service"
+require_relative "../risk/read_model"
+require_relative "../persistence/repository_factory"
+require_relative "../../plugins/postgres_plugin"
+require_relative "../../../environment"
 
 module Harassment
   class PluginBootstrap
