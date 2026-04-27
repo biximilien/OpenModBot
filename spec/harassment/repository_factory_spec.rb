@@ -1,4 +1,4 @@
-require "harassment/repository_factory"
+require "harassment/persistence/repository_factory"
 require_relative "../support/fake_redis"
 
 describe Harassment::RepositoryFactory do

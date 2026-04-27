@@ -1,4 +1,4 @@
-require "harassment/postgres_bootstrap"
+require "harassment/persistence/postgres_bootstrap"
 require "harassment/repositories/postgres_classification_job_repository"
 require "harassment/repositories/postgres_classification_record_repository"
 require "harassment/repositories/postgres_interaction_event_repository"

@@ -1,4 +1,4 @@
-require "harassment/interaction_event"
+require "harassment/interaction/event"
 
 describe Harassment::InteractionEvent do
   it "builds a normalized interaction event" do

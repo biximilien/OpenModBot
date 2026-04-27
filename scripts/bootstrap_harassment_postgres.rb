@@ -1,7 +1,7 @@
 require_relative "../environment"
 require_relative "../lib/application"
 require_relative "../lib/plugin_registry"
-require_relative "../lib/harassment/postgres_bootstrap"
+require_relative "../lib/harassment/persistence/postgres_bootstrap"
 require_relative "../lib/harassment/repositories/postgres_interaction_event_repository"
 require_relative "../lib/harassment/repositories/postgres_classification_record_repository"
 require_relative "../lib/harassment/repositories/postgres_classification_job_repository"

@@ -1,4 +1,4 @@
-require_relative "../classifier_version"
+require_relative "../classifier/version"
 
 module Harassment
   module Repositories

@@ -1,4 +1,4 @@
-require "harassment/classification_record"
+require "harassment/classification/record"
 
 describe Harassment::ClassificationRecord do
   it "builds a normalized classification record" do

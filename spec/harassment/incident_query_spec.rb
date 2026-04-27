@@ -1,4 +1,4 @@
-require "harassment/incident_query"
+require "harassment/incident/query"
 require "harassment/repositories/in_memory_classification_record_repository"
 require "harassment/repositories/in_memory_interaction_event_repository"
 

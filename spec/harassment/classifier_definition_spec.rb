@@ -1,4 +1,4 @@
-require "harassment/classifier_definition"
+require "harassment/classifier/definition"
 
 describe Harassment::ClassifierDefinition do
   subject(:definition) { described_class.new }

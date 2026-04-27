@@ -1,8 +1,8 @@
 require_relative "../plugin"
-require_relative "../harassment/classification_service"
+require_relative "../harassment/classification/service"
 require_relative "../harassment/plugin_bootstrap"
 require_relative "../harassment/query_service"
-require_relative "../harassment/score_definition"
+require_relative "../harassment/risk/score_definition"
 require_relative "harassment_command"
 
 module ModerationGPT

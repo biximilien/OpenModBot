@@ -1,4 +1,4 @@
-require_relative "../classification_job"
+require_relative "../classification/job"
 
 module Harassment
   module Repositories

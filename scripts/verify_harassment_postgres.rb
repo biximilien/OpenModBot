@@ -1,7 +1,7 @@
 require_relative "../environment"
 require_relative "../lib/application"
 require_relative "../lib/plugin_registry"
-require_relative "../lib/harassment/postgres_verifier"
+require_relative "../lib/harassment/persistence/postgres_verifier"
 
 app = ModerationGPT::Application.new
 plugins = ModerationGPT::PluginRegistry.from_environment

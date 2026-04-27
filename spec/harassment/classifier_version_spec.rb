@@ -1,4 +1,4 @@
-require "harassment/classifier_version"
+require "harassment/classifier/version"
 
 describe Harassment::ClassifierVersion do
   it "builds a normalized classifier version" do

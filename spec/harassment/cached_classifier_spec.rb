@@ -1,4 +1,4 @@
-require "harassment/cached_classifier"
+require "harassment/classifier/cached_classifier"
 require "harassment/repositories/in_memory_classification_cache_repository"
 
 describe Harassment::CachedClassifier do

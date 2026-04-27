@@ -1,5 +1,5 @@
-require "harassment/incident_collection"
-require "harassment/incident"
+require "harassment/incident/collection"
+require "harassment/incident/incident"
 
 describe Harassment::IncidentCollection do
   let(:older_incident) do

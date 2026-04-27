@@ -1,4 +1,4 @@
-require "harassment/decay_policy"
+require "harassment/risk/decay_policy"
 
 describe Harassment::DecayPolicy do
   it "returns the original score when no prior time is available" do

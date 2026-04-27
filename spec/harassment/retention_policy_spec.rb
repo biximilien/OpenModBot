@@ -1,4 +1,4 @@
-require "harassment/retention_policy"
+require "harassment/interaction/retention_policy"
 
 describe Harassment::RetentionPolicy do
   it "uses a 30-day default retention window" do

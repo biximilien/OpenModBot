@@ -1,4 +1,4 @@
-require "harassment/relationship_edge_rebuilder"
+require "harassment/relationship/edge_rebuilder"
 require "harassment/repositories/in_memory_classification_record_repository"
 require "harassment/repositories/in_memory_interaction_event_repository"
 require "harassment/repositories/in_memory_relationship_edge_repository"

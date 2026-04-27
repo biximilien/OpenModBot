@@ -1,5 +1,5 @@
-require "harassment/relationship_edge"
-require "harassment/decay_policy"
+require "harassment/relationship/edge"
+require "harassment/risk/decay_policy"
 
 describe Harassment::RelationshipEdge do
   it "builds a normalized relationship edge" do

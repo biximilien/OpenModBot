@@ -1,6 +1,6 @@
-require "harassment/composite_signal_analyzer"
-require "harassment/decay_policy"
-require "harassment/read_model"
+require "harassment/risk/composite_signal_analyzer"
+require "harassment/risk/decay_policy"
+require "harassment/risk/read_model"
 
 describe Harassment::CompositeSignalAnalyzer do
   let(:read_model) { Harassment::ReadModel.new(decay_policy: Harassment::DecayPolicy.new(lambda_value: 0.0)) }

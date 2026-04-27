@@ -1,4 +1,4 @@
-require "harassment/classification_job"
+require "harassment/classification/job"
 
 describe Harassment::ClassificationJob do
   it "builds a normalized classification job" do

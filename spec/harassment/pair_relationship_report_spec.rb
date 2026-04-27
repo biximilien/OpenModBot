@@ -1,4 +1,4 @@
-require "harassment/pair_relationship_report"
+require "harassment/relationship/pair_relationship_report"
 
 describe Harassment::PairRelationshipReport do
   it "reports whether a relationship exists" do

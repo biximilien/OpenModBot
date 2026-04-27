@@ -1,5 +1,5 @@
-require_relative "../classification_status"
-require_relative "../interaction_event"
+require_relative "../classification/status"
+require_relative "../interaction/event"
 
 module Harassment
   module Repositories

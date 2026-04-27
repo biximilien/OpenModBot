@@ -1,4 +1,4 @@
-require "harassment/retention_manager"
+require "harassment/interaction/retention_manager"
 require "harassment/repositories/in_memory_interaction_event_repository"
 
 describe Harassment::RetentionManager do

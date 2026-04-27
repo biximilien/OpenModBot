@@ -1,4 +1,4 @@
-require_relative "../classification_record"
+require_relative "../classification/record"
 require_relative "classification_cache_repository"
 
 module Harassment

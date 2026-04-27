@@ -1,1 +1,0 @@
-require_relative "relationship/pair_relationship_report"

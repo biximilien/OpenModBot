@@ -1,4 +1,4 @@
-require "harassment/context_assembler"
+require "harassment/interaction/context_assembler"
 require "harassment/repositories/in_memory_interaction_event_repository"
 
 describe Harassment::ContextAssembler do

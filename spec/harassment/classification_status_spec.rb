@@ -1,4 +1,4 @@
-require "harassment/classification_status"
+require "harassment/classification/status"
 
 describe Harassment::ClassificationStatus do
   it "defines the supported lifecycle states" do

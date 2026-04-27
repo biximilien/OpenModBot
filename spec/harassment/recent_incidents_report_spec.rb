@@ -1,4 +1,4 @@
-require "harassment/recent_incidents_report"
+require "harassment/incident/recent_incidents_report"
 
 describe Harassment::RecentIncidentsReport do
   it "normalizes the channel id and incidents" do

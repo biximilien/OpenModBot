@@ -1,4 +1,4 @@
-require "harassment/classification_service"
+require "harassment/classification/service"
 
 describe Harassment::ClassificationService do
   let(:event) do

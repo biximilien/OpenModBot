@@ -1,6 +1,6 @@
 require "harassment/query_service"
-require "harassment/decay_policy"
-require "harassment/read_model"
+require "harassment/risk/decay_policy"
+require "harassment/risk/read_model"
 
 describe Harassment::QueryService do
   subject(:query_service) { described_class.new(read_model: read_model) }

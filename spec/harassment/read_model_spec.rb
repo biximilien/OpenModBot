@@ -1,5 +1,5 @@
-require "harassment/read_model"
-require "harassment/decay_policy"
+require "harassment/risk/read_model"
+require "harassment/risk/decay_policy"
 
 describe Harassment::ReadModel do
   let(:decay_policy) { Harassment::DecayPolicy.new(lambda_value: Math.log(2) / 3600.0) }

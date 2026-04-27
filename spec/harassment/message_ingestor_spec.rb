@@ -1,4 +1,4 @@
-require "harassment/message_ingestor"
+require "harassment/interaction/message_ingestor"
 require "harassment/repositories/in_memory_classification_job_repository"
 require "harassment/repositories/in_memory_classification_record_repository"
 require "harassment/repositories/in_memory_interaction_event_repository"

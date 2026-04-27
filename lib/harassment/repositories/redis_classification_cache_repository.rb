@@ -1,7 +1,7 @@
 require "json"
 require "time"
 require_relative "../../data_model/keys"
-require_relative "../classification_record"
+require_relative "../classification/record"
 require_relative "classification_cache_repository"
 
 module Harassment

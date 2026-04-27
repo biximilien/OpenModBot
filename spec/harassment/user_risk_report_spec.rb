@@ -1,4 +1,4 @@
-require "harassment/user_risk_report"
+require "harassment/risk/user_risk_report"
 
 describe Harassment::UserRiskReport do
   it "normalizes report values" do

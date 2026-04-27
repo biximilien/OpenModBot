@@ -1,4 +1,4 @@
-require_relative "../relationship_edge"
+require_relative "../relationship/edge"
 
 module Harassment
   module Repositories

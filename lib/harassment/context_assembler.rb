@@ -1,1 +1,0 @@
-require_relative "interaction/context_assembler"

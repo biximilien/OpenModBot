@@ -1,1 +1,0 @@
-require_relative "incident/recent_incidents_report"

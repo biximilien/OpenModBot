@@ -1,8 +1,8 @@
 require_relative "../environment"
 require_relative "../lib/plugin_registry"
-require_relative "../lib/harassment/relationship_edge_rebuilder"
-require_relative "../lib/harassment/repository_factory"
-require_relative "../lib/harassment/score_definition"
+require_relative "../lib/harassment/relationship/edge_rebuilder"
+require_relative "../lib/harassment/persistence/repository_factory"
+require_relative "../lib/harassment/risk/score_definition"
 
 plugins = ModerationGPT::PluginRegistry.from_environment
 postgres_plugin = plugins.find_plugin(ModerationGPT::Plugins::PostgresPlugin)

@@ -1,4 +1,4 @@
-require "harassment/incident"
+require "harassment/incident/incident"
 
 describe Harassment::Incident do
   it "builds an incident from an interaction event and classification record" do

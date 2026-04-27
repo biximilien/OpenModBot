@@ -1,9 +1,9 @@
 require "plugins/harassment_command"
-require "harassment/incident"
-require "harassment/pair_relationship_report"
-require "harassment/recent_incidents_report"
-require "harassment/relationship_edge"
-require "harassment/user_risk_report"
+require "harassment/incident/incident"
+require "harassment/relationship/pair_relationship_report"
+require "harassment/incident/recent_incidents_report"
+require "harassment/relationship/edge"
+require "harassment/risk/user_risk_report"
 
 describe ModerationGPT::Plugins::HarassmentCommand do
   let(:query_service) do

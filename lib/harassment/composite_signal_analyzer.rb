@@ -1,1 +1,0 @@
-require_relative "risk/composite_signal_analyzer"

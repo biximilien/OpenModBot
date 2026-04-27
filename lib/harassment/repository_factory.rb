@@ -1,1 +1,0 @@
-require_relative "persistence/repository_factory"

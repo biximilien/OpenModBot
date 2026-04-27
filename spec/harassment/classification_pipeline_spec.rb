@@ -1,4 +1,4 @@
-require "harassment/classification_pipeline"
+require "harassment/classification/pipeline"
 require "harassment/repositories/in_memory_interaction_event_repository"
 require "harassment/repositories/in_memory_classification_record_repository"
 require "harassment/repositories/in_memory_classification_job_repository"

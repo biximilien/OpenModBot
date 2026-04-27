@@ -117,7 +117,7 @@ The harassment domain is grouped by responsibility under [lib/harassment](../lib
 - `risk/` for scoring, decay, read-model projections, and risk reports
 - `persistence/` for repository factory and Postgres migration/verification helpers
 
-Flat files such as `lib/harassment/classification_record.rb` are compatibility shims that require the grouped implementation files. New code should prefer the grouped paths when adding direct requires.
+New code should require harassment-domain files from these grouped paths directly.
 
 The current runtime stores immutable interaction events, enqueues classification jobs keyed by `server_id`, `message_id`, and `classifier_version`, assembles bounded transient context, wraps classifier calls with cache and per-server rate-limit enforcement, and processes due jobs asynchronously on a background thread. The harassment classification service provides the classifier version and the harassment-specific prompt/schema definition used by [lib/harassment/classifier/open_ai_classifier.rb](../lib/harassment/classifier/open_ai_classifier.rb). Successful classification records are then handed to the classification service, which updates its idempotent read model. The query service exposes moderator-facing reports from that read model and, when configured, durable incident repositories.
 

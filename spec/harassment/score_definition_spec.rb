@@ -1,4 +1,4 @@
-require "harassment/score_definition"
+require "harassment/risk/score_definition"
 
 describe Harassment::ScoreDefinition do
   it "owns the harassment score version" do

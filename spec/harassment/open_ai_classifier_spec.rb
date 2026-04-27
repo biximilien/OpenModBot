@@ -1,5 +1,5 @@
-require "harassment/open_ai_classifier"
-require "harassment/classifier_definition"
+require "harassment/classifier/open_ai_classifier"
+require "harassment/classifier/definition"
 
 describe Harassment::OpenAIClassifier do
   let(:client) { instance_double("OpenAIClient") }
