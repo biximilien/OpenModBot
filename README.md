@@ -1,6 +1,6 @@
 # ModerationGPT
 
-ModerationGPT is a Discord moderation bot for text channels. It uses OpenAI's moderation endpoint to classify messages, Redis to store per-server watchlists, and the OpenAI Responses API to rewrite flagged messages from watched users in a more constructive tone.
+ModerationGPT is a Discord moderation bot for text channels. It uses OpenAI's moderation endpoint to classify messages, Redis to store per-server watchlists and karma, and the OpenAI Responses API to rewrite flagged messages from watched users in a more constructive tone. Optional plugins add passive harassment analysis, Postgres-backed durable harassment state, OpenTelemetry, and rewrite personalities.
 
 ## How It Works
 
@@ -111,6 +111,7 @@ The default specs stub OpenAI and Redis, so they do not require external API cal
 
 The Redis data model is documented in `docs/data-model.md`.
 The application structure is documented in `docs/architecture.md`.
+Architecture decisions are tracked in `docs/adrs/README.md`.
 
 ## Logging
 
@@ -132,6 +133,10 @@ Built-in plugins:
 - `postgres`
 - `telemetry`
 - `personality`
+
+Plugin `boot` is a configuration boundary: if an enabled plugin cannot initialize required infrastructure, startup fails instead of continuing with a partially configured bot. Runtime hooks such as `message`, moderation observations, strategy contribution, and command contribution remain isolated so one plugin hook failure does not stop unrelated processing.
+
+Optional infrastructure is exposed through plugins rather than hidden globals. For example, the `postgres` plugin owns `DATABASE_URL` and exposes the database connection to other plugins through the plugin registry.
 
 When the `harassment` plugin is enabled, the bot passively captures interaction events, enqueues harassment classification work, and records classified incidents in a harassment read model without applying automated enforcement.
 
@@ -171,7 +176,7 @@ ruby scripts/rebuild_harassment_relationship_edges.rb 123456789012345678
 
 When the harassment plugin boots against durable repositories, moderator-facing `risk` and `recent incidents` queries are reconstructed from stored interaction events and classification records rather than relying only on process-local incident memory.
 
-The harassment implementation is organized by domain under `lib/harassment`, with grouped folders for `classification`, `classifier`, `incident`, `interaction`, `relationship`, `risk`, and `persistence`. Compatibility require files remain at the old flat paths for callers that still use them.
+The harassment implementation is organized by domain under `lib/harassment`, with grouped folders for `classification`, `classifier`, `discord`, `incident`, `interaction`, `relationship`, `risk`, `runtime`, `repositories`, and `persistence`. New code should require files from those grouped paths directly.
 
 To compare Redis and Postgres harassment counts, inspect Postgres relationship-edge totals, and run a small set of sampled row checks before cutover, run:
 
