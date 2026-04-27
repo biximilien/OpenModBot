@@ -15,7 +15,7 @@ ADR numbers are stable identifiers. Superseded ADR files are kept in place so ol
 - [ADR-010: No Automated Enforcement Initially](./010_no_automated_enforcement_initially.md)
 - [ADR-011: Privacy and Data Handling Transparency](./011_privacy_and_data_handling_transparency.md)
 - [ADR-012: Classification Pipeline Delivery Semantics](./012_classification_pipeline_delivery_semantics.md)
-- [ADR-013: Use Postgres as Primary Store with JSONB for Classification](./013_use_postgres_as_primary_store_with_jsonb_for_classification.md)
+- [ADR-013: Support Postgres as Durable Harassment Store with JSONB for Classification](./013_use_postgres_as_primary_store_with_jsonb_for_classification.md)
 - [ADR-015: Version LLM Prompts and Outputs](./015_version_llm_prompts_and_outputs.md)
 - [ADR-016: Enforce Strict JSON Schema for LLM Output](./016_enforce_strict_json_schema_for_llm_output.md)
 - [ADR-017: Support Reclassification Pipelines](./017_support_reclassification_pipelines.md)
@@ -24,6 +24,7 @@ ADR numbers are stable identifiers. Superseded ADR files are kept in place so ol
 - [ADR-020: Rate-Limit and Cache LLM Calls](./020_rate-limit_and_cache_llm_calls.md)
 - [ADR-023: Expose Moderation Insights via Read API](./023_expose_moderation_insights_via_read_api.md)
 - [ADR-024: Keep Scoring Logic Deterministic and Versioned](./024_keep_scoring_logic_deterministic_and_versioned.md)
+- [ADR-025: Use Optional Infrastructure Plugins for Shared Services](./025_optional_infrastructure_plugins.md)
 
 ## Superseded ADRs
 
