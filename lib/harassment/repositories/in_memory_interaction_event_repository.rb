@@ -73,7 +73,7 @@ module Harassment
       end
 
       def recent_between_participants(server_id:, participant_ids:, before:, limit:)
-        normalized_participant_ids = Array(participant_ids).map(&:to_s).to_set
+        normalized_participant_ids = Array(participant_ids).to_set(&:to_s)
 
         @events.values
                .select do |event|

@@ -56,8 +56,8 @@ module Backend
     def normalize_hash(value)
       return {} unless value
 
-      value.to_h.each_with_object({}) do |(key, hash_value), normalized|
-        normalized[key.to_s] = hash_value
+      value.to_h.transform_keys do |key|
+        key.to_s
       end
     end
   end

@@ -63,9 +63,9 @@ class FakeRedis
     end
   end
 
-  def scan_each(match:)
-    regex = Regexp.new("\\A" + Regexp.escape(match).gsub("\\*", ".*") + "\\z")
-    all_keys.grep(regex).each { |key| yield key }
+  def scan_each(match:, &block)
+    regex = Regexp.new("\\A#{Regexp.escape(match).gsub("\\*", ".*")}\\z")
+    all_keys.grep(regex).each(&block)
   end
 
   def eval(script, keys:, argv:)

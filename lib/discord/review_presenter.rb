@@ -26,7 +26,7 @@ module Discord
         next_length = length + next_line.length + 1
         if next_length > RESPONSE_LIMIT
           remaining = entries.length - lines.length
-          lines << "- #{remaining} more review#{remaining == 1 ? '' : 's'} omitted"
+          lines << "- #{remaining} more review#{'s' unless remaining == 1} omitted"
           break
         end
 

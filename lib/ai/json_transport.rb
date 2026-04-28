@@ -13,20 +13,20 @@ module ModerationGPT
 
       def post(url:, payload:, user: nil)
         Telemetry.in_span(url, attributes: telemetry_attributes(url, user)) do |span|
-          
-            response = post_json(url, payload, span)
-            parsed = JSON.parse(response.body)
-            raise "#{@provider_name} API error: #{parsed['error']}" if parsed.include?("error")
-            raise "#{@provider_name} API error: HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
 
-            parsed
-          rescue JSON::ParserError => e
-            span.add_event("#{@provider_name} API invalid JSON", attributes: { "exception.message" => e.message })
-            raise "#{@provider_name} API returned invalid JSON"
-          rescue Net::ReadTimeout, Net::OpenTimeout => e
-            span.add_event("#{@provider_name} API timeout", attributes: { "exception.message" => e.message })
-            raise "#{@provider_name} API timeout"
-          
+          response = post_json(url, payload, span)
+          parsed = JSON.parse(response.body)
+          raise "#{@provider_name} API error: #{parsed['error']}" if parsed.include?("error")
+          raise "#{@provider_name} API error: HTTP #{response.code}" unless response.is_a?(Net::HTTPSuccess)
+
+          parsed
+        rescue JSON::ParserError => e
+          span.add_event("#{@provider_name} API invalid JSON", attributes: { "exception.message" => e.message })
+          raise "#{@provider_name} API returned invalid JSON"
+        rescue Net::ReadTimeout, Net::OpenTimeout => e
+          span.add_event("#{@provider_name} API timeout", attributes: { "exception.message" => e.message })
+          raise "#{@provider_name} API timeout"
+
         end
       end
 

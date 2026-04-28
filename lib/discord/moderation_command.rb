@@ -66,8 +66,8 @@ module Discord
         return
       end
 
-      if @parser.plugin_command_root?(match)
-        return if handle_plugin_command(event)
+      if @parser.plugin_command_root?(match) && handle_plugin_command(event)
+        return
       end
 
       case match[:command]

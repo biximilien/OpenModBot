@@ -43,8 +43,8 @@ module Telemetry
     false
   end
 
-  def in_span(name, attributes: {})
-    tracer.in_span(name, attributes:) { |span| yield span }
+  def in_span(name, attributes: {}, &block)
+    tracer.in_span(name, attributes:, &block)
   end
 
   def tracer

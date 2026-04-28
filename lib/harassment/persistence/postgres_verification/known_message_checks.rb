@@ -14,12 +14,12 @@ module Harassment
       end
 
       def run(message_ids)
-        Array(message_ids).map(&:to_s).uniq.each_with_object({}) do |message_id, summary|
-          summary[message_id] = {
+        Array(message_ids).map(&:to_s).uniq.to_h do |message_id|
+          [message_id, {
             interaction_event: verify_known_interaction_event(message_id),
             classification_records: verify_known_classification_records(message_id),
             classification_jobs: verify_known_classification_jobs(message_id),
-          }
+          }]
         end
       end
 
@@ -109,10 +109,10 @@ module Harassment
         end
       end
 
-      def build_known_collection_summary(rows)
+      def build_known_collection_summary(rows, &block)
         return { found_in_redis: false, found_in_postgres: false, matches: false, entries: [] } if rows.empty?
 
-        entries = rows.map { |row| yield(row) }
+        entries = rows.map(&block)
         {
           found_in_redis: true,
           found_in_postgres: entries.any? { |entry| entry[:found_in_postgres] },
