@@ -2,63 +2,30 @@ require "discordrb"
 require "logger"
 
 require_relative "environment"
-require_relative "lib/application"
 require_relative "lib/discord"
-require_relative "lib/discord/moderation_command"
-require_relative "lib/discord/ready_handler"
 require_relative "lib/discord/permission"
-require_relative "lib/moderation/strategy"
-require_relative "lib/moderation/strategies/remove_message_strategy"
-require_relative "lib/moderation/strategies/watch_list_strategy"
-require_relative "lib/moderation/message_router"
 require_relative "lib/telemetry"
-require_relative "lib/plugin_registry"
 require_relative "lib/logging"
-require_relative "lib/harassment/runtime/runtime"
-require_relative "lib/harassment/runtime/worker_runner"
-require_relative "lib/plugins/harassment_plugin"
+require_relative "lib/runtime_builder"
 
 $logger = Logging.build_logger(STDOUT)
 
 Environment.validate!
-app = ModerationGPT::Application.new
-plugins = ModerationGPT::PluginRegistry.from_environment
-plugins.boot(app: app, plugin_registry: plugins)
-harassment_plugin = plugins.find_plugin(ModerationGPT::Plugins::HarassmentPlugin)
-postgres_plugin = plugins.find_plugin(ModerationGPT::Plugins::PostgresPlugin)
-harassment_runtime =
-  if harassment_plugin
-    if Environment.harassment_storage_backend == "postgres" && postgres_plugin.nil?
-      raise "HARASSMENT_STORAGE_BACKEND=postgres requires the postgres plugin to be enabled"
-    end
-
-    harassment_classification = harassment_plugin.classification_service
-    Harassment::Runtime.new(
-      redis: app.redis,
-      connection: (Environment.harassment_storage_backend == "postgres" ? postgres_plugin.database_connection : nil),
-      storage_backend: Environment.harassment_storage_backend,
-      classifier_version: harassment_classification.classifier_version,
-      classifier: harassment_classification.build_classifier(client: app),
-      on_classification: ->(event:, record:) { harassment_classification.record(event:, record:) },
-    )
-  end
-harassment_worker_runner = harassment_runtime ? Harassment::WorkerRunner.new(runtime: harassment_runtime) : nil
-
 bot = Discordrb::Bot.new token: Environment.discord_bot_token, intents: :all
+runtime = ModerationGPT::RuntimeBuilder.new.build(bot:)
+app = runtime.app
+plugins = runtime.plugins
+harassment_runtime = runtime.harassment_runtime
+harassment_worker_runner = runtime.harassment_worker_runner
 
 if Environment.log_invite_url?
   Logging.info("discord_invite_url_generated", invite_url: bot.invite_url(permission_bits: Discord::Permission::MODERATION_BOT))
   Logging.info("discord_invite_url_notice")
 end
 
-strategies = [
-  WatchListStrategy.new(app, plugin_registry: plugins),
-  RemoveMessageStrategy.new(app, plugin_registry: plugins),
-] + plugins.moderation_strategies(app: app, plugin_registry: plugins)
-
-moderation_command = Discord::ModerationCommand.new(app, plugin_commands: plugins.commands)
-message_router = Moderation::MessageRouter.new(strategies)
-ready_handler = Discord::ReadyHandler.new(bot, app)
+moderation_command = runtime.moderation_command
+message_router = runtime.message_router
+ready_handler = runtime.ready_handler
 
 bot.message do |event|
   next if event.user.current_bot?

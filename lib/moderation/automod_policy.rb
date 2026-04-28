@@ -43,7 +43,7 @@ module Moderation
       target = moderation_target(event)
       reason = moderation_reason(score)
 
-      return applied_or_unavailable(user_hash, score, "timeout", AutomodOutcome::TIMEOUT_APPLIED, AutomodOutcome::TIMEOUT_UNAVAILABLE) do
+      applied_or_unavailable(user_hash, score, "timeout", AutomodOutcome::TIMEOUT_APPLIED, AutomodOutcome::TIMEOUT_UNAVAILABLE) do
         if target.respond_to?(:timeout_for)
           target.timeout_for(@timeout_seconds, reason)
         elsif target.respond_to?(:timeout)
@@ -54,39 +54,39 @@ module Moderation
       end
     end
 
-  def kick(event, user_hash, score)
-    target = moderation_target(event)
-    reason = moderation_reason(score)
+    def kick(event, user_hash, score)
+      target = moderation_target(event)
+      reason = moderation_reason(score)
 
-    applied_or_unavailable(user_hash, score, "kick", AutomodOutcome::KICK_APPLIED, AutomodOutcome::KICK_UNAVAILABLE) do
-      if target.respond_to?(:kick)
-        target.kick(reason)
-        true
-      elsif event.server.respond_to?(:kick)
-        event.server.kick(event.user, reason)
-        true
-      else
-        false
+      applied_or_unavailable(user_hash, score, "kick", AutomodOutcome::KICK_APPLIED, AutomodOutcome::KICK_UNAVAILABLE) do
+        if target.respond_to?(:kick)
+          target.kick(reason)
+          true
+        elsif event.server.respond_to?(:kick)
+          event.server.kick(event.user, reason)
+          true
+        else
+          false
+        end
       end
     end
-  end
 
-  def ban(event, user_hash, score)
-    target = moderation_target(event)
-    reason = moderation_reason(score)
+    def ban(event, user_hash, score)
+      target = moderation_target(event)
+      reason = moderation_reason(score)
 
-    applied_or_unavailable(user_hash, score, "ban", AutomodOutcome::BAN_APPLIED, AutomodOutcome::BAN_UNAVAILABLE) do
-      if target.respond_to?(:ban)
-        target.ban(reason)
-        true
-      elsif event.server.respond_to?(:ban)
-        event.server.ban(event.user, 0, reason: reason)
-        true
-      else
-        false
+      applied_or_unavailable(user_hash, score, "ban", AutomodOutcome::BAN_APPLIED, AutomodOutcome::BAN_UNAVAILABLE) do
+        if target.respond_to?(:ban)
+          target.ban(reason)
+          true
+        elsif event.server.respond_to?(:ban)
+          event.server.ban(event.user, 0, reason: reason)
+          true
+        else
+          false
+        end
       end
     end
-  end
 
     def moderation_target(event)
       return event.member if event.respond_to?(:member) && event.member
