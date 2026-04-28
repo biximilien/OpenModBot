@@ -22,7 +22,7 @@ module Discord
       "!moderation review recent [limit]",
       "!moderation review @user [limit]",
       "!moderation review clear",
-      "!moderation review restore message_id",
+      "!moderation review repost message_id",
     ].freeze
     HELP_TEXT = BASE_HELP_LINES.join("\n").freeze
 

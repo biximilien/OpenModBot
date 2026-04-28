@@ -27,6 +27,7 @@ describe Backend::ModerationReviewStore do
 
     expect(get_moderation_reviews(server_id)).to include(
       hash_including(
+        schema_version: 1,
         server_id: "123",
         channel_id: "789",
         message_id: "111",

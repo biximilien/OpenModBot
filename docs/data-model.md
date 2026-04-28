@@ -97,6 +97,7 @@ The Redis-to-Postgres bootstrap path migrates interaction events, classification
 
 ```json
 {
+  "schema_version": 1,
   "created_at": "2026-04-20T12:00:00Z",
   "delta": -1,
   "score": -5,

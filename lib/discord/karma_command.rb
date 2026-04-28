@@ -9,6 +9,8 @@ module Discord
     end
 
     def handle(event, match)
+      return event.respond(@usage) if invalid_subcommand?(match)
+
       case match[:subcommand]
       when nil then respond_with_karma(event, match)
       when "history" then respond_with_karma_history(event, match)
@@ -21,6 +23,10 @@ module Discord
     end
 
     private
+
+    def invalid_subcommand?(match)
+      match[:subcommand] && !%w[history reset set add remove].include?(match[:subcommand])
+    end
 
     def respond_with_karma(event, match)
       return event.respond(@usage) unless match[:user_id]

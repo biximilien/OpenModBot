@@ -6,6 +6,8 @@ module Discord
     end
 
     def handle(event, match)
+      return event.respond(@usage) if invalid_subcommand?(match)
+
       case match[:subcommand]
       when nil
         event.respond("Watch list: #{watch_list_mentions(event.server.id)}")
@@ -19,6 +21,10 @@ module Discord
     end
 
     private
+
+    def invalid_subcommand?(match)
+      match[:subcommand] && !%w[add remove].include?(match[:subcommand])
+    end
 
     def add_watchlist_user(event, match)
       return event.respond(@usage) unless match[:user_id]

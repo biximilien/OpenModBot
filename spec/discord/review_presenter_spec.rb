@@ -40,9 +40,28 @@ describe Discord::ReviewPresenter do
     )
   end
 
-  it "formats restored content" do
+  it "caps total review response length" do
+    entries = 20.times.map do |index|
+      {
+        created_at: "2026-04-19T12:00:00Z",
+        message_id: index.to_s,
+        user_id: "456",
+        strategy: "VeryLongStrategyName" * 8,
+        action: "would_rewrite",
+        shadow_mode: true,
+        rewrite: "a" * 140,
+      }
+    end
+
+    response = presenter.list(entries)
+
+    expect(response.length).to be <= Discord::ReviewPresenter::RESPONSE_LIMIT + 80
+    expect(response).to include("more reviews omitted")
+  end
+
+  it "formats reposted content" do
     entry = { user_id: "456", original_content: "Original message" }
 
-    expect(presenter.restored(entry)).to eq("Restored message from <@456>:\nOriginal message")
+    expect(presenter.reposted(entry)).to eq("Reposted message from <@456>:\nOriginal message")
   end
 end

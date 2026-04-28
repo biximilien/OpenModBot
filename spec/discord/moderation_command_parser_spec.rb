@@ -25,11 +25,21 @@ describe Discord::ModerationCommandParser do
     expect(match[:amount]).to eq("3")
   end
 
-  it "parses moderation review restore commands" do
-    match = parser.parse("!moderation review restore 123456")
+  it "parses moderation review repost commands" do
+    match = parser.parse("!moderation review repost 123456")
 
     expect(match[:command]).to eq("review")
-    expect(match[:subcommand]).to eq("restore")
+    expect(match[:subcommand]).to eq("repost")
     expect(match[:amount]).to eq("123456")
+  end
+
+  it "keeps restore as a compatibility alias" do
+    match = parser.parse("!moderation review restore 123456")
+
+    expect(match[:subcommand]).to eq("restore")
+  end
+
+  it "rejects malformed token order" do
+    expect(parser.parse("!moderation karma recent")).to be_nil
   end
 end

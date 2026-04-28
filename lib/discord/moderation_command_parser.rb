@@ -2,7 +2,13 @@ module Discord
   class ModerationCommandParser
     TRIGGER_PATTERN = /\A!moderation\b/i.freeze
     COMMANDS = %w[help watchlist karma review].freeze
-    SUBCOMMANDS = %w[add remove reset history set recent clear restore].freeze
+    SUBCOMMANDS = %w[add remove reset history set recent clear restore repost].freeze
+    ALLOWED_SUBCOMMANDS = {
+      "help" => [],
+      "watchlist" => %w[add remove],
+      "karma" => %w[history reset set add remove],
+      "review" => %w[recent clear restore repost],
+    }.freeze
     MENTION_PATTERN = /\A<@!?(\d+)>\z/.freeze
     AMOUNT_PATTERN = /\A-?\d+\z/.freeze
 
@@ -22,6 +28,8 @@ module Discord
 
       command = shift_known(tokens, COMMANDS)
       subcommand = shift_known(tokens, SUBCOMMANDS)
+      return nil unless allowed_subcommand?(command, subcommand)
+
       user_id = shift_mention(tokens)
       amount = shift_amount(tokens)
       return nil unless tokens.empty?
@@ -57,6 +65,12 @@ module Discord
       return nil unless AMOUNT_PATTERN.match?(tokens.first)
 
       tokens.shift
+    end
+
+    def allowed_subcommand?(command, subcommand)
+      return subcommand.nil? unless command
+
+      ALLOWED_SUBCOMMANDS.fetch(command).include?(subcommand) || subcommand.nil?
     end
   end
 end

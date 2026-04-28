@@ -57,7 +57,7 @@ Administrators can manage moderation state with:
 !moderation review recent 10
 !moderation review @user
 !moderation review clear
-!moderation review restore 1234567890
+!moderation review repost 1234567890
 !moderation harassment risk @user
 !moderation harassment pair @user_a @user_b
 !moderation harassment incidents 3
@@ -70,7 +70,7 @@ Each moderated infraction decreases the user's per-server karma score and record
 
 Set `MODERATION_SHADOW_MODE=true` to classify messages and record the review queue without deleting messages, reposting rewrites, changing karma, or applying automod. Shadow mode generates would-be rewrites by default; set `MODERATION_SHADOW_REWRITE=false` to avoid rewrite-generation calls while testing. Moderators can inspect the queue with `!moderation review recent [limit]`, filter with `!moderation review @user [limit]`, and clear it with `!moderation review clear`.
 
-Review restore is privacy-gated. By default, review entries do not store original message content and `!moderation review restore message_id` reports that content is unavailable. Set `MODERATION_REVIEW_STORE_CONTENT=true` to store original flagged content in Redis review entries and allow moderators to repost it with the restore command.
+Review reposting is privacy-gated. By default, review entries do not store original message content and `!moderation review repost message_id` reports that content is unavailable. Set `MODERATION_REVIEW_STORE_CONTENT=true` to store original flagged content in Redis review entries and allow moderators to repost it with the repost command. `restore` remains accepted as a compatibility alias.
 
 ## Requirements
 

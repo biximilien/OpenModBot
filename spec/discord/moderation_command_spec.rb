@@ -38,12 +38,8 @@ describe Discord::ModerationCommand do
       },
     )
   end
-  let(:server) { instance_double("Server", id: 123, members: members) }
-  let(:message) { instance_double("Message", content: content) }
-  let(:user) { instance_double("User", id: 42, name: "Admin") }
-  let(:event) { instance_double("Event", message: message, server: server, user: user, respond: true) }
-  let(:admin_member) { instance_double("Member", id: 42, permission?: true) }
-  let(:members) { [admin_member] }
+  let(:event) { moderation_event(content:, administrator:) }
+  let(:administrator) { true }
   let(:plugin_command) do
     instance_double(
       "PluginCommand",
@@ -412,18 +408,18 @@ describe Discord::ModerationCommand do
     end
 
     context "when restoring a review with stored content" do
-      let(:content) { "!moderation review restore 111" }
+      let(:content) { "!moderation review repost 111" }
 
       it "reposts the stored original content" do
         command.handle(event)
 
         expect(store).to have_received(:find_moderation_review).with(123, "111")
-        expect(event).to have_received(:respond).with("Restored message from <@456>:\nOriginal message")
+        expect(event).to have_received(:respond).with("Reposted message from <@456>:\nOriginal message")
       end
     end
 
-    context "when restoring a review without stored content" do
-      let(:content) { "!moderation review restore 111" }
+    context "when reposting a review without stored content" do
+      let(:content) { "!moderation review repost 111" }
 
       before do
         allow(store).to receive(:find_moderation_review).and_return({ message_id: "111", user_id: "456" })
@@ -438,7 +434,7 @@ describe Discord::ModerationCommand do
 
     context "when the user is not an administrator" do
       let(:content) { "!moderation watchlist" }
-      let(:admin_member) { instance_double("Member", id: 42, permission?: false) }
+      let(:administrator) { false }
 
       it "does not respond or mutate state" do
         command.handle(event)

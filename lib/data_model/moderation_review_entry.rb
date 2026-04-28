@@ -2,6 +2,7 @@ require "json"
 
 module DataModel
   ModerationReviewEntry = Struct.new(
+    :schema_version,
     :created_at,
     :server_id,
     :channel_id,
@@ -21,6 +22,7 @@ module DataModel
     def to_h
       {
         created_at: created_at,
+        schema_version: schema_version,
         server_id: server_id,
         channel_id: channel_id,
         message_id: message_id,

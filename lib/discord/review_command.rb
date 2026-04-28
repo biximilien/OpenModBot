@@ -15,7 +15,7 @@ module Discord
       case match[:subcommand]
       when nil, "recent" then respond_with_reviews(event, match)
       when "clear" then clear_reviews(event, match)
-      when "restore" then restore_review(event, match)
+      when "repost", "restore" then repost_review(event, match)
       else event.respond(@usage)
       end
     end
@@ -23,6 +23,8 @@ module Discord
     private
 
     def respond_with_reviews(event, match)
+      return event.respond(@usage) if match[:subcommand] == "recent" && match[:user_id]
+
       entries = @store.get_moderation_reviews(
         event.server.id,
         review_limit(match),
@@ -38,7 +40,7 @@ module Discord
       event.respond("Cleared moderation review queue")
     end
 
-    def restore_review(event, match)
+    def repost_review(event, match)
       return event.respond(@usage) unless match[:amount]
 
       entry = @store.find_moderation_review(event.server.id, match[:amount])
@@ -47,7 +49,7 @@ module Discord
       content = entry[:original_content].to_s.strip
       return event.respond("Original content was not stored for message #{match[:amount]}") if content.empty?
 
-      event.respond(@presenter.restored(entry))
+      event.respond(@presenter.reposted(entry))
     end
 
     def review_limit(match)

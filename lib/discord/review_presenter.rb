@@ -1,20 +1,41 @@
 module Discord
   class ReviewPresenter
     PREVIEW_LIMIT = 120
+    RESPONSE_LIMIT = 1_800
 
     def list(entries, user_id: nil)
       subject = user_id ? " for <@#{user_id}>" : ""
       return "No moderation reviews#{subject}" if entries.empty?
 
-      lines = entries.map { |entry| line(entry) }
+      lines = capped_lines(entries, "Moderation reviews#{subject}:")
       "Moderation reviews#{subject}:\n#{lines.join("\n")}"
     end
 
-    def restored(entry)
-      "Restored message from <@#{entry[:user_id]}>:\n#{entry[:original_content].to_s.strip}"
+    def reposted(entry)
+      "Reposted message from <@#{entry[:user_id]}>:\n#{entry[:original_content].to_s.strip}"
     end
 
     private
+
+    def capped_lines(entries, header)
+      lines = []
+      length = header.length + 1
+
+      entries.each do |entry|
+        next_line = line(entry)
+        next_length = length + next_line.length + 1
+        if next_length > RESPONSE_LIMIT
+          remaining = entries.length - lines.length
+          lines << "- #{remaining} more review#{remaining == 1 ? '' : 's'} omitted"
+          break
+        end
+
+        lines << next_line
+        length = next_length
+      end
+
+      lines
+    end
 
     def line(entry)
       mode = entry[:shadow_mode] ? "shadow" : "live"

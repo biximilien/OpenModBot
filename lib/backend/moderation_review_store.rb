@@ -5,9 +5,11 @@ require_relative "../data_model/moderation_review_entry"
 module Backend
   module ModerationReviewStore
     MODERATION_REVIEW_LIMIT = 100
+    MODERATION_REVIEW_SCHEMA_VERSION = 1
 
     def record_moderation_review(server_id:, channel_id:, message_id:, user_id:, strategy:, action:, shadow_mode:, flagged:, categories: {}, category_scores: {}, rewrite: nil, original_content: nil, automod_outcome: nil, created_at: Time.now.utc)
       entry = DataModel::ModerationReviewEntry.new(
+        schema_version: MODERATION_REVIEW_SCHEMA_VERSION,
         created_at: created_at.utc.iso8601,
         server_id: server_id.to_s,
         channel_id: channel_id.to_s,
@@ -17,8 +19,8 @@ module Backend
         action: action,
         shadow_mode: shadow_mode,
         flagged: flagged,
-        categories: categories,
-        category_scores: category_scores,
+        categories: normalize_hash(categories),
+        category_scores: normalize_hash(category_scores),
         rewrite: rewrite,
         original_content: original_content,
         automod_outcome: automod_outcome,
@@ -47,6 +49,16 @@ module Backend
     def clear_moderation_reviews(server_id)
       @redis.del(DataModel::Keys.moderation_review(server_id))
       true
+    end
+
+    private
+
+    def normalize_hash(value)
+      return {} unless value
+
+      value.to_h.each_with_object({}) do |(key, hash_value), normalized|
+        normalized[key.to_s] = hash_value
+      end
     end
   end
 end

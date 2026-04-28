@@ -6,6 +6,7 @@ ENV["REDIS_URL"] ||= "redis://localhost:6379/15"
 
 require_relative "../environment"
 require_relative "../lib/logging"
+require_relative "support/discord_fixtures"
 
 $logger = Logging.build_logger(STDOUT, level: Logger::WARN)
 
