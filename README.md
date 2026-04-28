@@ -2,6 +2,34 @@
 
 ModerationGPT is a Discord moderation bot for text channels. By default it uses OpenAI's moderation endpoint to classify messages, Redis to store per-server watchlists and karma, and the OpenAI Responses API to rewrite flagged messages from watched users in a more constructive tone. Optional plugins add passive harassment analysis, Postgres-backed durable harassment state, OpenTelemetry, rewrite personalities, and replaceable AI providers.
 
+## Features
+
+Core moderation:
+
+- Deletes AI-flagged messages.
+- Rewrites flagged messages from watched users in a more constructive tone.
+- Tracks per-server watchlists, karma scores, and capped karma audit history in Redis.
+- Applies optional automod actions when karma crosses `KARMA_AUTOMOD_THRESHOLD`: `log_only`, `timeout`, `kick`, or `ban`.
+- Skips punitive automod actions for members with elevated moderation permissions.
+
+AI providers:
+
+- Uses OpenAI by default.
+- Supports Google AI/Gemini with `PLUGINS=google_ai`.
+- Supports structured classifier output for harassment analysis through the shared AI provider interface.
+
+Optional plugins:
+
+- `harassment` passively captures interaction events, classifies harassment risk asynchronously, and exposes moderator insight commands without automated punishment.
+- `postgres` provides durable harassment storage and migration/verification paths.
+- `personality` changes the rewrite tone for moderated watchlist messages.
+- `telemetry` enables OpenTelemetry exporting while keeping identifier anonymization in place.
+
+Plugin capabilities:
+
+- External plugins can observe messages, moderation results, infractions, and automod outcomes.
+- Plugins can contribute rewrite instructions, moderation strategies, admin commands, and AI providers.
+
 ## How It Works
 
 The bot listens for Discord messages and applies two moderation paths:
