@@ -7,8 +7,8 @@ module Harassment
         "7d" => 7 * 24 * 60 * 60,
       }.freeze
       INCIDENTS_PREFIX = "!moderation harassment incidents".freeze
-      RISK_PATTERN = /\A!moderation harassment risk <@!?(?<user_id>\d+)>\s*\z/i.freeze
-      PAIR_PATTERN = /\A!moderation harassment pair <@!?(?<source_user_id>\d+)>\s+<@!?(?<target_user_id>\d+)>\s*\z/i.freeze
+      RISK_PATTERN = /\A!moderation harassment risk <@!?(?<user_id>\d+)>\s*\z/i
+      PAIR_PATTERN = /\A!moderation harassment pair <@!?(?<source_user_id>\d+)>\s+<@!?(?<target_user_id>\d+)>\s*\z/i
 
       def command_match(content)
         risk_match = RISK_PATTERN.match(content)

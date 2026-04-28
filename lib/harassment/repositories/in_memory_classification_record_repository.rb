@@ -30,7 +30,6 @@ module Harassment
       def latest_for_message(server_id:, message_id:)
         all_for_message(server_id:, message_id:).last
       end
-
     end
   end
 end

@@ -25,7 +25,7 @@ describe Harassment::InteractionEvent do
     expect(event.raw_content).to eq("hello there")
     expect(event.classification_status).to eq(Harassment::ClassificationStatus::PENDING)
     expect(event.content_retention_expires_at).to eq(retention)
-    expect(event.content_redacted_at).to be(nil)
+    expect(event.content_redacted_at).to be_nil
   end
 
   it "supports updating classification status immutably" do
@@ -72,6 +72,6 @@ describe Harassment::InteractionEvent do
 
     expect(redacted.raw_content).to eq("[REDACTED]")
     expect(redacted.content_redacted_at).to eq(Time.utc(2026, 4, 2, 12, 0, 0))
-    expect(event.content_redacted_at).to be(nil)
+    expect(event.content_redacted_at).to be_nil
   end
 end

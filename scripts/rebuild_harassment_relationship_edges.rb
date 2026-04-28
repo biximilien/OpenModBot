@@ -6,7 +6,9 @@ require_relative "../lib/harassment/risk/score_definition"
 
 plugins = ModerationGPT::PluginRegistry.from_environment
 postgres_plugin = plugins.find_plugin(ModerationGPT::Plugins::PostgresPlugin)
-raise "rebuild_harassment_relationship_edges requires PLUGINS=postgres and DATABASE_URL to be configured" unless postgres_plugin
+unless postgres_plugin
+  raise "rebuild_harassment_relationship_edges requires PLUGINS=postgres and DATABASE_URL to be configured"
+end
 
 factory = Harassment::RepositoryFactory.new(
   backend: "postgres",

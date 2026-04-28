@@ -53,7 +53,7 @@ module ModerationGPT
       end
 
       def handle_incidents(event, match)
-        limit = [[match[:limit]&.to_i || DEFAULT_INCIDENT_LIMIT, 1].max, MAX_INCIDENT_LIMIT].min
+        limit = (match[:limit]&.to_i || DEFAULT_INCIDENT_LIMIT).clamp(1, MAX_INCIDENT_LIMIT)
         since = incident_window_start(match[:window])
         report = @query_service.recent_incidents(event.server.id, event.channel.id, limit:, user_id: match[:user_id], since:)
         event.respond(@presenter.incidents(report, user_id: match[:user_id], window: match[:window]))

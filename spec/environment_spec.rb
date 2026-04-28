@@ -230,7 +230,7 @@ describe Environment do
 
       expect(described_class.plugin_requires).to eq([
                                                       "moderation_gpt/plugins/audit_webhook",
-        "custom/plugin",
+                                                      "custom/plugin",
                                                     ])
     end
   end

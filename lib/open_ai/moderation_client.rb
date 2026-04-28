@@ -11,7 +11,7 @@ module OpenAI
     def moderate_text(text, user = nil)
       response = @transport.query(ENDPOINT, {
                                     model: Environment.openai_moderation_model,
-        input: text,
+                                    input: text,
                                   }, user)
 
       result = response.fetch("results").first

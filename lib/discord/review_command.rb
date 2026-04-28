@@ -54,7 +54,7 @@ module Discord
 
     def review_limit(match)
       limit = match[:amount]&.to_i || DEFAULT_LIMIT
-      [[limit, 1].max, MAX_LIMIT].min
+      limit.clamp(1, MAX_LIMIT)
     end
   end
 end

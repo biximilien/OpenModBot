@@ -12,7 +12,9 @@ module Harassment
 
       def save(event)
         key = interaction_event_key(event.server_id, event.message_id)
-        raise ArgumentError, "interaction event already exists for server_id=#{event.server_id} message_id=#{event.message_id}" if @events.key?(key)
+        if @events.key?(key)
+          raise ArgumentError, "interaction event already exists for server_id=#{event.server_id} message_id=#{event.message_id}"
+        end
 
         @events[key] = event
       end

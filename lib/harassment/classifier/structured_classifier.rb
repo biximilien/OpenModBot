@@ -65,7 +65,9 @@ module Harassment
 
     def parse_response_payload(response)
       output = @client.response_text(response)
-      raise ClassifierOutputError, "Structured harassment classifier returned no output" if output.nil? || output.strip.empty?
+      if output.nil? || output.strip.empty?
+        raise ClassifierOutputError, "Structured harassment classifier returned no output"
+      end
 
       JSON.parse(output, symbolize_names: true)
     rescue JSON::ParserError => e
@@ -90,7 +92,9 @@ module Harassment
 
     def bounded_output_float(value, name)
       numeric = Float(value)
-      raise ClassifierOutputError, "Structured harassment classifier output failed validation: #{name} must be between 0.0 and 1.0" unless numeric.between?(0.0, 1.0)
+      unless numeric.between?(0.0, 1.0)
+        raise ClassifierOutputError, "Structured harassment classifier output failed validation: #{name} must be between 0.0 and 1.0"
+      end
 
       numeric
     rescue ArgumentError, TypeError

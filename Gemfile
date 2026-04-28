@@ -26,8 +26,8 @@ end
 
 # optional opentelemetry
 group :telemetry, optional: true do
-  gem 'opentelemetry-sdk'
   gem 'opentelemetry-exporter-otlp'
   gem 'opentelemetry-instrumentation-net_http'
   gem 'opentelemetry-instrumentation-redis'
+  gem 'opentelemetry-sdk'
 end

@@ -100,7 +100,7 @@ module Harassment
     end
 
     def clamp01(value)
-      [[value.to_f, 0.0].max, 1.0].min
+      value.to_f.clamp(0.0, 1.0)
     end
   end
 end

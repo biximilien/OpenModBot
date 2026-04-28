@@ -1,4 +1,3 @@
-
 module Harassment
   class ContextAssembler
     DEFAULT_CHANNEL_LIMIT = 3

@@ -1,6 +1,6 @@
 module Discord
   class ModerationCommandParser
-    TRIGGER_PATTERN = /\A!moderation\b/i.freeze
+    TRIGGER_PATTERN = /\A!moderation\b/i
     COMMANDS = %w[help watchlist karma review].freeze
     SUBCOMMANDS = %w[add remove reset history set recent clear restore repost].freeze
     ALLOWED_SUBCOMMANDS = {
@@ -9,8 +9,8 @@ module Discord
       "karma" => %w[history reset set add remove],
       "review" => %w[recent clear restore repost],
     }.freeze
-    MENTION_PATTERN = /\A<@!?(\d+)>\z/.freeze
-    AMOUNT_PATTERN = /\A-?\d+\z/.freeze
+    MENTION_PATTERN = /\A<@!?(\d+)>\z/
+    AMOUNT_PATTERN = /\A-?\d+\z/
 
     ParsedCommand = Struct.new(:command, :subcommand, :user_id, :amount, keyword_init: true) do
       def [](key)

@@ -30,7 +30,9 @@ class ModerationStrategy
   end
 
   def moderation_result(event)
-    return event.instance_variable_get(MODERATION_RESULT_CACHE_KEY) if event.instance_variable_defined?(MODERATION_RESULT_CACHE_KEY)
+    if event.instance_variable_defined?(MODERATION_RESULT_CACHE_KEY)
+      return event.instance_variable_get(MODERATION_RESULT_CACHE_KEY)
+    end
 
     result = @bot.moderate_text(event.message.content, event.user)
     event.instance_variable_set(MODERATION_RESULT_CACHE_KEY, result)

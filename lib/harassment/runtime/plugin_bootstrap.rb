@@ -51,8 +51,6 @@ module Harassment
       )
     end
 
-    def storage_backend
-      @storage_backend
-    end
+    attr_reader :storage_backend
   end
 end

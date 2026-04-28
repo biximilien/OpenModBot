@@ -11,7 +11,9 @@ module ModerationGPT
       def database_connection
         @database_connection ||= begin
           database_url = Environment.database_url
-          raise "DATABASE_URL is required when postgres plugin is enabled" if database_url.nil? || database_url.strip.empty?
+          if database_url.nil? || database_url.strip.empty?
+            raise "DATABASE_URL is required when postgres plugin is enabled"
+          end
 
           require "pg"
           PG.connect(database_url)

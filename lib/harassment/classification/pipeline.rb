@@ -13,7 +13,9 @@ module Harassment
 
     def enqueue(message_id:, server_id:, classifier_version:, enqueued_at: Time.now.utc)
       event = @interaction_events.find(message_id, server_id:)
-      raise ArgumentError, "interaction event not found for server_id=#{server_id} message_id=#{message_id}" unless event
+      unless event
+        raise ArgumentError, "interaction event not found for server_id=#{server_id} message_id=#{message_id}"
+      end
 
       existing_job = @classification_jobs.find(server_id: event.server_id, message_id:, classifier_version:)
       return existing_job if existing_job
