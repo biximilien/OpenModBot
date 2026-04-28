@@ -1,4 +1,4 @@
-require_relative "open_ai_classifier"
+require_relative "structured_classifier"
 require_relative "../../../environment"
 
 module Harassment
@@ -62,7 +62,7 @@ module Harassment
     end
 
     def build(client:, model: Environment.harassment_classifier_model)
-      OpenAIClassifier.new(
+      StructuredClassifier.new(
         client: client,
         model: model,
         instructions: INSTRUCTIONS,

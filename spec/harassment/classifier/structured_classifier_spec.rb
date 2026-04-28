@@ -1,8 +1,8 @@
-require "harassment/classifier/open_ai_classifier"
+require "harassment/classifier/structured_classifier"
 require "harassment/classifier/definition"
 
-describe Harassment::OpenAIClassifier do
-  let(:client) { instance_double("OpenAIClient") }
+describe Harassment::StructuredClassifier do
+  let(:client) { instance_double("AIProvider") }
   let(:schema_name) { "custom_harassment_schema" }
   let(:response_schema) do
     Harassment::ClassifierDefinition::RESPONSE_SCHEMA
@@ -34,11 +34,11 @@ describe Harassment::OpenAIClassifier do
     )
   end
 
-  it "builds a classification record from structured OpenAI output" do
+  it "builds a classification record from structured provider output" do
     response = { "output_text" => <<~JSON.strip }
       {"intent":"aggressive","target_type":"individual","toxicity_dimensions":{"insult":true,"threat":false,"profanity":false,"exclusion":true,"harassment":true},"severity_score":0.8,"confidence":0.9}
     JSON
-    allow(client).to receive(:query).and_return(response)
+    allow(client).to receive(:generate_structured).and_return(response)
     allow(client).to receive(:response_text).with(response).and_return(response["output_text"])
 
     record = classifier.classify(
@@ -65,19 +65,12 @@ describe Harassment::OpenAIClassifier do
     expect(record.severity_score).to eq(0.8)
     expect(record.confidence).to eq(0.9)
     expect(record.classified_at).to eq(Time.utc(2026, 4, 25, 18, 1, 0))
-    expect(client).to have_received(:query).with(
-      "https://api.openai.com/v1/responses",
-      hash_including(
-        model: "gpt-4o-2024-08-06",
-        input: a_string_including("\"recent_channel_messages\":[]", "\"recent_pair_interactions\":[]"),
-        text: hash_including(
-          format: hash_including(
-            type: "json_schema",
-            name: "custom_harassment_schema",
-            strict: true,
-          ),
-        ),
-      ),
+    expect(client).to have_received(:generate_structured).with(
+      model: "gpt-4o-2024-08-06",
+      instructions: instructions,
+      prompt: a_string_including("\"recent_channel_messages\":[]", "\"recent_pair_interactions\":[]"),
+      schema_name: "custom_harassment_schema",
+      schema: response_schema,
     )
   end
 
@@ -85,7 +78,7 @@ describe Harassment::OpenAIClassifier do
     response = { "output_text" => <<~JSON.strip }
       {"intent":"aggressive","target_type":"individual","toxicity_dimensions":{"insult":true,"threat":false,"profanity":false,"exclusion":true,"harassment":true},"severity_score":0.8,"confidence":0.9}
     JSON
-    allow(client).to receive(:query).and_return(response)
+    allow(client).to receive(:generate_structured).and_return(response)
     allow(client).to receive(:response_text).with(response).and_return(response["output_text"])
 
     classifier.classify(
@@ -109,21 +102,19 @@ describe Harassment::OpenAIClassifier do
       },
     )
 
-    expect(client).to have_received(:query).with(
-      "https://api.openai.com/v1/responses",
+    expect(client).to have_received(:generate_structured).with(
       hash_including(
-        input: a_string_including("\"author_label\":\"author\"", "\"target_labels\":[\"target_1\"]", "\"participant_3\""),
+        prompt: a_string_including("\"author_label\":\"author\"", "\"target_labels\":[\"target_1\"]", "\"participant_3\""),
       ),
     )
-    expect(client).not_to have_received(:query).with(
-      anything,
-      hash_including(input: a_string_including("\"321\"", "\"654\"", "\"999\"")),
+    expect(client).not_to have_received(:generate_structured).with(
+      hash_including(prompt: a_string_including("\"321\"", "\"654\"", "\"999\"")),
     )
   end
 
-  it "raises a retryable classifier output error when OpenAI returns invalid JSON" do
+  it "raises a retryable classifier output error when the provider returns invalid JSON" do
     response = { "output_text" => "definitely not json" }
-    allow(client).to receive(:query).and_return(response)
+    allow(client).to receive(:generate_structured).and_return(response)
     allow(client).to receive(:response_text).with(response).and_return(response["output_text"])
 
     expect do

@@ -1,5 +1,6 @@
 require "json"
 require_relative "../../environment"
+require_relative "../ai/defaults"
 require_relative "../ai/moderation_result"
 require_relative "../ai/provider"
 require_relative "response_parser"
@@ -7,7 +8,7 @@ require_relative "transport"
 
 module GoogleAI
   class Provider < ModerationGPT::AI::Provider
-    DEFAULT_REWRITE_INSTRUCTIONS = "Rewrite the user's message in a direct, neutral tone. State the concern plainly, avoid emotional language, preserve the user's apparent intent, do not add new claims, and return only the rewritten message.".freeze
+    DEFAULT_REWRITE_INSTRUCTIONS = ModerationGPT::AI::DEFAULT_REWRITE_INSTRUCTIONS
     MODERATION_SCHEMA = {
       type: "object",
       additionalProperties: false,
@@ -69,10 +70,14 @@ module GoogleAI
       model = params[:model] || params["model"] || @model
 
       if schema
-        generate_json(prompt: [instructions, input].compact.join("\n\n"), schema:, user:, model:)
+        generate_structured(prompt: input, schema:, instructions:, user:, model:)
       else
         generate_text(prompt: [instructions, input].compact.join("\n\n"), user:, model:)
       end
+    end
+
+    def generate_structured(prompt:, schema:, model: nil, instructions: nil, schema_name: nil, user: nil)
+      generate_json(prompt: [instructions, prompt].compact.join("\n\n"), schema:, user:, model: model || @model)
     end
 
     def response_text(response)

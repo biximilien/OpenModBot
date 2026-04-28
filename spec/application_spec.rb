@@ -21,7 +21,7 @@ describe ModerationGPT::Application do
     expect(described_class.new).to respond_to(:get_watch_list_users)
   end
 
-  it "exposes OpenAI methods" do
+  it "exposes AI provider methods" do
     expect(described_class.new).to respond_to(:moderate_text)
   end
 

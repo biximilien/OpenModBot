@@ -8,11 +8,11 @@ describe Harassment::ClassifierDefinition do
     expect(definition.prompt_version).to eq("harassment-prompt-v1")
   end
 
-  it "builds the OpenAI classifier" do
-    client = instance_double("OpenAIClient")
+  it "builds the structured classifier" do
+    client = instance_double("AIProvider")
 
     classifier = definition.build(client:, model: "gpt-4o-test")
 
-    expect(classifier).to be_a(Harassment::OpenAIClassifier)
+    expect(classifier).to be_a(Harassment::StructuredClassifier)
   end
 end

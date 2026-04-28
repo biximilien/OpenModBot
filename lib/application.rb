@@ -16,7 +16,7 @@ module ModerationGPT
       ai_provider.moderate_text(text, user)
     end
 
-    def moderation_rewrite(text, user = nil, instructions: OpenAI::DEFAULT_REWRITE_INSTRUCTIONS)
+    def moderation_rewrite(text, user = nil, instructions: ModerationGPT::AI::DEFAULT_REWRITE_INSTRUCTIONS)
       ai_provider.moderation_rewrite(text, user, instructions:)
     end
 

@@ -35,10 +35,10 @@ describe Harassment::ClassificationService do
   end
 
   it "exposes classifier identity and construction" do
-    client = instance_double("OpenAIClient")
+    client = instance_double("AIProvider")
 
     expect(service.classifier_version).to eq("harassment-v1")
     expect(service.prompt_version).to eq("harassment-prompt-v1")
-    expect(service.build_classifier(client:, model: "gpt-4o-test")).to be_a(Harassment::OpenAIClassifier)
+    expect(service.build_classifier(client:, model: "gpt-4o-test")).to be_a(Harassment::StructuredClassifier)
   end
 end

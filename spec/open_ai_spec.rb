@@ -69,6 +69,38 @@ describe OpenAI do
     end
   end
 
+  describe "#generate_structured" do
+    it "maps structured generation to the Responses API schema format" do
+      allow(self).to receive(:query).and_return("output_text" => '{"ok":true}')
+
+      generate_structured(
+        prompt: "Classify this",
+        schema: { type: "object" },
+        model: "gpt-test",
+        instructions: "Return JSON.",
+        schema_name: "test_schema",
+      )
+
+      expect(self).to have_received(:query).with(
+        "https://api.openai.com/v1/responses",
+        hash_including(
+          model: "gpt-test",
+          instructions: "Return JSON.",
+          input: "Classify this",
+          text: {
+            format: {
+              type: "json_schema",
+              name: "test_schema",
+              strict: true,
+              schema: { type: "object" },
+            },
+          },
+        ),
+        nil,
+      )
+    end
+  end
+
   describe OpenAI::Provider do
     it "implements the generic AI provider contract" do
       expect(described_class.new).to be_a(ModerationGPT::AI::Provider)

@@ -1,4 +1,5 @@
 require_relative "../environment"
+require_relative "ai/defaults"
 require_relative "ai/moderation_result"
 require_relative "ai/provider"
 require_relative "telemetry"
@@ -8,9 +9,10 @@ require_relative "open_ai/responses_client"
 require_relative "open_ai/transport"
 
 module OpenAI
-  DEFAULT_REWRITE_INSTRUCTIONS = "Rewrite the user's message in a direct, neutral tone. State the concern plainly, avoid emotional language, preserve the user's apparent intent, do not add new claims, and return only the rewritten message.".freeze
+  DEFAULT_REWRITE_INSTRUCTIONS = ModerationGPT::AI::DEFAULT_REWRITE_INSTRUCTIONS
 
   ModerationResult = ModerationGPT::AI::ModerationResult
+  RESPONSES_ENDPOINT = "https://api.openai.com/v1/responses".freeze
 
   def query(url, params, user = nil)
     openai_transport.query(url, params, user)
@@ -22,6 +24,26 @@ module OpenAI
 
   def moderation_rewrite(text, user = nil, instructions: DEFAULT_REWRITE_INSTRUCTIONS)
     ResponsesClient.new(transport: self).moderation_rewrite(text, user, instructions:)
+  end
+
+  def generate_structured(prompt:, schema:, model: nil, instructions: nil, schema_name: nil, user: nil)
+    query(
+      RESPONSES_ENDPOINT,
+      {
+        model: model || Environment.harassment_classifier_model,
+        instructions: instructions,
+        input: prompt,
+        text: {
+          format: {
+            type: "json_schema",
+            name: schema_name || "structured_output",
+            strict: true,
+            schema: schema,
+          },
+        },
+      },
+      user,
+    )
   end
 
   def response_text(response)

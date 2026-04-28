@@ -74,7 +74,7 @@ Providers return a small `ModerationResult` value object for moderation calls an
 
 AI provider requests are wrapped in `Telemetry.in_span(...)`, but telemetry exporting is still optional. When the telemetry plugin is disabled, the tracing path becomes a no-op and the rest of the bot continues to work normally.
 
-AI providers expose the same application-facing methods: `moderate_text`, `moderation_rewrite`, `query`, and `response_text`. The harassment classifier currently needs the lower-level `query` and `response_text` methods for structured classifier calls; moderation strategies use `moderate_text` and `moderation_rewrite`.
+AI providers expose the same application-facing methods: `moderate_text`, `moderation_rewrite`, `generate_structured`, `query`, and `response_text`. The harassment classifier uses `generate_structured` plus `response_text` for schema-bound classifier calls; moderation strategies use `moderate_text` and `moderation_rewrite`. `query` remains as a low-level compatibility method for provider-specific calls.
 
 ## Persistence Model
 
@@ -124,7 +124,7 @@ The harassment domain is grouped by responsibility under [lib/harassment](../lib
 
 New code should require harassment-domain files from these grouped paths directly.
 
-The current runtime stores immutable interaction events, enqueues classification jobs keyed by `server_id`, `message_id`, and `classifier_version`, assembles bounded transient context, wraps classifier calls with cache and per-server rate-limit enforcement, and processes due jobs asynchronously on a background thread. The harassment classification service provides the classifier version and the harassment-specific prompt/schema definition used by [lib/harassment/classifier/open_ai_classifier.rb](../lib/harassment/classifier/open_ai_classifier.rb). Successful classification records are then handed to the classification service, which updates its idempotent read model. The query service exposes moderator-facing reports from that read model and, when configured, durable incident repositories.
+The current runtime stores immutable interaction events, enqueues classification jobs keyed by `server_id`, `message_id`, and `classifier_version`, assembles bounded transient context, wraps classifier calls with cache and per-server rate-limit enforcement, and processes due jobs asynchronously on a background thread. The harassment classification service provides the classifier version and the harassment-specific prompt/schema definition used by [lib/harassment/classifier/structured_classifier.rb](../lib/harassment/classifier/structured_classifier.rb). Successful classification records are then handed to the classification service, which updates its idempotent read model. The query service exposes moderator-facing reports from that read model and, when configured, durable incident repositories.
 
 Classifier cache keys are derived from server scope, classifier version, classifier prompt/schema identity, and normalized message/context input. When a server exceeds the configured classifier call budget, the runtime defers the job forward without consuming a retry attempt.
 

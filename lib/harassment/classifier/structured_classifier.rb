@@ -3,7 +3,7 @@ require_relative "../classification/record"
 require_relative "classifier"
 
 module Harassment
-  class OpenAIClassifier < Classifier
+  class StructuredClassifier < Classifier
     def initialize(client:, model:, instructions:, schema_name:, response_schema:, prompt_version:)
       @client = client
       @model = model
@@ -14,21 +14,12 @@ module Harassment
     end
 
     def classify(event:, classifier_version:, context: nil, classified_at: Time.now.utc)
-      response = @client.query(
-        "https://api.openai.com/v1/responses",
-        {
-          model: @model,
-          instructions: @instructions,
-          input: classifier_input(event, context: context),
-          text: {
-            format: {
-              type: "json_schema",
-              name: @schema_name,
-              strict: true,
-              schema: @response_schema,
-            },
-          },
-        },
+      response = @client.generate_structured(
+        model: @model,
+        instructions: @instructions,
+        prompt: classifier_input(event, context: context),
+        schema_name: @schema_name,
+        schema: @response_schema,
       )
 
       payload = parse_response_payload(response)
@@ -74,11 +65,11 @@ module Harassment
 
     def parse_response_payload(response)
       output = @client.response_text(response)
-      raise ClassifierOutputError, "OpenAI harassment classifier returned no structured output" if output.nil? || output.strip.empty?
+      raise ClassifierOutputError, "Structured harassment classifier returned no output" if output.nil? || output.strip.empty?
 
       JSON.parse(output, symbolize_names: true)
     rescue JSON::ParserError => e
-      raise ClassifierOutputError, "OpenAI harassment classifier returned invalid JSON: #{e.message}"
+      raise ClassifierOutputError, "Structured harassment classifier returned invalid JSON: #{e.message}"
     end
 
     def validated_payload(payload)
@@ -94,22 +85,22 @@ module Harassment
         bounded_output_float(payload.fetch(:confidence), "confidence"),
       ]
     rescue KeyError => e
-      raise ClassifierOutputError, "OpenAI harassment classifier output failed validation: missing #{e.key}"
+      raise ClassifierOutputError, "Structured harassment classifier output failed validation: missing #{e.key}"
     end
 
     def bounded_output_float(value, name)
       numeric = Float(value)
-      raise ClassifierOutputError, "OpenAI harassment classifier output failed validation: #{name} must be between 0.0 and 1.0" unless numeric.between?(0.0, 1.0)
+      raise ClassifierOutputError, "Structured harassment classifier output failed validation: #{name} must be between 0.0 and 1.0" unless numeric.between?(0.0, 1.0)
 
       numeric
     rescue ArgumentError, TypeError
-      raise ClassifierOutputError, "OpenAI harassment classifier output failed validation: #{name} must be between 0.0 and 1.0"
+      raise ClassifierOutputError, "Structured harassment classifier output failed validation: #{name} must be between 0.0 and 1.0"
     end
 
     def output_hash(value, name)
       return value if value.is_a?(Hash)
 
-      raise ClassifierOutputError, "OpenAI harassment classifier output failed validation: #{name} must be an object"
+      raise ClassifierOutputError, "Structured harassment classifier output failed validation: #{name} must be an object"
     end
   end
 end

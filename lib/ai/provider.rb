@@ -9,6 +9,10 @@ module ModerationGPT
         raise NotImplementedError, "#{self.class} must implement #moderation_rewrite"
       end
 
+      def generate_structured(prompt:, schema:, model: nil, instructions: nil, schema_name: nil, user: nil)
+        raise NotImplementedError, "#{self.class} must implement #generate_structured"
+      end
+
       def query(_url, _params, _user = nil)
         raise NotImplementedError, "#{self.class} must implement #query"
       end

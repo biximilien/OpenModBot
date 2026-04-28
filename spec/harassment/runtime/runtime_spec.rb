@@ -3,7 +3,6 @@ require_relative "../../support/fake_redis"
 require_relative "../../support/fake_postgres_connection"
 
 describe Harassment::Runtime do
-  let(:client) { instance_double("OpenAIClient") }
   let(:classifier) { instance_double("Classifier", cache_identity: { classifier_class: "RuntimeClassifier" }) }
   let(:recorded) { [] }
   let(:redis) { nil }
