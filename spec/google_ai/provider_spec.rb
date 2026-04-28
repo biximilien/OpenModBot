@@ -1,6 +1,8 @@
 require "google_ai/provider"
 
 describe GoogleAI::Provider do
+  subject(:provider) { described_class.new(transport:, model: "gemini-test") }
+
   let(:transport) { instance_double("GoogleAI::Transport") }
   let(:response) do
     {
@@ -16,7 +18,6 @@ describe GoogleAI::Provider do
     }
   end
 
-  subject(:provider) { described_class.new(transport:, model: "gemini-test") }
 
   before do
     allow(transport).to receive(:generate_content).and_return(response)
@@ -25,8 +26,8 @@ describe GoogleAI::Provider do
   it "classifies text into a moderation result" do
     result = provider.moderate_text("bad message")
 
-    expect(result.flagged).to eq(true)
-    expect(result.categories.fetch("harassment")).to eq(true)
+    expect(result.flagged).to be(true)
+    expect(result.categories.fetch("harassment")).to be(true)
     expect(result.category_scores.fetch("harassment")).to eq(0.9)
   end
 

@@ -10,8 +10,9 @@ describe Telemetry::Anonymizer do
 
   it "returns a stable salted hash" do
     ENV["TELEMETRY_HASH_SALT"] = "salt-a"
+    first = described_class.hash(123)
 
-    expect(described_class.hash(123)).to eq(described_class.hash(123))
+    expect(described_class.hash(123)).to eq(first)
   end
 
   it "changes hashes when the salt changes" do

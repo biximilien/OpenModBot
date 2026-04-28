@@ -2,6 +2,8 @@ require "discord"
 require "discord/ready_handler"
 
 describe Discord::ReadyHandler do
+  subject(:handler) { described_class.new(bot, store) }
+
   let(:store) { instance_double("Store", add_server: true) }
   let(:text_channel) { instance_double("Channel", name: "general", type: 0, id: 111) }
   let(:voice_channel) { instance_double("Channel", name: "voice", type: 2, id: 222) }
@@ -9,7 +11,6 @@ describe Discord::ReadyHandler do
   let(:bot) { instance_double("Bot", online: true, servers: { 123 => server }) }
   let(:event) { instance_double("ReadyEvent") }
 
-  subject(:handler) { described_class.new(bot, store) }
 
   it "marks the bot online" do
     handler.handle(event)

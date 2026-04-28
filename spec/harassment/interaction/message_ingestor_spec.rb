@@ -4,6 +4,14 @@ require "harassment/repositories/in_memory_classification_record_repository"
 require "harassment/repositories/in_memory_interaction_event_repository"
 
 describe Harassment::MessageIngestor do
+  subject(:ingestor) do
+    described_class.new(
+      interaction_events: interaction_events,
+      classification_pipeline: classification_pipeline,
+      classifier_version: "harassment-v1",
+    )
+  end
+
   let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
   let(:classification_records) { Harassment::Repositories::InMemoryClassificationRecordRepository.new }
   let(:classification_jobs) { Harassment::Repositories::InMemoryClassificationJobRepository.new }
@@ -15,13 +23,6 @@ describe Harassment::MessageIngestor do
     )
   end
 
-  subject(:ingestor) do
-    described_class.new(
-      interaction_events: interaction_events,
-      classification_pipeline: classification_pipeline,
-      classifier_version: "harassment-v1",
-    )
-  end
 
   let(:mentioned_user) { instance_double("User", id: 654) }
   let(:message) do

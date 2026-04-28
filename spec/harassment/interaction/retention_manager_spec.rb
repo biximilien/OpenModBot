@@ -2,9 +2,10 @@ require "harassment/interaction/retention_manager"
 require "harassment/repositories/in_memory_interaction_event_repository"
 
 describe Harassment::RetentionManager do
+  subject(:manager) { described_class.new(interaction_events: interaction_events) }
+
   let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
 
-  subject(:manager) { described_class.new(interaction_events: interaction_events) }
 
   it "redacts expired event content while preserving metadata" do
     event = Harassment::InteractionEvent.build(

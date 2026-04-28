@@ -36,7 +36,7 @@ describe WatchListStrategy do
   it "ignores users outside the watch list" do
     allow(bot).to receive(:get_watch_list_users).with(123).and_return([])
 
-    expect(described_class.new(bot).condition(event)).to eq(false)
+    expect(described_class.new(bot).condition(event)).to be(false)
   end
 
   it "matches flagged messages from watched users" do
@@ -44,7 +44,7 @@ describe WatchListStrategy do
     allow(bot).to receive(:get_watch_list_users).with(123).and_return([456])
     allow(bot).to receive(:moderate_text).with("bad message", user).and_return(result)
 
-    expect(described_class.new(bot, plugin_registry: plugin_registry).condition(event)).to eq(true)
+    expect(described_class.new(bot, plugin_registry: plugin_registry).condition(event)).to be(true)
     expect(plugin_registry).to have_received(:moderation_result).with(
       event: event,
       result: result,

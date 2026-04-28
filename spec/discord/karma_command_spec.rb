@@ -1,6 +1,8 @@
 require "discord/karma_command"
 
 describe Discord::KarmaCommand do
+  subject(:command) { described_class.new(store: store, usage: "usage") }
+
   let(:store) do
     instance_double(
       "Store",
@@ -13,7 +15,6 @@ describe Discord::KarmaCommand do
   let(:user) { instance_double("User", id: 42) }
   let(:event) { instance_double("Event", server: server, user: user, respond: true) }
 
-  subject(:command) { described_class.new(store: store, usage: "usage") }
 
   it "reports user karma" do
     command.handle(event, match(nil, user_id: "456"))

@@ -9,6 +9,15 @@ require_relative "../../support/fake_postgres_connection"
 require_relative "../../support/fake_redis"
 
 describe Harassment::PostgresBootstrap do
+  subject(:bootstrap) do
+    described_class.new(
+      redis: redis,
+      interaction_events: target_interaction_events,
+      classification_records: target_classification_records,
+      classification_jobs: target_classification_jobs,
+    )
+  end
+
   let(:redis) { FakeRedis.new }
   let(:connection) { FakePostgresConnection.new }
   let(:source_interaction_events) { Harassment::Repositories::RedisInteractionEventRepository.new(redis: redis) }
@@ -18,14 +27,6 @@ describe Harassment::PostgresBootstrap do
   let(:target_classification_records) { Harassment::Repositories::PostgresClassificationRecordRepository.new(connection: connection) }
   let(:target_classification_jobs) { Harassment::Repositories::PostgresClassificationJobRepository.new(connection: connection) }
 
-  subject(:bootstrap) do
-    described_class.new(
-      redis: redis,
-      interaction_events: target_interaction_events,
-      classification_records: target_classification_records,
-      classification_jobs: target_classification_jobs,
-    )
-  end
 
   let(:event) do
     Harassment::InteractionEvent.build(

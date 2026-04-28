@@ -18,6 +18,6 @@ describe Harassment::RetentionPolicy do
       content_retention_expires_at: Time.utc(2026, 4, 1, 12, 0, 0),
     )
 
-    expect(described_class.new.redactable?(event, as_of: Time.utc(2026, 4, 2, 12, 0, 0))).to eq(true)
+    expect(described_class.new.redactable?(event, as_of: Time.utc(2026, 4, 2, 12, 0, 0))).to be(true)
   end
 end

@@ -2,6 +2,8 @@ require "harassment/incident/collection"
 require "harassment/incident/incident"
 
 describe Harassment::IncidentCollection do
+  subject(:collection) { described_class.new([older_incident, newer_incident, other_channel_incident]) }
+
   let(:older_incident) do
     Harassment::Incident.new(
       message_id: "123",
@@ -40,7 +42,6 @@ describe Harassment::IncidentCollection do
     )
   end
 
-  subject(:collection) { described_class.new([older_incident, newer_incident, other_channel_incident]) }
 
   it "returns recent channel incidents newest first" do
     incidents = collection.recent(server_id: "456", channel_id: "789")

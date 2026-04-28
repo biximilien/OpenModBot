@@ -3,7 +3,7 @@ require "json"
 require_relative "support/fake_redis"
 
 describe Backend do
-  include Backend
+  include described_class
 
   let(:server_id) { 123 }
   let(:user_id) { 456 }

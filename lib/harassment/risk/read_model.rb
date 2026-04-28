@@ -104,7 +104,7 @@ module Harassment
         source_user_id: decayed_edge.source_user_id,
         target_user_id: decayed_edge.target_user_id,
         score_version: decayed_edge.score_version,
-        hostility_score: decayed_edge.hostility_score + incident.severity_score * incident.confidence,
+        hostility_score: decayed_edge.hostility_score + (incident.severity_score * incident.confidence),
         positive_score: decayed_edge.positive_score,
         interaction_count: decayed_edge.interaction_count + 1,
         last_interaction_at: incident.classified_at,

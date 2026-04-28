@@ -11,6 +11,7 @@ module Telemetry
 
   class NoopTracer
     def in_span(_name, attributes: {})
+      _attributes = attributes
       yield NoopSpan.new
     end
   end

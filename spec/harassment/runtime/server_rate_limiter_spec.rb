@@ -2,14 +2,15 @@ require "harassment/runtime/server_rate_limiter"
 require "harassment/repositories/in_memory_server_rate_limit_repository"
 
 describe Harassment::ServerRateLimiter do
-  let(:repository) { Harassment::Repositories::InMemoryServerRateLimitRepository.new }
-
   subject(:limiter) do
     described_class.new(
       repository: repository,
       limit_per_minute: 2,
     )
   end
+
+  let(:repository) { Harassment::Repositories::InMemoryServerRateLimitRepository.new }
+
 
   it "allows requests under the per-server limit and returns a retry time once exceeded" do
     now = Time.utc(2026, 4, 25, 18, 0, 0)

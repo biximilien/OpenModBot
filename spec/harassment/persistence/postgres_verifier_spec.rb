@@ -10,6 +10,8 @@ require_relative "../../support/fake_postgres_connection"
 require_relative "../../support/fake_redis"
 
 describe Harassment::PostgresVerifier do
+  subject(:verifier) { described_class.new(redis: redis, connection: connection) }
+
   let(:redis) { FakeRedis.new }
   let(:connection) { FakePostgresConnection.new }
   let(:source_interaction_events) { Harassment::Repositories::RedisInteractionEventRepository.new(redis: redis) }
@@ -20,7 +22,6 @@ describe Harassment::PostgresVerifier do
   let(:target_classification_jobs) { Harassment::Repositories::PostgresClassificationJobRepository.new(connection: connection) }
   let(:target_relationship_edges) { Harassment::Repositories::PostgresRelationshipEdgeRepository.new(connection: connection) }
 
-  subject(:verifier) { described_class.new(redis: redis, connection: connection) }
 
   before do
     event = Harassment::InteractionEvent.build(
@@ -76,8 +77,8 @@ describe Harassment::PostgresVerifier do
       postgres_by_server: { "456" => 1 },
       matches: true,
     )
-    expect(summary[:classification_records][:matches]).to eq(true)
-    expect(summary[:classification_jobs][:matches]).to eq(true)
+    expect(summary[:classification_records][:matches]).to be(true)
+    expect(summary[:classification_jobs][:matches]).to be(true)
     expect(summary[:relationship_edges]).to eq(
       total: 1,
       by_server: { "456" => 1 },
@@ -117,7 +118,7 @@ describe Harassment::PostgresVerifier do
 
     expect(summary[:classification_jobs][:redis_total]).to eq(1)
     expect(summary[:classification_jobs][:postgres_total]).to eq(2)
-    expect(summary[:classification_jobs][:matches]).to eq(false)
+    expect(summary[:classification_jobs][:matches]).to be(false)
   end
 
   it "reports spot-check mismatches for missing migrated rows" do

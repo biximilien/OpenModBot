@@ -1,4 +1,3 @@
-require "set"
 
 module Harassment
   class ContextAssembler
@@ -70,7 +69,7 @@ module Harassment
     def participant_index(user_id, participant_labels)
       existing_ids = participant_labels.keys.to_set
       ordered_ids = existing_ids.to_a.sort
-      ordered_ids.index(user_id.to_s)&.+(1) || ordered_ids.length + 1
+      ordered_ids.index(user_id.to_s)&.+(1) || (ordered_ids.length + 1)
     end
   end
 end

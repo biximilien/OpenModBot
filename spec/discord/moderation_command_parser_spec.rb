@@ -4,8 +4,8 @@ describe Discord::ModerationCommandParser do
   subject(:parser) { described_class.new }
 
   it "recognizes moderation triggers" do
-    expect(parser.trigger?("!moderation watchlist")).to eq(true)
-    expect(parser.trigger?("hello there")).to eq(false)
+    expect(parser.trigger?("!moderation watchlist")).to be(true)
+    expect(parser.trigger?("hello there")).to be(false)
   end
 
   it "parses built-in command arguments" do

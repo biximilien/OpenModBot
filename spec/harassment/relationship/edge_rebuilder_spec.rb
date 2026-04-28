@@ -4,10 +4,6 @@ require "harassment/repositories/in_memory_interaction_event_repository"
 require "harassment/repositories/in_memory_relationship_edge_repository"
 
 describe Harassment::RelationshipEdgeRebuilder do
-  let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
-  let(:classification_records) { Harassment::Repositories::InMemoryClassificationRecordRepository.new }
-  let(:relationship_edges) { Harassment::Repositories::InMemoryRelationshipEdgeRepository.new }
-
   subject(:rebuilder) do
     described_class.new(
       interaction_events: interaction_events,
@@ -17,6 +13,11 @@ describe Harassment::RelationshipEdgeRebuilder do
       server_id: server_id,
     )
   end
+
+  let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
+  let(:classification_records) { Harassment::Repositories::InMemoryClassificationRecordRepository.new }
+  let(:relationship_edges) { Harassment::Repositories::InMemoryRelationshipEdgeRepository.new }
+
 
   let(:server_id) { nil }
   let(:classified_event) do

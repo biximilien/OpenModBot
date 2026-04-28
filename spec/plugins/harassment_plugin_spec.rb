@@ -4,6 +4,7 @@ require_relative "../support/fake_postgres_connection"
 
 describe ModerationGPT::Plugins::HarassmentPlugin do
   subject(:plugin) { described_class.new }
+
   let(:event) do
     Harassment::InteractionEvent.build(
       message_id: 123,

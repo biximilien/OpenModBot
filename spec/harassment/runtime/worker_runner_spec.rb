@@ -22,7 +22,7 @@ describe Harassment::WorkerRunner do
     runner.stop
 
     expect(thread).to have_received(:kill)
-    expect(runner.running?).to eq(false)
+    expect(runner.running?).to be(false)
   end
 
   it "logs a failed processing pass without stopping the worker loop" do

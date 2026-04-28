@@ -3,15 +3,16 @@ require "harassment/repositories/in_memory_classification_record_repository"
 require "harassment/repositories/in_memory_interaction_event_repository"
 
 describe Harassment::IncidentQuery do
-  let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
-  let(:classification_records) { Harassment::Repositories::InMemoryClassificationRecordRepository.new }
-
   subject(:query) do
     described_class.new(
       interaction_events: interaction_events,
       classification_records: classification_records,
     )
   end
+
+  let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
+  let(:classification_records) { Harassment::Repositories::InMemoryClassificationRecordRepository.new }
+
 
   before do
     interaction_events.save(

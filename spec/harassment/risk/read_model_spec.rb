@@ -2,8 +2,9 @@ require "harassment/risk/read_model"
 require "harassment/risk/decay_policy"
 
 describe Harassment::ReadModel do
-  let(:decay_policy) { Harassment::DecayPolicy.new(lambda_value: Math.log(2) / 3600.0) }
   subject(:read_model) { described_class.new(decay_policy: decay_policy) }
+
+  let(:decay_policy) { Harassment::DecayPolicy.new(lambda_value: Math.log(2) / 3600.0) }
 
   let(:event) do
     Harassment::InteractionEvent.build(

@@ -2,8 +2,9 @@ require "harassment/interaction/context_assembler"
 require "harassment/repositories/in_memory_interaction_event_repository"
 
 describe Harassment::ContextAssembler do
-  let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
   subject(:assembler) { described_class.new(interaction_events: interaction_events, channel_limit: 2, pair_limit: 2) }
+
+  let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
 
   let(:current_event) do
     Harassment::InteractionEvent.build(

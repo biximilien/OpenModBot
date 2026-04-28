@@ -3,6 +3,16 @@ require_relative "../../support/fake_redis"
 require_relative "../../support/fake_postgres_connection"
 
 describe Harassment::Runtime do
+  subject(:runtime) do
+    described_class.new(
+      redis: redis,
+      connection: connection,
+      classifier_version: "harassment-v1",
+      classifier: classifier,
+      on_classification: ->(event:, record:) { recorded << [event, record] },
+    )
+  end
+
   let(:classifier) { instance_double("Classifier", cache_identity: { classifier_class: "RuntimeClassifier" }) }
   let(:recorded) { [] }
   let(:redis) { nil }
@@ -22,15 +32,6 @@ describe Harassment::Runtime do
   let(:user) { instance_double("User", id: 321) }
   let(:event) { instance_double("Event", message: message, server: server, channel: channel, user: user) }
 
-  subject(:runtime) do
-    described_class.new(
-      redis: redis,
-      connection: connection,
-      classifier_version: "harassment-v1",
-      classifier: classifier,
-      on_classification: ->(event:, record:) { recorded << [event, record] },
-    )
-  end
 
   let(:record) do
     Harassment::ClassificationRecord.build(
@@ -95,8 +96,6 @@ describe Harassment::Runtime do
   end
 
   context "with fully Postgres-backed repositories" do
-    let(:connection) { FakePostgresConnection.new }
-
     subject(:runtime) do
       described_class.new(
         connection: connection,
@@ -106,6 +105,9 @@ describe Harassment::Runtime do
         on_classification: ->(event:, record:) { recorded << [event, record] },
       )
     end
+
+    let(:connection) { FakePostgresConnection.new }
+
 
     it "uses Postgres for durable classification state while keeping runtime processing intact" do
       runtime.ingest_message(event)

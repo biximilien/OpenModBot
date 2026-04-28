@@ -6,6 +6,18 @@ require "harassment/repositories/in_memory_classification_record_repository"
 require "harassment/repositories/in_memory_interaction_event_repository"
 
 describe Harassment::ClassificationWorker do
+  subject(:worker) do
+    described_class.new(
+      interaction_events: interaction_events,
+      classification_jobs: classification_jobs,
+      classification_pipeline: classification_pipeline,
+      classifier: classifier,
+      rate_limiter: rate_limiter,
+      context_assembler: context_assembler,
+      on_success: ->(event:, record:) { processed << [event, record] },
+    )
+  end
+
   let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
   let(:classification_records) { Harassment::Repositories::InMemoryClassificationRecordRepository.new }
   let(:classification_jobs) { Harassment::Repositories::InMemoryClassificationJobRepository.new }
@@ -55,17 +67,6 @@ describe Harassment::ClassificationWorker do
   end
   let(:processed) { [] }
 
-  subject(:worker) do
-    described_class.new(
-      interaction_events: interaction_events,
-      classification_jobs: classification_jobs,
-      classification_pipeline: classification_pipeline,
-      classifier: classifier,
-      rate_limiter: rate_limiter,
-      context_assembler: context_assembler,
-      on_success: ->(event:, record:) { processed << [event, record] },
-    )
-  end
 
   before do
     interaction_events.save(event)

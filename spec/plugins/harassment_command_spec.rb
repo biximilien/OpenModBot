@@ -6,6 +6,8 @@ require "harassment/relationship/edge"
 require "harassment/risk/user_risk_report"
 
 describe ModerationGPT::Plugins::HarassmentCommand do
+  subject(:command) { described_class.new(query_service) }
+
   let(:query_service) do
     instance_double(
       "Harassment::QueryService",
@@ -60,7 +62,6 @@ describe ModerationGPT::Plugins::HarassmentCommand do
     )
   end
 
-  subject(:command) { described_class.new(query_service) }
 
   let(:channel) { instance_double("Channel", id: 321) }
   let(:server) { instance_double("Server", id: 123) }
@@ -71,7 +72,7 @@ describe ModerationGPT::Plugins::HarassmentCommand do
     message = instance_double("Message", content: "!moderation harassment risk <@456>")
     allow(event).to receive(:message).and_return(message)
 
-    expect(command.matches?(event)).to eq(true)
+    expect(command.matches?(event)).to be(true)
   end
 
   it "responds with harassment risk details" do
@@ -252,6 +253,6 @@ describe ModerationGPT::Plugins::HarassmentCommand do
     message = instance_double("Message", content: "!moderation harassment incidents 24h 7d")
     allow(event).to receive(:message).and_return(message)
 
-    expect(command.matches?(event)).to eq(false)
+    expect(command.matches?(event)).to be(false)
   end
 end

@@ -10,8 +10,8 @@ describe Harassment::PairRelationshipReport do
       relationship_edge: Harassment::RelationshipEdge.build(server_id: 789, source_user_id: 123, target_user_id: 456, score_version: "harassment-score-v1"),
     )
 
-    expect(missing.found?).to eq(false)
-    expect(found.found?).to eq(true)
+    expect(missing.found?).to be(false)
+    expect(found.found?).to be(true)
     expect(found.server_id).to eq("789")
     expect(found.score_version).to eq("harassment-score-v1")
   end

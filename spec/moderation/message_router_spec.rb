@@ -9,7 +9,7 @@ describe Moderation::MessageRouter do
 
     result = described_class.new([first, second]).handle(event)
 
-    expect(result).to eq(true)
+    expect(result).to be(true)
     expect(first).to have_received(:execute).with(event)
     expect(second).not_to have_received(:condition)
   end
@@ -20,7 +20,7 @@ describe Moderation::MessageRouter do
 
     result = described_class.new([first, second]).handle(event)
 
-    expect(result).to eq(true)
+    expect(result).to be(true)
     expect(first).not_to have_received(:execute)
     expect(second).to have_received(:execute).with(event)
   end
@@ -28,7 +28,7 @@ describe Moderation::MessageRouter do
   it "returns false when no strategy matches" do
     strategy = instance_double("Strategy", condition: false, execute: true)
 
-    expect(described_class.new([strategy]).handle(event)).to eq(false)
+    expect(described_class.new([strategy]).handle(event)).to be(false)
     expect(strategy).not_to have_received(:execute)
   end
 
@@ -40,7 +40,7 @@ describe Moderation::MessageRouter do
 
     result = described_class.new([broken, fallback]).handle(event)
 
-    expect(result).to eq(true)
+    expect(result).to be(true)
     expect(fallback).to have_received(:execute).with(event)
   end
 end

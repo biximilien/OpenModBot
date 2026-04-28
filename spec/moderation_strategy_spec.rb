@@ -27,8 +27,8 @@ describe "moderation strategy result caching" do
     watchlist = WatchListStrategy.new(bot, plugin_registry: plugin_registry)
     fallback = RemoveMessageStrategy.new(bot, plugin_registry: plugin_registry)
 
-    expect(watchlist.condition(event)).to eq(false)
-    expect(fallback.condition(event)).to eq(false)
+    expect(watchlist.condition(event)).to be(false)
+    expect(fallback.condition(event)).to be(false)
     expect(bot).to have_received(:moderate_text).once
     expect(plugin_registry).to have_received(:moderation_result).once
   end

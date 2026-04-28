@@ -1,5 +1,4 @@
 require "json"
-require "set"
 require_relative "interaction_event_repository"
 require_relative "repository_keys"
 require_relative "../../data_model/keys"

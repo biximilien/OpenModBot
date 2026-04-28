@@ -52,7 +52,7 @@ describe Harassment::QueryService do
     expect(report.source_user_id).to eq("321")
     expect(report.target_user_id).to eq("654")
     expect(report.score_version).to eq("harassment-score-v1")
-    expect(report.found?).to eq(true)
+    expect(report.found?).to be(true)
     expect(report.relationship_edge.interaction_count).to eq(1)
     expect(report.relationship_edge.hostility_score).to be_within(0.0001).of(0.2)
   end

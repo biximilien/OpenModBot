@@ -4,10 +4,6 @@ require "harassment/repositories/in_memory_classification_record_repository"
 require "harassment/repositories/in_memory_classification_job_repository"
 
 describe Harassment::ClassificationPipeline do
-  let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
-  let(:classification_records) { Harassment::Repositories::InMemoryClassificationRecordRepository.new }
-  let(:classification_jobs) { Harassment::Repositories::InMemoryClassificationJobRepository.new }
-
   subject(:pipeline) do
     described_class.new(
       interaction_events: interaction_events,
@@ -15,6 +11,11 @@ describe Harassment::ClassificationPipeline do
       classification_jobs: classification_jobs,
     )
   end
+
+  let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
+  let(:classification_records) { Harassment::Repositories::InMemoryClassificationRecordRepository.new }
+  let(:classification_jobs) { Harassment::Repositories::InMemoryClassificationJobRepository.new }
+
 
   let(:event) do
     Harassment::InteractionEvent.build(

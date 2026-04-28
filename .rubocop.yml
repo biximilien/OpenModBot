@@ -22,6 +22,18 @@ Style/FrozenStringLiteralComment:
 Layout/EndOfLine:
   Enabled: false
 
+Lint/MissingSuper:
+  AllowedParentClasses:
+    - Classifier
+    - ClassificationCacheRepository
+    - ClassificationJobRepository
+    - ClassificationRecordRepository
+    - InteractionEventRepository
+    - RelationshipEdgeRepository
+    - ServerRateLimitRepository
+    - Provider
+    - Plugin
+
 Metrics/BlockLength:
   Exclude:
     - "spec/**/*"

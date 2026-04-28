@@ -2,6 +2,17 @@ require "harassment/classifier/structured_classifier"
 require "harassment/classifier/definition"
 
 describe Harassment::StructuredClassifier do
+  subject(:classifier) do
+    described_class.new(
+      client: client,
+      model: "gpt-4o-2024-08-06",
+      instructions: instructions,
+      schema_name: schema_name,
+      response_schema: response_schema,
+      prompt_version: prompt_version,
+    )
+  end
+
   let(:client) { instance_double("AIProvider") }
   let(:schema_name) { "custom_harassment_schema" }
   let(:response_schema) do
@@ -23,16 +34,6 @@ describe Harassment::StructuredClassifier do
     )
   end
 
-  subject(:classifier) do
-    described_class.new(
-      client: client,
-      model: "gpt-4o-2024-08-06",
-      instructions: instructions,
-      schema_name: schema_name,
-      response_schema: response_schema,
-      prompt_version: prompt_version,
-    )
-  end
 
   it "builds a classification record from structured provider output" do
     response = { "output_text" => <<~JSON.strip }

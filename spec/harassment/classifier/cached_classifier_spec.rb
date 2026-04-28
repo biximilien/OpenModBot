@@ -2,6 +2,14 @@ require "harassment/classifier/cached_classifier"
 require "harassment/repositories/in_memory_classification_cache_repository"
 
 describe Harassment::CachedClassifier do
+  subject(:classifier) do
+    described_class.new(
+      delegate: delegate,
+      cache_repository: cache_repository,
+      ttl_seconds: 3_600,
+    )
+  end
+
   let(:delegate) { instance_double("Classifier", cache_identity: { model_version: "gpt-4o", prompt_version: "harassment-prompt-v1" }) }
   let(:cache_repository) { Harassment::Repositories::InMemoryClassificationCacheRepository.new }
   let(:event) do
@@ -35,13 +43,6 @@ describe Harassment::CachedClassifier do
     )
   end
 
-  subject(:classifier) do
-    described_class.new(
-      delegate: delegate,
-      cache_repository: cache_repository,
-      ttl_seconds: 3_600,
-    )
-  end
 
   it "reuses cached classifications for the same server, classifier, content, and context" do
     allow(delegate).to receive(:classify).and_return(record)

@@ -180,13 +180,13 @@ describe Environment do
     it "is false by default" do
       ENV.delete("TELEMETRY_ENABLED")
 
-      expect(described_class.telemetry_enabled?).to eq(false)
+      expect(described_class.telemetry_enabled?).to be(false)
     end
 
     it "is true when configured" do
       ENV["TELEMETRY_ENABLED"] = "true"
 
-      expect(described_class.telemetry_enabled?).to eq(true)
+      expect(described_class.telemetry_enabled?).to be(true)
     end
   end
 
@@ -281,13 +281,13 @@ describe Environment do
     it "is false by default" do
       ENV.delete("LOG_INVITE_URL")
 
-      expect(described_class.log_invite_url?).to eq(false)
+      expect(described_class.log_invite_url?).to be(false)
     end
 
     it "is true when configured" do
       ENV["LOG_INVITE_URL"] = "true"
 
-      expect(described_class.log_invite_url?).to eq(true)
+      expect(described_class.log_invite_url?).to be(true)
     end
   end
 
@@ -315,13 +315,13 @@ describe Environment do
     it "is false by default" do
       ENV.delete("MODERATION_SHADOW_MODE")
 
-      expect(described_class.moderation_shadow_mode?).to eq(false)
+      expect(described_class.moderation_shadow_mode?).to be(false)
     end
 
     it "is true when configured" do
       ENV["MODERATION_SHADOW_MODE"] = "true"
 
-      expect(described_class.moderation_shadow_mode?).to eq(true)
+      expect(described_class.moderation_shadow_mode?).to be(true)
     end
   end
 
@@ -329,13 +329,13 @@ describe Environment do
     it "is true by default" do
       ENV.delete("MODERATION_SHADOW_REWRITE")
 
-      expect(described_class.moderation_shadow_rewrite?).to eq(true)
+      expect(described_class.moderation_shadow_rewrite?).to be(true)
     end
 
     it "is false when configured" do
       ENV["MODERATION_SHADOW_REWRITE"] = "false"
 
-      expect(described_class.moderation_shadow_rewrite?).to eq(false)
+      expect(described_class.moderation_shadow_rewrite?).to be(false)
     end
   end
 
@@ -343,13 +343,13 @@ describe Environment do
     it "is false by default" do
       ENV.delete("MODERATION_REVIEW_STORE_CONTENT")
 
-      expect(described_class.moderation_review_store_content?).to eq(false)
+      expect(described_class.moderation_review_store_content?).to be(false)
     end
 
     it "is true when configured" do
       ENV["MODERATION_REVIEW_STORE_CONTENT"] = "true"
 
-      expect(described_class.moderation_review_store_content?).to eq(true)
+      expect(described_class.moderation_review_store_content?).to be(true)
     end
   end
 end

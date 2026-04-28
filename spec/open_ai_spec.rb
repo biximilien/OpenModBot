@@ -1,7 +1,7 @@
 require "open_ai"
 
 describe OpenAI do
-  include OpenAI
+  include described_class
 
   describe "#anonymized_user_hash" do
     it "hashes user ids for telemetry" do
@@ -29,7 +29,7 @@ describe OpenAI do
 
       result = moderate_text("you are awful")
 
-      expect(result.flagged).to eq(true)
+      expect(result.flagged).to be(true)
       expect(result.categories).to eq("harassment" => true)
       expect(result.category_scores).to eq("harassment" => 0.98)
     end

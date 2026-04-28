@@ -14,8 +14,8 @@ describe Telemetry do
     it "leaves telemetry disabled by default" do
       ENV.delete("TELEMETRY_ENABLED")
 
-      expect(described_class.configure!).to eq(false)
-      expect(described_class.enabled?).to eq(false)
+      expect(described_class.configure!).to be(false)
+      expect(described_class.enabled?).to be(false)
     end
   end
 

@@ -37,7 +37,7 @@ describe RemoveMessageStrategy do
     result = OpenAI::ModerationResult.new(flagged: true, categories: {}, category_scores: {})
     allow(bot).to receive(:moderate_text).with("bad message", user).and_return(result)
 
-    expect(described_class.new(bot, plugin_registry: plugin_registry).condition(event)).to eq(true)
+    expect(described_class.new(bot, plugin_registry: plugin_registry).condition(event)).to be(true)
     expect(plugin_registry).to have_received(:moderation_result).with(
       event: event,
       result: result,

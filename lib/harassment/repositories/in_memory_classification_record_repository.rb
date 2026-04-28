@@ -31,7 +31,6 @@ module Harassment
         all_for_message(server_id:, message_id:).last
       end
 
-      private
     end
   end
 end

@@ -1,5 +1,4 @@
 require "harassment/repositories/in_memory_interaction_event_repository"
-require "set"
 
 describe Harassment::Repositories::InMemoryInteractionEventRepository do
   subject(:repository) { described_class.new }

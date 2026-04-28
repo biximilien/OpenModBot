@@ -1,6 +1,8 @@
 require "discord/watchlist_command"
 
 describe Discord::WatchlistCommand do
+  subject(:command) { described_class.new(store: store, usage: "usage") }
+
   let(:store) do
     instance_double(
       "Store",
@@ -12,7 +14,6 @@ describe Discord::WatchlistCommand do
   let(:server) { instance_double("Server", id: 123) }
   let(:event) { instance_double("Event", server: server, respond: true) }
 
-  subject(:command) { described_class.new(store: store, usage: "usage") }
 
   it "lists watched users" do
     command.handle(event, match(nil))

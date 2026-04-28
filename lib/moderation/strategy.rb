@@ -13,11 +13,11 @@ class ModerationStrategy
     @plugin_registry = plugin_registry
   end
 
-  def condition(event)
+  def condition(_event)
     false
   end
 
-  def execute(event)
+  def execute(_event)
     nil
   end
 

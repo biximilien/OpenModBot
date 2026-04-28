@@ -2,6 +2,8 @@ require "discord"
 require "discord/moderation_command"
 
 describe Discord::ModerationCommand do
+  subject(:command) { described_class.new(store, plugin_commands: [plugin_command]) }
+
   let(:store) do
     instance_double(
       "Store",
@@ -49,14 +51,13 @@ describe Discord::ModerationCommand do
     )
   end
 
-  subject(:command) { described_class.new(store, plugin_commands: [plugin_command]) }
 
   describe "#matches?" do
     context "with a moderation command" do
       let(:content) { "!moderation watchlist add <@456>" }
 
       it "returns true" do
-        expect(command.matches?(event)).to eq(true)
+        expect(command.matches?(event)).to be(true)
       end
     end
 
@@ -64,7 +65,7 @@ describe Discord::ModerationCommand do
       let(:content) { "hello there" }
 
       it "returns false" do
-        expect(command.matches?(event)).to eq(false)
+        expect(command.matches?(event)).to be(false)
       end
     end
 
@@ -72,7 +73,7 @@ describe Discord::ModerationCommand do
       let(:content) { "!moderation watchlist add" }
 
       it "returns true" do
-        expect(command.matches?(event)).to eq(true)
+        expect(command.matches?(event)).to be(true)
       end
     end
   end

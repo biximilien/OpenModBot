@@ -1,6 +1,8 @@
 require "harassment/classification/service"
 
 describe Harassment::ClassificationService do
+  subject(:service) { described_class.new }
+
   let(:event) do
     Harassment::InteractionEvent.build(
       message_id: 123,
@@ -25,7 +27,6 @@ describe Harassment::ClassificationService do
     )
   end
 
-  subject(:service) { described_class.new }
 
   it "records classifications into its read model" do
     incident = service.record(event:, record:)
