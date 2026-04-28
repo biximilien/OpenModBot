@@ -40,6 +40,30 @@ describe ModerationGPT::Plugins::PersonalityPlugin do
     expect(instructions).to include("concise poetic voice")
   end
 
+  it "supports the expanded moderation personality set" do
+    expected_phrases = {
+      "teacher" => "lightly instructional tone",
+      "supportive" => "supportive, encouraging tone",
+      "formal" => "polished, professional tone",
+      "concise" => "as briefly as possible",
+      "diplomatic" => "tactful, de-escalating tone",
+      "coach" => "constructive coaching tone",
+      "plainspoken" => "simple, everyday language",
+      "legalistic" => "careful, precise tone",
+      "community_manager" => "community-manager tone",
+      "southern_charm" => "Southern-inspired voice",
+      "shakespearean" => "Shakespearean style",
+      "robot" => "robot-like voice",
+      "zen" => "calm, minimal, de-escalating tone",
+    }
+
+    expected_phrases.each do |personality, phrase|
+      ENV["PERSONALITY"] = personality
+
+      expect(described_class.new.rewrite_instructions).to include(phrase)
+    end
+  end
+
   it "falls back to objective instructions for unknown personalities" do
     ENV["PERSONALITY"] = "wizard"
     allow($logger).to receive(:warn)

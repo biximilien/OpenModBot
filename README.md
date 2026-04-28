@@ -271,7 +271,7 @@ PLUGINS=personality
 PERSONALITY=objective
 ```
 
-Available personalities are `objective`, `empathetic`, `pirate`, and `poetic`. The default is `objective`, which uses a direct, neutral rewrite style.
+Available personalities are `objective`, `empathetic`, `teacher`, `supportive`, `formal`, `concise`, `diplomatic`, `coach`, `plainspoken`, `legalistic`, `community_manager`, `southern_charm`, `shakespearean`, `robot`, `zen`, `pirate`, and `poetic`. The default is `objective`, which uses a direct, neutral rewrite style.
 
 ## Docker
 
