@@ -30,6 +30,9 @@ jobs:
       - name: Run test suite
         run: bundle exec rspec --format documentation
 
+      - name: Run RuboCop
+        run: bundle exec rubocop
+
       - name: Check Ruby syntax
         run: ruby -e "Dir['{lib,scripts}/**/*.rb'].each { |file| system('ruby', '-c', file) || exit(1) }"
 

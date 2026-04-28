@@ -151,6 +151,12 @@ Run tests:
 bundle exec rspec
 ```
 
+Run lint:
+
+```bash
+bundle exec rubocop
+```
+
 The default specs stub AI providers and Redis, so they do not require external API calls.
 
 The Redis data model is documented in `docs/data-model.md`.

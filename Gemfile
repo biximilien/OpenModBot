@@ -18,8 +18,10 @@ group :postgres, optional: true do
   gem "pg"
 end
 
-# testing
-gem "rspec", group: :test
+group :development, :test do
+  gem "rspec"
+  gem "rubocop", require: false
+end
 
 # optional opentelemetry
 group :telemetry, optional: true do
