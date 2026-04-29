@@ -17,7 +17,6 @@ module Environment
   DEFAULT_LOG_FORMAT = "json".freeze
   DEFAULT_HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS = 3_600
   DEFAULT_HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE = 30
-  DEFAULT_HARASSMENT_STORAGE_BACKEND = "redis".freeze
 
   def self.validate!
     required = REQUIRED_VARIABLES + [ai_api_key_variable]
@@ -124,11 +123,6 @@ module Environment
 
   def self.harassment_classifier_rate_limit_per_minute
     ENV.fetch("HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE", DEFAULT_HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE).to_i
-  end
-
-  def self.harassment_storage_backend
-    candidate = ENV.fetch("HARASSMENT_STORAGE_BACKEND", DEFAULT_HARASSMENT_STORAGE_BACKEND).downcase
-    %w[redis postgres].include?(candidate) ? candidate : DEFAULT_HARASSMENT_STORAGE_BACKEND
   end
 
   def self.missing?(value)

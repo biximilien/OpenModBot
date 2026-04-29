@@ -1,13 +1,6 @@
 require_relative "../environment"
 require_relative "logging"
 require_relative "plugin"
-require_relative "plugins/google_ai_plugin"
-require_relative "plugins/harassment_plugin"
-require_relative "plugins/open_ai_plugin"
-require_relative "plugins/personality_plugin"
-require_relative "plugins/postgres_plugin"
-require_relative "plugins/redis_plugin"
-require_relative "plugins/telemetry_plugin"
 
 module OpenModBot
   class PluginRegistry
@@ -153,11 +146,38 @@ module OpenModBot
     end
   end
 
-  PluginRegistry.register("google_ai") { Plugins::GoogleAIPlugin.new }
-  PluginRegistry.register("harassment") { Plugins::HarassmentPlugin.new }
-  PluginRegistry.register("openai") { Plugins::OpenAIPlugin.new }
-  PluginRegistry.register("personality") { Plugins::PersonalityPlugin.new }
-  PluginRegistry.register("postgres") { Plugins::PostgresPlugin.new }
-  PluginRegistry.register("redis") { Plugins::RedisPlugin.new }
-  PluginRegistry.register("telemetry") { Plugins::TelemetryPlugin.new }
+  PluginRegistry.register("google_ai") do
+    require_relative "plugins/google_ai_plugin"
+    Plugins::GoogleAIPlugin.new
+  end
+
+  PluginRegistry.register("harassment") do
+    require_relative "plugins/harassment_plugin"
+    Plugins::HarassmentPlugin.new
+  end
+
+  PluginRegistry.register("openai") do
+    require_relative "plugins/open_ai_plugin"
+    Plugins::OpenAIPlugin.new
+  end
+
+  PluginRegistry.register("personality") do
+    require_relative "plugins/personality_plugin"
+    Plugins::PersonalityPlugin.new
+  end
+
+  PluginRegistry.register("postgres") do
+    require_relative "plugins/postgres_plugin"
+    Plugins::PostgresPlugin.new
+  end
+
+  PluginRegistry.register("redis") do
+    require_relative "plugins/redis_plugin"
+    Plugins::RedisPlugin.new
+  end
+
+  PluginRegistry.register("telemetry") do
+    require_relative "plugins/telemetry_plugin"
+    Plugins::TelemetryPlugin.new
+  end
 end

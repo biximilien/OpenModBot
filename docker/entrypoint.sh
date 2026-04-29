@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-if [ "${HARASSMENT_STORAGE_BACKEND}" = "postgres" ] || echo ",${PLUGINS}," | grep -q ",postgres,"; then
+if echo ",${PLUGINS}," | grep -q ",postgres,"; then
   ruby -ruri -rsocket -e '
     uri = URI(ENV.fetch("DATABASE_URL"))
     host = uri.host

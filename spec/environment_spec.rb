@@ -128,26 +128,6 @@ describe Environment do
     end
   end
 
-  describe ".harassment_storage_backend" do
-    it "defaults to redis" do
-      ENV.delete("HARASSMENT_STORAGE_BACKEND")
-
-      expect(described_class.harassment_storage_backend).to eq("redis")
-    end
-
-    it "returns postgres when configured" do
-      ENV["HARASSMENT_STORAGE_BACKEND"] = "postgres"
-
-      expect(described_class.harassment_storage_backend).to eq("postgres")
-    end
-
-    it "falls back to redis for unknown values" do
-      ENV["HARASSMENT_STORAGE_BACKEND"] = "mystery"
-
-      expect(described_class.harassment_storage_backend).to eq("redis")
-    end
-  end
-
   describe ".karma_automod_threshold" do
     it "returns the default threshold" do
       ENV.delete("KARMA_AUTOMOD_THRESHOLD")
