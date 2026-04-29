@@ -326,7 +326,7 @@ The incidents command supports fixed time windows of `1h`, `24h`, and `7d`. The 
 External plugin packages can follow the same `OpenModBot::Plugin` hook interface and register with `OpenModBot::PluginRegistry.register`. The old `ModerationGPT` namespace remains as a compatibility alias for existing plugins, but new plugins should use `OpenModBot`. Use `PLUGIN_REQUIRES` to load plugin packages before `PLUGINS` is resolved:
 
 ```bash
-PLUGIN_REQUIRES=moderation_gpt/plugins/audit_webhook
+PLUGIN_REQUIRES=open_mod_bot/plugins/audit_webhook
 PLUGINS=audit_webhook
 ```
 

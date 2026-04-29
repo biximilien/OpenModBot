@@ -35,7 +35,7 @@ module Telemetry
       config.use "OpenTelemetry::Instrumentation::Redis"
     end
 
-    @tracer = OpenTelemetry.tracer_provider.tracer("moderation_gpt", "1.0")
+    @tracer = OpenTelemetry.tracer_provider.tracer("open_mod_bot", "1.0")
     true
   rescue LoadError => e
     Logging.warn("opentelemetry_disabled", error_class: e.class.name, error_message: e.message)

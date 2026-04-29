@@ -226,10 +226,10 @@ describe Environment do
     end
 
     it "parses comma-separated require paths" do
-      ENV["PLUGIN_REQUIRES"] = "moderation_gpt/plugins/audit_webhook, custom/plugin"
+      ENV["PLUGIN_REQUIRES"] = "open_mod_bot/plugins/audit_webhook, custom/plugin"
 
       expect(described_class.plugin_requires).to eq([
-                                                      "moderation_gpt/plugins/audit_webhook",
+                                                      "open_mod_bot/plugins/audit_webhook",
                                                       "custom/plugin"
                                                     ])
     end

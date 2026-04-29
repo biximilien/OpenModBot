@@ -5,7 +5,7 @@ require_relative "../logging"
 require_relative "../telemetry/anonymizer"
 
 class ModerationStrategy
-  MODERATION_RESULT_CACHE_KEY = :@moderation_gpt_moderation_result
+  MODERATION_RESULT_CACHE_KEY = :@open_mod_bot_moderation_result
 
   def initialize(bot, automod_policy: Moderation::AutomodPolicy.new, plugin_registry: nil)
     @bot = bot
