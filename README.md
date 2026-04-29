@@ -323,7 +323,7 @@ When the `harassment` plugin is enabled, moderators can inspect the derived sign
 
 The incidents command supports fixed time windows of `1h`, `24h`, and `7d`. The optional mention, limit, and window tokens can appear in flexible order as long as each is present at most once.
 
-External plugin packages can follow the same `OpenModBot::Plugin` hook interface and register with `OpenModBot::PluginRegistry.register`. The old `ModerationGPT` namespace remains as a compatibility alias for existing plugins, but new plugins should use `OpenModBot`. Use `PLUGIN_REQUIRES` to load plugin packages before `PLUGINS` is resolved:
+External plugin packages can follow the same `OpenModBot::Plugin` hook interface and register with `OpenModBot::PluginRegistry.register`. Use `PLUGIN_REQUIRES` to load plugin packages before `PLUGINS` is resolved:
 
 ```bash
 PLUGIN_REQUIRES=open_mod_bot/plugins/audit_webhook
@@ -381,7 +381,7 @@ To run with harassment, build the image with the `postgres` bundle group and ena
 BUNDLE_WITH=postgres PLUGINS=postgres,harassment docker compose --profile postgres up --build
 ```
 
-Compose starts a local `postgres` service, initializes the harassment schema from `db/harassment/001_initial_schema.sql`, and points the bot at `postgres://postgres:postgres@postgres:5432/openmodbot` unless `DATABASE_URL` is overridden. Existing deployments can continue using an older database name, such as `moderationgpt`, by keeping their current `DATABASE_URL`.
+Compose starts a local `postgres` service, initializes the harassment schema from `db/harassment/001_initial_schema.sql`, and points the bot at `postgres://postgres:postgres@postgres:5432/openmodbot` unless `DATABASE_URL` is overridden.
 
 ## OpenTelemetry
 

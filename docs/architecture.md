@@ -181,7 +181,7 @@ Current hook types include:
 
 Plugins that provide shared optional infrastructure should expose it as a named capability, such as `postgres_connection` or `ai_provider`. Domain plugins should consume those capabilities through the registry instead of depending directly on a concrete infrastructure plugin class. Existing named registry helpers may remain as compatibility shims for common capabilities.
 
-The public Ruby namespace is `OpenModBot`. The former `ModerationGPT` namespace is kept as a compatibility alias for existing external plugins during the rename transition.
+The public Ruby namespace is `OpenModBot`.
 
 Current built-in plugins:
 

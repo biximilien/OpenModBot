@@ -161,5 +161,3 @@ module OpenModBot
   PluginRegistry.register("redis") { Plugins::RedisPlugin.new }
   PluginRegistry.register("telemetry") { Plugins::TelemetryPlugin.new }
 end
-
-require_relative "open_mod_bot/compatibility"

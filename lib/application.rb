@@ -33,5 +33,3 @@ module OpenModBot
     end
   end
 end
-
-require_relative "open_mod_bot/compatibility"

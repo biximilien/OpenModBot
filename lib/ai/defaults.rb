@@ -7,5 +7,3 @@ module OpenModBot
     ].join(" ").freeze
   end
 end
-
-require_relative "../open_mod_bot/compatibility"

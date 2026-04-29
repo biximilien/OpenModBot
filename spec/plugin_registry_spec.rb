@@ -13,10 +13,6 @@ describe OpenModBot::PluginRegistry do
   end
 
   describe ".register" do
-    it "keeps the old ModerationGPT namespace as a compatibility alias" do
-      expect(ModerationGPT::PluginRegistry).to eq(described_class)
-    end
-
     it "registers a plugin factory" do
       plugin = instance_double("Plugin")
 
