@@ -128,6 +128,52 @@ describe Environment do
     end
   end
 
+  describe ".admin_notification_channel_id" do
+    it "returns the configured notification channel" do
+      ENV["ADMIN_NOTIFICATION_CHANNEL_ID"] = "123"
+
+      expect(described_class.admin_notification_channel_id).to eq("123")
+    end
+  end
+
+  describe ".admin_notification_ambiguous_min_score" do
+    it "returns the default minimum ambiguous score" do
+      ENV.delete("ADMIN_NOTIFICATION_AMBIGUOUS_MIN_SCORE")
+
+      expect(described_class.admin_notification_ambiguous_min_score).to eq(0.35)
+    end
+  end
+
+  describe ".admin_notification_ambiguous_max_score" do
+    it "returns the default maximum ambiguous score" do
+      ENV.delete("ADMIN_NOTIFICATION_AMBIGUOUS_MAX_SCORE")
+
+      expect(described_class.admin_notification_ambiguous_max_score).to eq(0.75)
+    end
+  end
+
+  describe ".admin_notification_shadow_mode?" do
+    it "is true by default" do
+      ENV.delete("ADMIN_NOTIFICATION_SHADOW_MODE")
+
+      expect(described_class.admin_notification_shadow_mode?).to be(true)
+    end
+
+    it "is false when configured" do
+      ENV["ADMIN_NOTIFICATION_SHADOW_MODE"] = "false"
+
+      expect(described_class.admin_notification_shadow_mode?).to be(false)
+    end
+  end
+
+  describe ".admin_notification_rate_limit_per_minute" do
+    it "returns the default rate limit" do
+      ENV.delete("ADMIN_NOTIFICATION_RATE_LIMIT_PER_MINUTE")
+
+      expect(described_class.admin_notification_rate_limit_per_minute).to eq(10)
+    end
+  end
+
   describe ".karma_automod_threshold" do
     it "returns the default threshold" do
       ENV.delete("KARMA_AUTOMOD_THRESHOLD")

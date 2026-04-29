@@ -173,6 +173,11 @@ module OpenModBot
     Plugins::GoogleAIPlugin.new
   end
 
+  PluginRegistry.register("admin_notifications") do
+    require_relative "plugins/admin_notifications_plugin"
+    Plugins::AdminNotificationsPlugin.new
+  end
+
   PluginRegistry.register("harassment") do
     require_relative "plugins/harassment_plugin"
     Plugins::HarassmentPlugin.new

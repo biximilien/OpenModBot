@@ -17,6 +17,9 @@ module Environment
   DEFAULT_LOG_FORMAT = "json".freeze
   DEFAULT_HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS = 3_600
   DEFAULT_HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE = 30
+  DEFAULT_ADMIN_NOTIFICATION_AMBIGUOUS_MIN_SCORE = 0.35
+  DEFAULT_ADMIN_NOTIFICATION_AMBIGUOUS_MAX_SCORE = 0.75
+  DEFAULT_ADMIN_NOTIFICATION_RATE_LIMIT_PER_MINUTE = 10
 
   def self.validate!
     required = REQUIRED_VARIABLES + [ai_api_key_variable]
@@ -123,6 +126,22 @@ module Environment
 
   def self.harassment_classifier_rate_limit_per_minute
     ENV.fetch("HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE", DEFAULT_HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE).to_i
+  end
+
+  def self.admin_notification_channel_id = ENV.fetch("ADMIN_NOTIFICATION_CHANNEL_ID", nil)
+
+  def self.admin_notification_ambiguous_min_score
+    ENV.fetch("ADMIN_NOTIFICATION_AMBIGUOUS_MIN_SCORE", DEFAULT_ADMIN_NOTIFICATION_AMBIGUOUS_MIN_SCORE).to_f
+  end
+
+  def self.admin_notification_ambiguous_max_score
+    ENV.fetch("ADMIN_NOTIFICATION_AMBIGUOUS_MAX_SCORE", DEFAULT_ADMIN_NOTIFICATION_AMBIGUOUS_MAX_SCORE).to_f
+  end
+
+  def self.admin_notification_shadow_mode? = ENV.fetch("ADMIN_NOTIFICATION_SHADOW_MODE", "true").casecmp("true").zero?
+
+  def self.admin_notification_rate_limit_per_minute
+    ENV.fetch("ADMIN_NOTIFICATION_RATE_LIMIT_PER_MINUTE", DEFAULT_ADMIN_NOTIFICATION_RATE_LIMIT_PER_MINUTE).to_i
   end
 
   def self.missing?(value)

@@ -23,6 +23,7 @@ AI providers:
 Optional plugins:
 
 - `harassment` passively captures interaction events, classifies harassment risk asynchronously, and exposes moderator insight commands without automated punishment.
+- `admin_notifications` notifies a configured admin channel when moderation signals need human attention.
 - `redis` stores core moderation state in Redis.
 - `postgres` stores core moderation state in Postgres and provides the required durable storage dependency for harassment.
 - `personality` changes the rewrite tone for moderated watchlist messages.
@@ -103,6 +104,11 @@ GOOGLE_AI_MODEL=gemini-2.5-flash
 HARASSMENT_CLASSIFIER_MODEL=gpt-4o-2024-08-06
 HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS=3600
 HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE=30
+ADMIN_NOTIFICATION_CHANNEL_ID=
+ADMIN_NOTIFICATION_AMBIGUOUS_MIN_SCORE=0.35
+ADMIN_NOTIFICATION_AMBIGUOUS_MAX_SCORE=0.75
+ADMIN_NOTIFICATION_SHADOW_MODE=true
+ADMIN_NOTIFICATION_RATE_LIMIT_PER_MINUTE=10
 MODERATION_SHADOW_MODE=false
 MODERATION_SHADOW_REWRITE=true
 MODERATION_REVIEW_STORE_CONTENT=false
@@ -117,7 +123,7 @@ PLUGINS=
 PERSONALITY=objective
 ```
 
-`REDIS_URL`, `DATABASE_URL`, `OPENAI_MODERATION_MODEL`, `OPENAI_REWRITE_MODEL`, `GOOGLE_AI_MODEL`, `HARASSMENT_CLASSIFIER_MODEL`, `HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS`, `HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE`, `MODERATION_SHADOW_MODE`, `MODERATION_SHADOW_REWRITE`, `MODERATION_REVIEW_STORE_CONTENT`, `KARMA_AUTOMOD_THRESHOLD`, `KARMA_AUTOMOD_ACTION`, `KARMA_TIMEOUT_SECONDS`, `LOG_INVITE_URL`, and `LOG_FORMAT` are optional. `REDIS_URL` is only used when the `redis` plugin is enabled. `DATABASE_URL` is only used when the `postgres` plugin is enabled. `TELEMETRY_HASH_SALT` is used to anonymize Discord identifiers in logs and traces; set it to a stable random secret for your deployment.
+`REDIS_URL`, `DATABASE_URL`, `OPENAI_MODERATION_MODEL`, `OPENAI_REWRITE_MODEL`, `GOOGLE_AI_MODEL`, `HARASSMENT_CLASSIFIER_MODEL`, `HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS`, `HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE`, `ADMIN_NOTIFICATION_CHANNEL_ID`, `ADMIN_NOTIFICATION_AMBIGUOUS_MIN_SCORE`, `ADMIN_NOTIFICATION_AMBIGUOUS_MAX_SCORE`, `ADMIN_NOTIFICATION_SHADOW_MODE`, `ADMIN_NOTIFICATION_RATE_LIMIT_PER_MINUTE`, `MODERATION_SHADOW_MODE`, `MODERATION_SHADOW_REWRITE`, `MODERATION_REVIEW_STORE_CONTENT`, `KARMA_AUTOMOD_THRESHOLD`, `KARMA_AUTOMOD_ACTION`, `KARMA_TIMEOUT_SECONDS`, `LOG_INVITE_URL`, and `LOG_FORMAT` are optional. `REDIS_URL` is only used when the `redis` plugin is enabled. `DATABASE_URL` is only used when the `postgres` plugin is enabled. `ADMIN_NOTIFICATION_CHANNEL_ID` is required when the `admin_notifications` plugin is enabled. `TELEMETRY_HASH_SALT` is used to anonymize Discord identifiers in logs and traces; set it to a stable random secret for your deployment.
 
 ## Local Development
 
@@ -203,6 +209,7 @@ Built-in plugins:
 - `openai`
 - `postgres`
 - `redis`
+- `admin_notifications`
 - `telemetry`
 - `personality`
 
@@ -219,6 +226,15 @@ Core moderation storage options:
 - no database plugin: in-memory watchlists, karma, and review queue; useful for local trials and tests
 - `PLUGINS=redis`: Redis-backed watchlists, karma, and review queue
 - `PLUGINS=postgres`: Postgres-backed watchlists, karma, and review queue
+
+Admin notifications:
+
+```bash
+PLUGINS=admin_notifications
+ADMIN_NOTIFICATION_CHANNEL_ID=123456789012345678
+```
+
+The `admin_notifications` plugin sends privacy-safe notifications to the configured Discord channel when moderation category scores fall inside the ambiguous review band. It also notifies on automod outcomes. The default ambiguous score band is `0.35` through `0.75`, and raw message content is not included.
 
 The shared application delegates AI calls through a replaceable provider. OpenAI is the default provider, and enabling `PLUGINS=openai` configures it explicitly through the plugin system. Enable `PLUGINS=google_ai` and set `GOOGLE_AI_API_KEY` to use Gemini through Google AI instead:
 

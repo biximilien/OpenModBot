@@ -186,6 +186,7 @@ The public Ruby namespace is `OpenModBot`.
 Current built-in plugins:
 
 - [HarassmentPlugin](../lib/plugins/harassment_plugin.rb)
+- [AdminNotificationsPlugin](../lib/plugins/admin_notifications_plugin.rb)
 - [GoogleAIPlugin](../lib/plugins/google_ai_plugin.rb)
 - [OpenAIPlugin](../lib/plugins/open_ai_plugin.rb)
 - [PostgresPlugin](../lib/plugins/postgres_plugin.rb)

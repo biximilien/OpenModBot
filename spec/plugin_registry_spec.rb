@@ -86,6 +86,15 @@ describe OpenModBot::PluginRegistry do
       expect(registry.ai_provider).to be_a(GoogleAI::Provider)
     end
 
+    it "builds the built-in admin notifications plugin" do
+      ENV["PLUGINS"] = "admin_notifications"
+
+      registry = described_class.from_environment
+
+      expect(registry.find_plugin(OpenModBot::Plugins::AdminNotificationsPlugin))
+        .to be_a(OpenModBot::Plugins::AdminNotificationsPlugin)
+    end
+
     it "raises for unknown plugins" do
       ENV["PLUGINS"] = "missing"
 
