@@ -27,7 +27,6 @@ describe Harassment::ClassificationService do
     )
   end
 
-
   it "records classifications into its read model" do
     incident = service.record(event:, record:)
 

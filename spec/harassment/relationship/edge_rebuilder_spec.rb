@@ -18,7 +18,6 @@ describe Harassment::RelationshipEdgeRebuilder do
   let(:classification_records) { Harassment::Repositories::InMemoryClassificationRecordRepository.new }
   let(:relationship_edges) { Harassment::Repositories::InMemoryRelationshipEdgeRepository.new }
 
-
   let(:server_id) { nil }
   let(:classified_event) do
     Harassment::InteractionEvent.build(

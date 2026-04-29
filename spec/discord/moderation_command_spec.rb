@@ -51,7 +51,6 @@ describe Discord::ModerationCommand do
     )
   end
 
-
   describe "#matches?" do
     context "with a moderation command" do
       let(:content) { "!moderation watchlist add <@456>" }

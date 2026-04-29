@@ -32,7 +32,6 @@ describe Harassment::Runtime do
   let(:user) { instance_double("User", id: 321) }
   let(:event) { instance_double("Event", message: message, server: server, channel: channel, user: user) }
 
-
   let(:record) do
     Harassment::ClassificationRecord.build(
       server_id: "456",
@@ -109,7 +108,6 @@ describe Harassment::Runtime do
     end
 
     let(:connection) { FakePostgresConnection.new }
-
 
     it "uses Postgres for durable classification state while keeping runtime processing intact" do
       runtime.ingest_message(event)

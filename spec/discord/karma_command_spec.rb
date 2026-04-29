@@ -15,7 +15,6 @@ describe Discord::KarmaCommand do
   let(:user) { instance_double("User", id: 42) }
   let(:event) { instance_double("Event", server: server, user: user, respond: true) }
 
-
   it "reports user karma" do
     command.handle(event, match(nil, user_id: "456"))
 

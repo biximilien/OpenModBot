@@ -11,7 +11,6 @@ describe Discord::ReadyHandler do
   let(:bot) { instance_double("Bot", online: true, servers: { 123 => server }) }
   let(:event) { instance_double("ReadyEvent") }
 
-
   it "marks the bot online" do
     handler.handle(event)
 

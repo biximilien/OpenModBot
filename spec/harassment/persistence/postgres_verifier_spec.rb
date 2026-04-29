@@ -22,7 +22,6 @@ describe Harassment::PostgresVerifier do
   let(:target_classification_jobs) { Harassment::Repositories::PostgresClassificationJobRepository.new(connection: connection) }
   let(:target_relationship_edges) { Harassment::Repositories::PostgresRelationshipEdgeRepository.new(connection: connection) }
 
-
   before do
     event = Harassment::InteractionEvent.build(
       message_id: 123,

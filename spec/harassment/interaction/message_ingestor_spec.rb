@@ -23,7 +23,6 @@ describe Harassment::MessageIngestor do
     )
   end
 
-
   let(:mentioned_user) { instance_double("User", id: 654) }
   let(:message) do
     instance_double(

@@ -27,7 +27,6 @@ describe Harassment::PostgresBootstrap do
   let(:target_classification_records) { Harassment::Repositories::PostgresClassificationRecordRepository.new(connection: connection) }
   let(:target_classification_jobs) { Harassment::Repositories::PostgresClassificationJobRepository.new(connection: connection) }
 
-
   let(:event) do
     Harassment::InteractionEvent.build(
       message_id: 123,

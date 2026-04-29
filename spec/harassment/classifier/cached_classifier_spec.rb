@@ -45,7 +45,6 @@ describe Harassment::CachedClassifier do
     )
   end
 
-
   it "reuses cached classifications for the same server, classifier, content, and context" do
     allow(delegate).to receive(:classify).and_return(record)
 

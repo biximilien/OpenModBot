@@ -67,7 +67,6 @@ describe Harassment::ClassificationWorker do
   end
   let(:processed) { [] }
 
-
   before do
     interaction_events.save(event)
     classification_pipeline.enqueue(message_id: "123", server_id: "456", classifier_version: "harassment-v1",

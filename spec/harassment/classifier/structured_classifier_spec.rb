@@ -34,7 +34,6 @@ describe Harassment::StructuredClassifier do
     )
   end
 
-
   it "builds a classification record from structured provider output" do
     response = { "output_text" => <<~JSON.strip }
       {"intent":"aggressive","target_type":"individual","toxicity_dimensions":{"insult":true,"threat":false,"profanity":false,"exclusion":true,"harassment":true},"severity_score":0.8,"confidence":0.9}

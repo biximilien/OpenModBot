@@ -14,7 +14,6 @@ describe Discord::WatchlistCommand do
   let(:server) { instance_double("Server", id: 123) }
   let(:event) { instance_double("Event", server: server, respond: true) }
 
-
   it "lists watched users" do
     command.handle(event, match(nil))
 

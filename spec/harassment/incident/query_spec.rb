@@ -13,7 +13,6 @@ describe Harassment::IncidentQuery do
   let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
   let(:classification_records) { Harassment::Repositories::InMemoryClassificationRecordRepository.new }
 
-
   before do
     interaction_events.save(
       Harassment::InteractionEvent.build(

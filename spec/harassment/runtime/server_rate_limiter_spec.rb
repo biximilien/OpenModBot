@@ -11,7 +11,6 @@ describe Harassment::ServerRateLimiter do
 
   let(:repository) { Harassment::Repositories::InMemoryServerRateLimitRepository.new }
 
-
   it "allows requests under the per-server limit and returns a retry time once exceeded" do
     now = Time.utc(2026, 4, 25, 18, 0, 0)
 

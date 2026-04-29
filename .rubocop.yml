@@ -77,13 +77,13 @@ RSpec/DescribeClass:
   Enabled: false
 
 RSpec/ExampleLength:
-  Enabled: false
+  Max: 45
 
 RSpec/MultipleExpectations:
-  Enabled: false
+  Max: 10
 
 RSpec/MultipleMemoizedHelpers:
-  Enabled: false
+  Max: 11
 
 RSpec/SpecFilePathFormat:
   Enabled: false

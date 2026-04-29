@@ -42,7 +42,6 @@ describe Harassment::IncidentCollection do
     )
   end
 
-
   it "returns recent channel incidents newest first" do
     incidents = collection.recent(server_id: "456", channel_id: "789")
 

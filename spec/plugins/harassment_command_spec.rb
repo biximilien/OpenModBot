@@ -62,7 +62,6 @@ describe ModerationGPT::Plugins::HarassmentCommand do
     )
   end
 
-
   let(:channel) { instance_double("Channel", id: 321) }
   let(:server) { instance_double("Server", id: 123) }
   let(:message) { instance_double("Message", content: "!moderation harassment risk <@456>") }

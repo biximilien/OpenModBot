@@ -6,7 +6,6 @@ describe Harassment::RetentionManager do
 
   let(:interaction_events) { Harassment::Repositories::InMemoryInteractionEventRepository.new }
 
-
   it "redacts expired event content while preserving metadata" do
     event = Harassment::InteractionEvent.build(
       message_id: 123,

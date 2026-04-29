@@ -29,7 +29,6 @@ describe GoogleAI::Provider do
     }
   end
 
-
   before do
     allow(transport).to receive(:generate_content).and_return(response)
   end

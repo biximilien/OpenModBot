@@ -7,7 +7,6 @@ describe Harassment::CompositeSignalAnalyzer do
 
   let(:read_model) { Harassment::ReadModel.new(decay_policy: Harassment::DecayPolicy.new(lambda_value: 0.0)) }
 
-
   def build_event(message_id:, author_id:, target_user_ids:, classified_at:, severity_score:, confidence:,
                   channel_id: 789)
     event = Harassment::InteractionEvent.build(

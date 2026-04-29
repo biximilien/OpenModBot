@@ -16,7 +16,6 @@ describe Harassment::ClassificationPipeline do
   let(:classification_records) { Harassment::Repositories::InMemoryClassificationRecordRepository.new }
   let(:classification_jobs) { Harassment::Repositories::InMemoryClassificationJobRepository.new }
 
-
   let(:event) do
     Harassment::InteractionEvent.build(
       message_id: 123,
