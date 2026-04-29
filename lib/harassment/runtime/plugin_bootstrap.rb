@@ -23,7 +23,7 @@ module Harassment
     def build
       factory = RepositoryFactory.new(
         backend: storage_backend,
-        redis: @app.redis,
+        redis: redis_client,
         connection: @storage_config.database_connection
       )
       read_model = build_read_model(factory)
@@ -47,6 +47,12 @@ module Harassment
         score_version: @score_version,
         edge_repository: factory.relationship_edges
       )
+    end
+
+    def redis_client
+      return nil unless storage_backend == "redis"
+
+      @app.redis
     end
 
     attr_reader :storage_backend

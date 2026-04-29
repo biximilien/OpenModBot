@@ -130,10 +130,17 @@ bundle config set --local with postgres
 bundle install
 ```
 
+Enable optional Redis dependencies when using the Redis plugin:
+
+```bash
+bundle config set --local with redis
+bundle install
+```
+
 Start Redis if you want Redis-backed core moderation state:
 
 ```bash
-docker compose up redis
+docker compose --profile redis up redis
 ```
 
 If you are not using Docker, point `REDIS_URL` at any reachable Redis instance and run with `PLUGINS=redis`. With no database plugin enabled, moderation state is in-memory and resets on restart.
@@ -241,7 +248,7 @@ ruby scripts/bootstrap_harassment_postgres.rb
 With Docker Compose, use:
 
 ```bash
-BUNDLE_WITH=postgres PLUGINS=redis,postgres docker compose --profile postgres run --rm bot ruby scripts/bootstrap_harassment_postgres.rb
+BUNDLE_WITH=redis:postgres PLUGINS=redis,postgres docker compose --profile redis --profile postgres run --rm bot ruby scripts/bootstrap_harassment_postgres.rb
 ```
 
 This script is idempotent for already-migrated interaction events, classification records, and classification jobs.
@@ -282,7 +289,7 @@ ruby scripts/verify_harassment_postgres.rb
 With Docker Compose, use:
 
 ```bash
-BUNDLE_WITH=postgres PLUGINS=redis,postgres docker compose --profile postgres run --rm bot ruby scripts/verify_harassment_postgres.rb
+BUNDLE_WITH=redis:postgres PLUGINS=redis,postgres docker compose --profile redis --profile postgres run --rm bot ruby scripts/verify_harassment_postgres.rb
 ```
 
 To verify specific known message IDs as part of the cutover check, pass them as arguments:
@@ -355,7 +362,13 @@ Run the bot with the Compose services:
 docker compose up --build
 ```
 
-The bot service reads secrets from `.env`. Inside Compose, `REDIS_URL` is set to `redis://redis:6379/0`; it is used when `PLUGINS` includes `redis`. Redis uses append-only persistence with `appendfsync everysec`, and stores local state in `./redis-data`.
+The bot service reads secrets from `.env`. Inside Compose, `REDIS_URL` is set to `redis://redis:6379/0`; it is used when `PLUGINS` includes `redis`. Redis is behind the `redis` Compose profile, uses append-only persistence with `appendfsync everysec`, and stores local state in `./redis-data`.
+
+To run with Redis-backed core moderation state:
+
+```bash
+BUNDLE_WITH=redis PLUGINS=redis docker compose --profile redis up --build
+```
 
 To run with harassment, build the image with the `postgres` bundle group and enable the Compose Postgres profile:
 
@@ -377,4 +390,4 @@ OTEL_EXPORTER_OTLP_HEADERS=x-honeycomb-team=secretkey
 OTEL_SERVICE_NAME=ModerationGPT
 ```
 
-OpenTelemetry is disabled by default. Identifier anonymization still runs when telemetry is disabled. Enable the telemetry plugin explicitly with `PLUGINS=telemetry`, then set `TELEMETRY_ENABLED=true` to turn on OpenTelemetry inside that plugin. Install optional telemetry dependencies with `bundle config set --local with telemetry` before `bundle install` when enabling OpenTelemetry locally. For Docker, build with `BUNDLE_WITH=telemetry docker compose build`. When combining optional groups in Docker, use `BUNDLE_WITH=postgres:telemetry`.
+OpenTelemetry is disabled by default. Identifier anonymization still runs when telemetry is disabled. Enable the telemetry plugin explicitly with `PLUGINS=telemetry`, then set `TELEMETRY_ENABLED=true` to turn on OpenTelemetry inside that plugin. Install optional telemetry dependencies with `bundle config set --local with telemetry` before `bundle install` when enabling OpenTelemetry locally. For Docker, build with `BUNDLE_WITH=telemetry docker compose build`. When combining optional groups in Docker, use values such as `BUNDLE_WITH=redis:postgres:telemetry`.

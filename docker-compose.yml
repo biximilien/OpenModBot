@@ -33,15 +33,14 @@ services:
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
       OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-ModerationGPT}
-    depends_on:
-      redis:
-        condition: service_started
     networks:
       - backend
 
   redis:
     image: redis:alpine
     container_name: redis
+    profiles:
+      - redis
     command: ["redis-server", "--appendonly", "yes", "--appendfsync", "everysec"]
     restart: always
     ports:

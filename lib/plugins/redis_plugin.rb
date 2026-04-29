@@ -1,4 +1,3 @@
-require "redis"
 require_relative "../../environment"
 require_relative "../moderation/stores/redis_store"
 require_relative "../plugin"
@@ -14,6 +13,7 @@ module ModerationGPT
         @redis ||= begin
           raise "REDIS_URL is required when redis plugin is enabled" if missing_redis_url?
 
+          require "redis"
           client = Redis.new(url: Environment.redis_url)
           raise "Redis connection failed" unless client.ping == "PONG"
 

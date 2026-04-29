@@ -17,7 +17,8 @@ describe ModerationGPT::Plugins::RedisPlugin do
     plugin = described_class.new
     app = instance_double("Application")
     ENV["REDIS_URL"] = "redis://localhost:6379/0"
-    allow(Redis).to receive(:new).and_return(redis)
+    stub_const("Redis", class_double("Redis", new: redis))
+    allow(plugin).to receive(:require).with("redis")
     allow(app).to receive(:moderation_store=)
 
     plugin.boot(app: app)

@@ -34,7 +34,7 @@ Use Postgres for the harassment runtime state:
    Run:
 
    ```bash
-   PLUGINS=redis,postgres
+   BUNDLE_WITH=redis:postgres PLUGINS=redis,postgres
    ruby scripts/bootstrap_harassment_postgres.rb
    ```
 
@@ -71,14 +71,14 @@ Use Postgres for the harassment runtime state:
    Run:
 
    ```bash
-   PLUGINS=redis,postgres
+   BUNDLE_WITH=redis:postgres PLUGINS=redis,postgres
    ruby scripts/verify_harassment_postgres.rb
    ```
 
    Or, if you want to sanity-check specific known incidents as well:
 
    ```bash
-   PLUGINS=redis,postgres
+   BUNDLE_WITH=redis:postgres PLUGINS=redis,postgres
    ruby scripts/verify_harassment_postgres.rb 123456789012345678 234567890123456789
    ```
 

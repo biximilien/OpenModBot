@@ -1,6 +1,5 @@
 require "backend"
 require "json"
-require_relative "support/fake_redis"
 
 describe Backend do
   include described_class
@@ -9,7 +8,6 @@ describe Backend do
   let(:user_id) { 456 }
 
   before do
-    allow(Redis).to receive(:new).and_return(FakeRedis.new)
     initialize_backend
   end
 

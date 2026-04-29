@@ -10,8 +10,10 @@ gem "discordrb"
 # load environment variables from .env file
 gem "dotenv"
 
-# redis is used as backend
-gem "redis"
+# optional redis database plugin
+group :redis, optional: true do
+  gem "redis"
+end
 
 # optional postgres database plugin
 group :postgres, optional: true do
