@@ -206,6 +206,10 @@ Built-in plugins:
 - `telemetry`
 - `personality`
 
+Plugin dependencies:
+
+- `harassment` requires `postgres`
+
 Plugin `boot` is a configuration boundary: if an enabled plugin cannot initialize required infrastructure, startup fails instead of continuing with a partially configured bot. Runtime hooks such as `message`, moderation observations, strategy contribution, and command contribution remain isolated so one plugin hook failure does not stop unrelated processing.
 
 Optional infrastructure is exposed through plugins rather than hidden globals. For example, the `redis` plugin owns `REDIS_URL` and exposes Redis-backed moderation storage, while the `postgres` plugin owns `DATABASE_URL` and exposes both Postgres-backed moderation storage and the database connection used by harassment.

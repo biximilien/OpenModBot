@@ -4,6 +4,10 @@ require_relative "plugin"
 
 module OpenModBot
   class PluginRegistry
+    BUILT_IN_DEPENDENCIES = {
+      "harassment" => ["postgres"]
+    }.freeze
+
     def self.register(name, factory = nil, &block)
       catalog[name.to_s] = factory || block
     end
@@ -15,7 +19,10 @@ module OpenModBot
     def self.from_environment(catalog: self.catalog)
       load_external_plugins
 
-      plugins = Environment.enabled_plugins.map do |name|
+      plugin_names = Environment.enabled_plugins
+      validate_plugin_dependencies!(plugin_names)
+
+      plugins = plugin_names.map do |name|
         factory = catalog.fetch(name) { raise "Unknown plugin: #{name}" }
         factory.call
       end
@@ -29,6 +36,21 @@ module OpenModBot
       rescue LoadError => e
         raise "Could not load plugin require #{path}: #{e.message}"
       end
+    end
+
+    def self.validate_plugin_dependencies!(plugin_names)
+      missing_by_plugin = BUILT_IN_DEPENDENCIES.filter_map do |plugin_name, dependencies|
+        next unless plugin_names.include?(plugin_name)
+
+        missing = dependencies.reject { |dependency| plugin_names.include?(dependency) }
+        [plugin_name, missing] unless missing.empty?
+      end
+      return if missing_by_plugin.empty?
+
+      message = missing_by_plugin.map do |plugin_name, missing|
+        "#{plugin_name} requires #{missing.join(", ")}"
+      end.join("; ")
+      raise "Missing plugin dependencies: #{message}"
     end
 
     def initialize(plugins = [])

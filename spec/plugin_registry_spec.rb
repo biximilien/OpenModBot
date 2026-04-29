@@ -32,8 +32,8 @@ describe OpenModBot::PluginRegistry do
       expect(registry.commands).to eq([])
     end
 
-    it "builds the built-in harassment plugin" do
-      ENV["PLUGINS"] = "harassment"
+    it "builds the built-in harassment plugin when postgres is enabled" do
+      ENV["PLUGINS"] = "postgres,harassment"
 
       registry = described_class.from_environment
 
@@ -41,6 +41,15 @@ describe OpenModBot::PluginRegistry do
       expect(registry.commands.length).to eq(1)
       expect(registry.commands.first.help_lines).to include("!moderation harassment risk @user")
       expect(registry.find_plugin(OpenModBot::Plugins::HarassmentPlugin)).to be_a(OpenModBot::Plugins::HarassmentPlugin)
+    end
+
+    it "raises clearly when a built-in plugin dependency is missing" do
+      ENV["PLUGINS"] = "harassment"
+
+      expect { described_class.from_environment }.to raise_error(
+        RuntimeError,
+        "Missing plugin dependencies: harassment requires postgres"
+      )
     end
 
     it "builds the built-in postgres plugin" do
