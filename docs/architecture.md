@@ -20,7 +20,7 @@ It also delegates AI calls to a replaceable provider. OpenAI is the default prov
 
 This keeps the rest of the bot working with a single `app` dependency.
 
-Postgres is intentionally not part of the shared application object. When database-backed features are needed, the optional [PostgresPlugin](../lib/plugins/postgres_plugin.rb) owns the `DATABASE_URL` connection and exposes it to other plugins through the plugin registry.
+Postgres is intentionally not part of the shared application object. When database-backed features are needed, the optional [PostgresPlugin](../lib/plugins/postgres_plugin.rb) owns the `DATABASE_URL` connection and exposes it to other plugins through the plugin registry's `postgres_connection` capability.
 
 ## Message Handling
 

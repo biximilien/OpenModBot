@@ -29,5 +29,9 @@ module ModerationGPT
     def ai_provider
       nil
     end
+
+    def postgres_connection
+      nil
+    end
   end
 end

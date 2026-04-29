@@ -24,8 +24,7 @@ describe Harassment::PluginBootstrap do
 
   it "builds a durable read model and incident query for Postgres storage" do
     connection = FakePostgresConnection.new
-    postgres_plugin = instance_double(ModerationGPT::Plugins::PostgresPlugin, database_connection: connection)
-    plugin_registry = instance_double("PluginRegistry", find_plugin: postgres_plugin)
+    plugin_registry = instance_double("PluginRegistry", postgres_connection: connection)
     app = instance_double("Application", redis: nil)
 
     configured = described_class.new(
@@ -43,7 +42,7 @@ describe Harassment::PluginBootstrap do
 
   it "raises clearly when Postgres storage is configured without the Postgres plugin" do
     app = instance_double("Application", redis: nil)
-    plugin_registry = instance_double("PluginRegistry", find_plugin: nil)
+    plugin_registry = instance_double("PluginRegistry", postgres_connection: nil)
 
     bootstrap = described_class.new(
       app: app,

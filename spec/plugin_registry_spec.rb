@@ -147,6 +147,21 @@ describe ModerationGPT::PluginRegistry do
       expect(described_class.new([first, second]).ai_provider).to eq(provider)
     end
 
+    it "returns the first plugin Postgres connection" do
+      connection = instance_double("PG::Connection")
+      first = instance_double("Plugin", postgres_connection: nil)
+      second = instance_double("Plugin", postgres_connection: connection)
+
+      expect(described_class.new([first, second]).postgres_connection).to eq(connection)
+    end
+
+    it "does not swallow Postgres connection setup errors" do
+      broken = instance_double("Plugin")
+      allow(broken).to receive(:postgres_connection).and_raise(RuntimeError, "missing DATABASE_URL")
+
+      expect { described_class.new([broken]).postgres_connection }.to raise_error(RuntimeError, "missing DATABASE_URL")
+    end
+
     it "raises boot failures so required plugin configuration cannot be skipped" do
       broken = instance_double("Plugin")
       allow(broken).to receive(:boot).and_raise(StandardError, "boom")

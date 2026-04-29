@@ -1,4 +1,3 @@
-require_relative "../../plugins/postgres_plugin"
 require_relative "../../../environment"
 
 module Harassment
@@ -17,14 +16,10 @@ module Harassment
     def database_connection
       return nil unless postgres?
 
-      postgres_plugin&.database_connection || raise_missing_postgres_plugin
+      @plugin_registry&.postgres_connection || raise_missing_postgres_plugin
     end
 
     private
-
-    def postgres_plugin
-      @plugin_registry&.find_plugin(ModerationGPT::Plugins::PostgresPlugin)
-    end
 
     def raise_missing_postgres_plugin
       raise "HARASSMENT_STORAGE_BACKEND=postgres requires the postgres plugin to be enabled"

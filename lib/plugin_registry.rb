@@ -85,6 +85,15 @@ module ModerationGPT
       first_hook_result(:ai_provider)
     end
 
+    def postgres_connection
+      @plugins.each do |plugin|
+        connection = plugin.postgres_connection
+        return connection if connection
+      end
+
+      nil
+    end
+
     def find_plugin(plugin_class)
       @plugins.find { |plugin| plugin.is_a?(plugin_class) }
     end

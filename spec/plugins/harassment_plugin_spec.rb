@@ -74,8 +74,7 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
   it "switches to Postgres relationship-edge storage on boot when configured" do
     fake_connection = FakePostgresConnection.new
     app = instance_double("Application", redis: nil)
-    postgres_plugin = instance_double(ModerationGPT::Plugins::PostgresPlugin, database_connection: fake_connection)
-    plugin_registry = instance_double("PluginRegistry", find_plugin: postgres_plugin)
+    plugin_registry = instance_double("PluginRegistry", postgres_connection: fake_connection)
     original_backend = ENV.fetch("HARASSMENT_STORAGE_BACKEND", nil)
     ENV["HARASSMENT_STORAGE_BACKEND"] = "postgres"
 
@@ -101,8 +100,7 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
     )
     Harassment::Repositories::PostgresClassificationRecordRepository.new(connection: fake_connection).save(record)
     app = instance_double("Application", redis: nil)
-    postgres_plugin = instance_double(ModerationGPT::Plugins::PostgresPlugin, database_connection: fake_connection)
-    plugin_registry = instance_double("PluginRegistry", find_plugin: postgres_plugin)
+    plugin_registry = instance_double("PluginRegistry", postgres_connection: fake_connection)
     original_backend = ENV.fetch("HARASSMENT_STORAGE_BACKEND", nil)
     ENV["HARASSMENT_STORAGE_BACKEND"] = "postgres"
 

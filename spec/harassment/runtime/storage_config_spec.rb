@@ -12,8 +12,7 @@ describe Harassment::StorageConfig do
 
   it "returns the Postgres plugin connection for Postgres storage" do
     connection = instance_double("Connection")
-    postgres_plugin = instance_double(ModerationGPT::Plugins::PostgresPlugin, database_connection: connection)
-    registry = instance_double("PluginRegistry", find_plugin: postgres_plugin)
+    registry = instance_double("PluginRegistry", postgres_connection: connection)
 
     config = described_class.new(plugin_registry: registry, storage_backend: "postgres")
 
@@ -22,7 +21,7 @@ describe Harassment::StorageConfig do
   end
 
   it "raises clearly when Postgres storage is configured without the Postgres plugin" do
-    registry = instance_double("PluginRegistry", find_plugin: nil)
+    registry = instance_double("PluginRegistry", postgres_connection: nil)
     config = described_class.new(plugin_registry: registry, storage_backend: "postgres")
 
     expect { config.database_connection }.to raise_error(

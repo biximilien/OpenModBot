@@ -21,6 +21,7 @@ module ModerationGPT
       end
 
       alias connection database_connection
+      alias postgres_connection database_connection
     end
   end
 end
