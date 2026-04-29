@@ -16,9 +16,8 @@ Use Postgres for the harassment runtime state:
 ## Preconditions
 
 - `DATABASE_URL` points to the target Postgres database
-- the optional `postgres` plugin dependency group has been installed
+- the optional `redis` and `postgres` plugin dependency groups have been installed
 - the schema in `db/harassment/001_initial_schema.sql` has been applied
-- Redis still contains the active harassment runtime state
 - Redis still contains the historical harassment runtime state to migrate
 
 ## Sequence
@@ -34,7 +33,7 @@ Use Postgres for the harassment runtime state:
    Run:
 
    ```bash
-   BUNDLE_WITH=redis:postgres PLUGINS=redis,postgres
+   PLUGINS=redis,postgres
    ruby scripts/bootstrap_harassment_postgres.rb
    ```
 
@@ -71,14 +70,14 @@ Use Postgres for the harassment runtime state:
    Run:
 
    ```bash
-   BUNDLE_WITH=redis:postgres PLUGINS=redis,postgres
+   PLUGINS=redis,postgres
    ruby scripts/verify_harassment_postgres.rb
    ```
 
    Or, if you want to sanity-check specific known incidents as well:
 
    ```bash
-   BUNDLE_WITH=redis:postgres PLUGINS=redis,postgres
+   PLUGINS=redis,postgres
    ruby scripts/verify_harassment_postgres.rb 123456789012345678 234567890123456789
    ```
 

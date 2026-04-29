@@ -1,6 +1,6 @@
 # Data Model
 
-ModerationGPT stores core moderation state through a selectable moderation store. With no database plugin, the store is in-memory and resets on restart. The `redis` plugin stores the same state in Redis, while the `postgres` plugin stores it in Postgres. JSON audit records are defined by `DataModel::KarmaEvent`.
+ModerationGPT stores core moderation state through a selectable moderation store. With no database plugin, the store is in-memory and resets on restart. The `redis` plugin stores the same state in Redis, while the `postgres` plugin stores it in Postgres. Karma audit entries are represented in application code by `DataModel::KarmaEvent`.
 
 ## Core Moderation State
 
@@ -51,40 +51,40 @@ Redis keys are defined in `DataModel::Keys`.
 - Retention: latest 100 entries
 - Purpose: stores recent live and shadow-mode moderation decisions for moderator review
 
-### `harassment_interaction_events`
+### Legacy `harassment_interaction_events`
 
 - Type: Redis hash
 - Fields: `{server_id}:{message_id}`
 - Values: JSON `Harassment::InteractionEvent` records
-- Purpose: stores immutable harassment interaction events, including classification lifecycle state and content retention metadata
+- Purpose: legacy source data for deployments that are migrated to the current Postgres harassment runtime
 
-### `harassment_classification_records`
+### Legacy `harassment_classification_records`
 
 - Type: Redis hash
 - Fields: `{server_id}:{message_id}:{classifier_version}`
 - Values: JSON `Harassment::ClassificationRecord` records
-- Purpose: stores immutable structured classifier output for harassment analysis
+- Purpose: legacy source data for deployments that are migrated to the current Postgres harassment runtime
 
-### `harassment_classification_jobs`
+### Legacy `harassment_classification_jobs`
 
 - Type: Redis hash
 - Fields: `{server_id}:{message_id}:{classifier_version}`
 - Values: JSON `Harassment::ClassificationJob` records
-- Purpose: stores idempotent harassment classification job state, retry metadata, and availability timestamps
+- Purpose: legacy source data for deployments that are migrated to the current Postgres harassment runtime
 
-### `harassment_classification_cache`
+### Legacy `harassment_classification_cache`
 
 - Type: Redis hash
 - Fields: `harassment-cache:{sha256}`
 - Values: JSON entries containing an expiration timestamp and cached `Harassment::ClassificationRecord`
-- Purpose: caches structured classifier output by server, classifier identity, and normalized message/context input
+- Purpose: legacy operational cache state; not bootstrapped into Postgres
 
-### `harassment_server_rate_limits`
+### Legacy `harassment_server_rate_limits`
 
 - Type: Redis hash
 - Fields: Discord server IDs as strings
 - Values: JSON arrays of recent classifier-call timestamps
-- Purpose: tracks per-server classifier throughput so heavy processing can be deferred without losing jobs
+- Purpose: legacy operational rate-limit state; not bootstrapped into Postgres
 
 ## Postgres Core Moderation Tables
 

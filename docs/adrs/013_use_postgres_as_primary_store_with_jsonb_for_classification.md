@@ -1,11 +1,15 @@
 # ADR-013: Support Postgres as Durable Harassment Store with JSONB for Classification
 
 _Status_: Accepted
+
+_Current implementation note_:
+The original decision kept Redis as a lightweight harassment storage backend during rollout. The current harassment plugin now requires the `postgres` plugin and uses Postgres-backed repositories at runtime. Redis-backed harassment repositories remain only for historical migration, verification, and older deployment support.
+
 _Context_:
-The harassment pipeline needs durable relational querying for time windows, tenant scoping, and projections, while still preserving flexible structured classifier payloads. The project also needs to keep a lightweight Redis-backed path for local development, simple deployments, and incremental rollout.
+The harassment pipeline needs durable relational querying for time windows, tenant scoping, and projections, while still preserving flexible structured classifier payloads. During incremental rollout, the project also needed to keep a lightweight Redis-backed path for local development, simple deployments, and migration.
 
 _Decision_:
-Support PostgreSQL as the durable relational datastore for the harassment pipeline when the optional Postgres infrastructure plugin is enabled. Redis remains the default lightweight harassment storage backend, while Postgres is the recommended production backend for durable relational querying and projection rebuilds.
+Support PostgreSQL as the durable relational datastore for the harassment pipeline when the optional Postgres infrastructure plugin is enabled. Redis-backed harassment repositories may coexist behind the same domain contracts for migration and compatibility, but the harassment plugin runtime uses Postgres.
 
 Postgres access is provided by the optional `postgres` plugin. The harassment plugin and runtime must not own global database connection setup directly; they receive the Postgres connection through plugin composition and repository construction.
 
@@ -90,8 +94,8 @@ _Consequences_:
 
 - Preserves the event/classification split established in ADR-001
 - Supports relational queries for moderation insights and replay orchestration
-- Keeps Postgres optional instead of making the harassment plugin depend directly on a database
-- Allows Redis and Postgres repository implementations to coexist behind the same domain contracts
+- Keeps database setup in the optional Postgres infrastructure plugin instead of hidden global connection setup
+- Allows Redis and Postgres repository implementations to coexist behind the same domain contracts for migration
 - Allows schema-flexible classifier payloads without collapsing immutable events into mutable records
 - Requires careful indexing and projection design to avoid JSONB performance pitfalls
 - Requires migration, verification, and cutover tooling between Redis-backed and Postgres-backed harassment state

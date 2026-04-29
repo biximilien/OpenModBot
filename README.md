@@ -59,6 +59,11 @@ Administrators can manage moderation state with:
 !moderation review @user
 !moderation review clear
 !moderation review repost 1234567890
+```
+
+When the `harassment` plugin is enabled, moderators can also inspect harassment risk signals with:
+
+```bash
 !moderation harassment risk @user
 !moderation harassment pair @user_a @user_b
 !moderation harassment incidents 3
@@ -71,7 +76,7 @@ Each moderated infraction decreases the user's per-server karma score and record
 
 Set `MODERATION_SHADOW_MODE=true` to classify messages and record the review queue without deleting messages, reposting rewrites, changing karma, or applying automod. Shadow mode generates would-be rewrites by default; set `MODERATION_SHADOW_REWRITE=false` to avoid rewrite-generation calls while testing. Moderators can inspect the queue with `!moderation review recent [limit]`, filter with `!moderation review @user [limit]`, and clear it with `!moderation review clear`.
 
-Review reposting is privacy-gated. By default, review entries do not store original message content and `!moderation review repost message_id` reports that content is unavailable. Set `MODERATION_REVIEW_STORE_CONTENT=true` to store original flagged content in Redis review entries and allow moderators to repost it with the repost command. `restore` remains accepted as a compatibility alias.
+Review reposting is privacy-gated. By default, review entries do not store original message content and `!moderation review repost message_id` reports that content is unavailable. Set `MODERATION_REVIEW_STORE_CONTENT=true` to store original flagged content in moderation review entries and allow moderators to repost it with the repost command. `restore` remains accepted as a compatibility alias.
 
 ## Requirements
 
@@ -177,7 +182,7 @@ Use `LOG_FORMAT=plain` if you want a more human-oriented log format during local
 
 ## Operations
 
-Enabled plugins are booted during startup. Boot failures are intentional hard failures because they usually mean required configuration or infrastructure is missing, such as enabling `postgres` without a usable `DATABASE_URL`.
+Enabled plugins are booted during startup. Boot failures are intentional hard failures because they usually mean required configuration, gems, or infrastructure are missing, such as enabling `redis` without the optional Redis bundle group or enabling `postgres` without a usable `DATABASE_URL`.
 
 Runtime plugin hooks are isolated after boot. If a hook fails while handling messages or contributing optional behavior, the bot logs `plugin_hook_failed` and continues processing unrelated work.
 
@@ -238,7 +243,7 @@ The harassment plugin always uses Postgres-backed repositories for interaction e
 PLUGINS=postgres,harassment
 ```
 
-To bootstrap the current Redis harassment state into Postgres before cutover, run:
+To bootstrap historical Redis harassment state into Postgres before cutover, first install the optional Redis and Postgres bundle groups, then run:
 
 ```bash
 PLUGINS=redis,postgres
@@ -279,7 +284,7 @@ When the harassment plugin boots against durable repositories, moderator-facing 
 
 The harassment implementation is organized by domain under `lib/harassment`, with grouped folders for `classification`, `classifier`, `discord`, `incident`, `interaction`, `relationship`, `risk`, `runtime`, `repositories`, and `persistence`. New code should require files from those grouped paths directly.
 
-To compare Redis and Postgres harassment counts, inspect Postgres relationship-edge totals, and run a small set of sampled row checks before cutover, run:
+To compare Redis and Postgres harassment counts, inspect Postgres relationship-edge totals, and run a small set of sampled row checks before cutover, first install the optional Redis and Postgres bundle groups, then run:
 
 ```bash
 PLUGINS=redis,postgres
