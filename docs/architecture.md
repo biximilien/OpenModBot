@@ -171,6 +171,9 @@ Current hook types include:
 - moderation observation hooks: `moderation_result`, `infraction`, `automod_outcome`
 - behavior hooks: `rewrite_instructions`, `moderation_strategies`
 - command contribution hook: `commands`
+- optional infrastructure capabilities through `capabilities` and `PluginRegistry#capability`
+
+Plugins that provide shared optional infrastructure should expose it as a named capability, such as `postgres_connection` or `ai_provider`. Domain plugins should consume those capabilities through the registry instead of depending directly on a concrete infrastructure plugin class. Existing named registry helpers may remain as compatibility shims for common capabilities.
 
 Current built-in plugins:
 

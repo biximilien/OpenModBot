@@ -18,6 +18,7 @@ describe ModerationGPT::Plugins::PostgresPlugin do
     expect(plugin.database_connection).to eq(connection)
     expect(plugin.connection).to eq(connection)
     expect(plugin.postgres_connection).to eq(connection)
+    expect(plugin.capabilities).to eq(postgres_connection: connection)
     expect(PG).to have_received(:connect).once.with(ENV.fetch("DATABASE_URL"))
   end
 

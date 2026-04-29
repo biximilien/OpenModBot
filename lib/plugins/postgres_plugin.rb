@@ -20,6 +20,10 @@ module ModerationGPT
         end
       end
 
+      def capabilities
+        { postgres_connection: database_connection }
+      end
+
       alias connection database_connection
       alias postgres_connection database_connection
     end

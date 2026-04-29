@@ -30,6 +30,10 @@ module ModerationGPT
       nil
     end
 
+    def capabilities
+      {}
+    end
+
     def postgres_connection
       nil
     end

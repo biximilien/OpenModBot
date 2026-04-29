@@ -82,13 +82,23 @@ module ModerationGPT
     end
 
     def ai_provider
-      first_hook_result(:ai_provider)
+      capability(:ai_provider) || first_hook_result(:ai_provider)
     end
 
     def postgres_connection
+      capability(:postgres_connection) || legacy_postgres_connection
+    end
+
+    def capability(name)
+      capability_name = name.to_sym
       @plugins.each do |plugin|
-        connection = plugin.postgres_connection
-        return connection if connection
+        next unless plugin.respond_to?(:capabilities)
+
+        capabilities = plugin.capabilities
+        next unless capabilities.key?(capability_name)
+
+        value = capabilities.fetch(capability_name)
+        return value if value
       end
 
       nil
@@ -126,6 +136,15 @@ module ModerationGPT
         log_hook_failure(hook, e)
         []
       end
+    end
+
+    def legacy_postgres_connection
+      @plugins.each do |plugin|
+        connection = plugin.postgres_connection
+        return connection if connection
+      end
+
+      nil
     end
 
     def log_hook_failure(hook, error)

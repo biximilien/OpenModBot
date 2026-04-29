@@ -14,6 +14,10 @@ module ModerationGPT
         @ai_provider ||= GoogleAI::Provider.new
       end
 
+      def capabilities
+        { ai_provider: ai_provider }
+      end
+
       private
 
       def missing_api_key?

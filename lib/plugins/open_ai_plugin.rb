@@ -11,6 +11,10 @@ module ModerationGPT
       def ai_provider
         @ai_provider ||= OpenAI::Provider.new
       end
+
+      def capabilities
+        { ai_provider: ai_provider }
+      end
     end
   end
 end

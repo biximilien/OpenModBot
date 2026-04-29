@@ -14,7 +14,7 @@ Infrastructure plugins:
 
 - own setup for the external service they represent
 - validate their own required configuration during `boot`
-- expose small public accessors through the plugin registry for other plugins or platform runtime code
+- expose small named capabilities through the plugin registry for other plugins or platform runtime code
 - are discovered through the plugin registry
 - are enabled explicitly through environment configuration
 
@@ -24,9 +24,9 @@ The shared application object may continue to own always-on core dependencies, s
 
 _Current application_:
 
-- `PostgresPlugin` owns `DATABASE_URL` and exposes the database connection through `PluginRegistry#postgres_connection`.
-- `OpenAIPlugin` exposes the default AI provider for moderation, rewrites, and structured classifier calls.
-- `GoogleAIPlugin` exposes an optional Gemini-backed AI provider with the same application-facing provider interface.
+- `PostgresPlugin` owns `DATABASE_URL` and exposes the database connection as the `postgres_connection` capability.
+- `OpenAIPlugin` exposes the default AI provider for moderation, rewrites, and structured classifier calls as the `ai_provider` capability.
+- `GoogleAIPlugin` exposes an optional Gemini-backed AI provider with the same application-facing provider interface as the `ai_provider` capability.
 - `TelemetryPlugin` owns OpenTelemetry setup.
 - `HarassmentPlugin` owns its runtime and background worker lifecycle, and obtains Postgres-backed repositories through plugin composition when `HARASSMENT_STORAGE_BACKEND=postgres`.
 - The base application still owns Redis-backed moderation state and delegates AI helper methods to the configured provider.

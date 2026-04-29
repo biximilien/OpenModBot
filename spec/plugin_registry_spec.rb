@@ -147,6 +147,21 @@ describe ModerationGPT::PluginRegistry do
       expect(described_class.new([first, second]).ai_provider).to eq(provider)
     end
 
+    it "returns a named plugin capability" do
+      connection = instance_double("PG::Connection")
+      first = instance_double("Plugin", capabilities: {})
+      second = instance_double("Plugin", capabilities: { postgres_connection: connection })
+
+      expect(described_class.new([first, second]).capability(:postgres_connection)).to eq(connection)
+    end
+
+    it "uses capabilities before legacy AI provider hooks" do
+      provider = instance_double("AIProvider")
+      plugin = instance_double("Plugin", capabilities: { ai_provider: provider }, ai_provider: nil)
+
+      expect(described_class.new([plugin]).ai_provider).to eq(provider)
+    end
+
     it "returns the first plugin Postgres connection" do
       connection = instance_double("PG::Connection")
       first = instance_double("Plugin", postgres_connection: nil)
