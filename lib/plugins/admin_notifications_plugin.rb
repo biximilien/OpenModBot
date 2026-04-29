@@ -11,14 +11,11 @@ module OpenModBot
         @rate_limit_timestamps = Hash.new { |hash, key| hash[key] = [] }
       end
 
-      def boot(**)
+      def boot(bot:, **)
+        @discord_bot = bot
         return unless channel_id_missing?
 
         raise "ADMIN_NOTIFICATION_CHANNEL_ID is required when admin_notifications plugin is enabled"
-      end
-
-      def message(bot:, **)
-        @discord_bot = bot
       end
 
       def moderation_result(event:, result:, strategy:, **)

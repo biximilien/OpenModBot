@@ -27,7 +27,7 @@ describe OpenModBot::Plugins::AdminNotificationsPlugin do
   it "requires a notification channel when enabled" do
     ENV.delete("ADMIN_NOTIFICATION_CHANNEL_ID")
 
-    expect { described_class.new.boot }.to raise_error(
+    expect { described_class.new.boot(bot:) }.to raise_error(
       RuntimeError,
       "ADMIN_NOTIFICATION_CHANNEL_ID is required when admin_notifications plugin is enabled"
     )
@@ -35,8 +35,7 @@ describe OpenModBot::Plugins::AdminNotificationsPlugin do
 
   it "notifies the configured channel for ambiguous moderation scores" do
     plugin = described_class.new
-    plugin.boot
-    plugin.message(event:, app: :app, bot:)
+    plugin.boot(bot:)
 
     plugin.moderation_result(event:, result:, app: :app, strategy: "RemoveMessageStrategy")
 
@@ -56,7 +55,7 @@ describe OpenModBot::Plugins::AdminNotificationsPlugin do
 
   it "does not notify for scores outside the ambiguous band" do
     plugin = described_class.new
-    plugin.message(event:, app: :app, bot:)
+    plugin.boot(bot:)
     clear_result = OpenModBot::AI::ModerationResult.new(
       flagged: false,
       categories: {},
@@ -70,7 +69,7 @@ describe OpenModBot::Plugins::AdminNotificationsPlugin do
 
   it "deduplicates moderation notifications for the same message" do
     plugin = described_class.new
-    plugin.message(event:, app: :app, bot:)
+    plugin.boot(bot:)
 
     2.times { plugin.moderation_result(event:, result:, app: :app, strategy: "RemoveMessageStrategy") }
 
@@ -82,7 +81,7 @@ describe OpenModBot::Plugins::AdminNotificationsPlugin do
     ENV["ADMIN_NOTIFICATION_RATE_LIMIT_PER_MINUTE"] = "1"
     plugin = described_class.new(clock: -> { now })
     second_event = moderation_event(content: "maybe bad too", server_id: 123, channel_id: 456, user_id: 790)
-    plugin.message(event:, app: :app, bot:)
+    plugin.boot(bot:)
 
     plugin.moderation_result(event:, result:, app: :app, strategy: "RemoveMessageStrategy")
     plugin.moderation_result(event: second_event, result:, app: :app, strategy: "RemoveMessageStrategy")
@@ -94,7 +93,7 @@ describe OpenModBot::Plugins::AdminNotificationsPlugin do
     ENV["MODERATION_SHADOW_MODE"] = "true"
     ENV["ADMIN_NOTIFICATION_SHADOW_MODE"] = "false"
     plugin = described_class.new
-    plugin.message(event:, app: :app, bot:)
+    plugin.boot(bot:)
 
     plugin.moderation_result(event:, result:, app: :app, strategy: "RemoveMessageStrategy")
 
@@ -103,7 +102,7 @@ describe OpenModBot::Plugins::AdminNotificationsPlugin do
 
   it "notifies for automod outcomes" do
     plugin = described_class.new
-    plugin.message(event:, app: :app, bot:)
+    plugin.boot(bot:)
 
     plugin.automod_outcome(
       event: event,

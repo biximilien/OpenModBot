@@ -24,7 +24,7 @@ module OpenModBot
     end
 
     def build(bot:)
-      @plugins.boot(app: @app, plugin_registry: @plugins)
+      @plugins.boot(app: @app, bot: bot, plugin_registry: @plugins)
       configure_optional_capabilities
 
       RuntimeComponents.new(
