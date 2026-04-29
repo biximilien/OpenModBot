@@ -25,6 +25,7 @@ ADR numbers are stable identifiers. Superseded ADR files are kept in place so ol
 - [ADR-023: Expose Moderation Insights via Read API](./023_expose_moderation_insights_via_read_api.md)
 - [ADR-024: Keep Scoring Logic Deterministic and Versioned](./024_keep_scoring_logic_deterministic_and_versioned.md)
 - [ADR-025: Use Optional Infrastructure Plugins for Shared Services](./025_optional_infrastructure_plugins.md)
+- [ADR-026: Optional Admin Notifications for Moderator Attention](./026_optional_admin_notifications.md)
 
 ## Superseded ADRs
 
