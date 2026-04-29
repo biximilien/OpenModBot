@@ -14,13 +14,13 @@ At startup, [bot.rb](../bot.rb) does five main things:
 
 The shared application object lives in [lib/application.rb](../lib/application.rb). It mixes together:
 
-- [Backend](../lib/backend.rb) for Redis-backed state
+- [Backend](../lib/backend.rb) for the core moderation store interface
 
 It also delegates AI calls to a replaceable provider. OpenAI is the default provider and can be configured explicitly through [OpenAIPlugin](../lib/plugins/open_ai_plugin.rb). [GoogleAIPlugin](../lib/plugins/google_ai_plugin.rb) can replace it with a Gemini-backed provider during `boot`, and external AI backend plugins can follow the same provider interface.
 
 This keeps the rest of the bot working with a single `app` dependency.
 
-Postgres is intentionally not part of the shared application object. When database-backed features are needed, the optional [PostgresPlugin](../lib/plugins/postgres_plugin.rb) owns the `DATABASE_URL` connection and exposes it to other plugins through the plugin registry's `postgres_connection` capability.
+The application defaults to an in-memory moderation store so the bot can run without database plugins. [RedisPlugin](../lib/plugins/redis_plugin.rb) can replace it with Redis-backed moderation storage, and [PostgresPlugin](../lib/plugins/postgres_plugin.rb) can replace it with Postgres-backed moderation storage while also exposing the `postgres_connection` capability to other plugins.
 
 ## Message Handling
 
@@ -78,17 +78,23 @@ AI providers expose the same application-facing methods: `moderate_text`, `moder
 
 ## Persistence Model
 
-[lib/backend.rb](../lib/backend.rb) stores the original moderation state in Redis. The key definitions live in [lib/data_model/keys.rb](../lib/data_model/keys.rb), and karma audit entries are represented by [lib/data_model/karma_event.rb](../lib/data_model/karma_event.rb).
+[lib/backend.rb](../lib/backend.rb) delegates core moderation state to the configured moderation store. Karma audit entries are represented by [lib/data_model/karma_event.rb](../lib/data_model/karma_event.rb), and review entries are represented by [lib/data_model/moderation_review_entry.rb](../lib/data_model/moderation_review_entry.rb).
 
-The Redis backend is grouped into small store modules under [lib/backend](../lib/backend): `KarmaStore`, `WatchlistStore`, and `ServerStore`. The shared application still includes them through `Backend`, so callers keep using the same application-level methods.
+Core moderation store implementations live under [lib/moderation/stores](../lib/moderation/stores):
 
-Redis-backed state includes:
+- `InMemoryStore`, the default, for plugin-free local operation
+- `RedisStore`, enabled by the `redis` plugin
+- `PostgresStore`, enabled by the `postgres` plugin
+
+All stores expose the same application-level methods for:
 
 - known Discord servers
 - per-server watchlists
 - per-server user karma scores
 - capped per-user karma history
-See [docs/data-model.md](./data-model.md) for the exact Redis structures and field definitions.
+- capped moderation review queues
+
+See [docs/data-model.md](./data-model.md) for the structures and field definitions.
 
 ## Harassment Pipeline
 
@@ -129,7 +135,7 @@ The harassment plugin builds a runtime that stores immutable interaction events,
 
 Classifier cache keys are derived from server scope, classifier version, classifier prompt/schema identity, and normalized message/context input. When a server exceeds the configured classifier call budget, the runtime defers the job forward without consuming a retry attempt.
 
-When `HARASSMENT_STORAGE_BACKEND=postgres` is enabled, the `postgres` plugin must also be enabled. The harassment runtime then uses the shared Postgres plugin connection with Postgres-backed repositories for interaction events, classification records, classification jobs, classifier cache entries, per-server rate-limit buckets, and relationship-edge projections. The Redis bootstrap path migrates the durable interaction, classification, and job records; cache/rate-limit state resets on cutover, while relationship-edge projections can be rebuilt from stored classified events and their latest stored classification records.
+The harassment plugin requires the `postgres` plugin. Its runtime uses the shared Postgres plugin connection with Postgres-backed repositories for interaction events, classification records, classification jobs, classifier cache entries, per-server rate-limit buckets, and relationship-edge projections. The Redis bootstrap path remains available for older deployments that are migrating historical harassment data; cache/rate-limit state resets on cutover, while relationship-edge projections can be rebuilt from stored classified events and their latest stored classification records.
 
 The moderator-facing incident and risk surface no longer depends only on process-local incident memory when durable repositories are available. The harassment query layer can reconstruct incidents from stored classified interaction events plus stored classification records, which keeps `recent incidents` and incident-derived risk signals meaningful across restarts.
 
@@ -181,6 +187,7 @@ Current built-in plugins:
 - [GoogleAIPlugin](../lib/plugins/google_ai_plugin.rb)
 - [OpenAIPlugin](../lib/plugins/open_ai_plugin.rb)
 - [PostgresPlugin](../lib/plugins/postgres_plugin.rb)
+- [RedisPlugin](../lib/plugins/redis_plugin.rb)
 - [TelemetryPlugin](../lib/plugins/telemetry_plugin.rb)
 - [PersonalityPlugin](../lib/plugins/personality_plugin.rb)
 

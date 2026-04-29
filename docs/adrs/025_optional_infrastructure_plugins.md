@@ -20,16 +20,17 @@ Infrastructure plugins:
 
 Domain plugins and runtime components must consume optional infrastructure through composition. They should not create global clients for optional services directly when an infrastructure plugin already owns that concern.
 
-The shared application object may continue to own always-on core dependencies, such as the Redis-backed moderation state used by the base bot. Optional infrastructure, such as Postgres, should stay outside the shared application object unless it becomes a required core dependency.
+The shared application object may continue to own lightweight defaults, such as in-memory moderation state. Optional infrastructure, such as Redis and Postgres, should stay outside the shared application object unless it becomes a required core dependency.
 
 _Current application_:
 
-- `PostgresPlugin` owns `DATABASE_URL` and exposes the database connection as the `postgres_connection` capability.
+- `RedisPlugin` owns `REDIS_URL` and exposes Redis-backed core moderation storage as the `moderation_store` capability.
+- `PostgresPlugin` owns `DATABASE_URL`, exposes Postgres-backed core moderation storage as the `moderation_store` capability, and exposes the database connection as the `postgres_connection` capability.
 - `OpenAIPlugin` exposes the default AI provider for moderation, rewrites, and structured classifier calls as the `ai_provider` capability.
 - `GoogleAIPlugin` exposes an optional Gemini-backed AI provider with the same application-facing provider interface as the `ai_provider` capability.
 - `TelemetryPlugin` owns OpenTelemetry setup.
-- `HarassmentPlugin` owns its runtime and background worker lifecycle, and obtains Postgres-backed repositories through plugin composition when `HARASSMENT_STORAGE_BACKEND=postgres`.
-- The base application still owns Redis-backed moderation state and delegates AI helper methods to the configured provider.
+- `HarassmentPlugin` owns its runtime and background worker lifecycle, and requires Postgres-backed repositories through plugin composition.
+- The base application owns in-memory moderation state by default and delegates AI helper methods to the configured provider.
 
 _Boot behavior_:
 

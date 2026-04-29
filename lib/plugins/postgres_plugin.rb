@@ -1,11 +1,13 @@
 require_relative "../plugin"
 require_relative "../../environment"
+require_relative "../moderation/stores/postgres_store"
 
 module ModerationGPT
   module Plugins
     class PostgresPlugin < Plugin
-      def boot(**)
+      def boot(app: nil, **)
         database_connection
+        app.moderation_store = moderation_store if app
       end
 
       def database_connection
@@ -21,7 +23,14 @@ module ModerationGPT
       end
 
       def capabilities
-        { postgres_connection: database_connection }
+        {
+          postgres_connection: database_connection,
+          moderation_store: moderation_store
+        }
+      end
+
+      def moderation_store
+        @moderation_store ||= Moderation::Stores::PostgresStore.new(connection: database_connection)
       end
 
       alias connection database_connection

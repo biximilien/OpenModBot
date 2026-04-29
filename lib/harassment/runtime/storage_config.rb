@@ -2,7 +2,7 @@ require_relative "../../../environment"
 
 module Harassment
   class StorageConfig
-    def initialize(plugin_registry:, storage_backend: Environment.harassment_storage_backend)
+    def initialize(plugin_registry:, storage_backend: "postgres")
       @plugin_registry = plugin_registry
       @storage_backend = storage_backend
     end
@@ -29,7 +29,7 @@ module Harassment
     end
 
     def raise_missing_postgres_plugin
-      raise "HARASSMENT_STORAGE_BACKEND=postgres requires the postgres plugin to be enabled"
+      raise "harassment plugin requires the postgres plugin to be enabled"
     end
   end
 end

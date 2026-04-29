@@ -5,7 +5,6 @@ Dotenv.load
 module Environment
   REQUIRED_VARIABLES = %w[
     DISCORD_BOT_TOKEN
-    REDIS_URL
   ].freeze
   DEFAULT_OPENAI_MODERATION_MODEL = "omni-moderation-latest".freeze
   DEFAULT_OPENAI_REWRITE_MODEL = "gpt-4.1-mini".freeze

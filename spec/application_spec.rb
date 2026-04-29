@@ -1,20 +1,8 @@
 require "application"
 
-class FakeApplicationRedis
-  def ping
-    "PONG"
-  end
-end
-
 describe ModerationGPT::Application do
-  before do
-    allow(Redis).to receive(:new).and_return(FakeApplicationRedis.new)
-  end
-
-  it "initializes the backend" do
-    described_class.new
-
-    expect(Redis).to have_received(:new).with(url: Environment.redis_url)
+  it "initializes with an in-memory backend by default" do
+    expect(described_class.new.moderation_store).to be_a(Moderation::Stores::InMemoryStore)
   end
 
   it "exposes backend methods" do

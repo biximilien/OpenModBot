@@ -1,8 +1,20 @@
 # Data Model
 
-ModerationGPT stores its original moderation state in Redis. Redis keys are defined in `DataModel::Keys`; JSON audit records are defined by `DataModel::KarmaEvent`.
+ModerationGPT stores core moderation state through a selectable moderation store. With no database plugin, the store is in-memory and resets on restart. The `redis` plugin stores the same state in Redis, while the `postgres` plugin stores it in Postgres. JSON audit records are defined by `DataModel::KarmaEvent`.
 
-## Keys
+## Core Moderation State
+
+All core moderation stores keep the same logical state:
+
+- known Discord servers
+- per-server moderation watchlists
+- per-server user karma scores
+- capped per-user karma history
+- capped per-server moderation review queues
+
+## Redis Keys
+
+Redis keys are defined in `DataModel::Keys`.
 
 ### `servers`
 
@@ -74,24 +86,32 @@ ModerationGPT stores its original moderation state in Redis. Redis keys are defi
 - Values: JSON arrays of recent classifier-call timestamps
 - Purpose: tracks per-server classifier throughput so heavy processing can be deferred without losing jobs
 
-## Harassment Storage Backend
+## Postgres Core Moderation Tables
 
-The harassment runtime can store its own pipeline state in either Redis or Postgres, depending on `HARASSMENT_STORAGE_BACKEND`.
+When the `postgres` plugin provides core moderation storage, `Moderation::Stores::PostgresStore` creates these tables if they do not exist:
 
-- `redis`:
-  uses the Redis keys above for interaction events, classification records, classification jobs, classifier cache entries, and server rate limits
-- `postgres`:
-  uses the tables in `db/harassment/001_initial_schema.sql` for:
-  - `interaction_events`
-  - `classification_records`
-  - `classification_jobs`
-  - `classification_cache_entries`
-  - `server_rate_limits`
-  - `relationship_edges`
+- `moderation_servers`
+- `moderation_watchlist`
+- `moderation_karma`
+- `moderation_karma_events`
+- `moderation_reviews`
 
-Postgres storage also requires the optional `postgres` plugin to be enabled so the runtime can use the shared database connection.
+Karma event and moderation review payload columns store the same JSON documents shown below.
 
-The Redis-to-Postgres bootstrap path migrates interaction events, classification records, and classification jobs. Cache, rate-limit, and relationship-edge projection state are not bootstrapped.
+## Harassment Storage
+
+The harassment plugin requires the `postgres` plugin and stores its pipeline state in Postgres:
+
+- `interaction_events`
+- `classification_records`
+- `classification_jobs`
+- `classification_cache_entries`
+- `server_rate_limits`
+- `relationship_edges`
+
+Those harassment tables are defined in `db/harassment/001_initial_schema.sql`.
+
+The Redis-to-Postgres bootstrap path remains for older deployments that previously stored harassment pipeline state in Redis. It migrates interaction events, classification records, and classification jobs. Cache, rate-limit, and relationship-edge projection state are not bootstrapped.
 
 ## KarmaEvent
 

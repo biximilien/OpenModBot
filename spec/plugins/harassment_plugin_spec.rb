@@ -75,8 +75,6 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
     fake_connection = FakePostgresConnection.new
     app = instance_double("Application", redis: nil)
     plugin_registry = instance_double("PluginRegistry", postgres_connection: fake_connection)
-    original_backend = ENV.fetch("HARASSMENT_STORAGE_BACKEND", nil)
-    ENV["HARASSMENT_STORAGE_BACKEND"] = "postgres"
 
     plugin.boot(app: app, plugin_registry: plugin_registry)
     plugin.classification_service.record(event:, record:)
@@ -89,8 +87,6 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
         as_of: record.classified_at
       ).relationship_edge.interaction_count
     ).to eq(1)
-  ensure
-    ENV["HARASSMENT_STORAGE_BACKEND"] = original_backend
   end
 
   it "reconstructs recent incidents from Postgres-backed durable data after boot" do
@@ -101,15 +97,11 @@ describe ModerationGPT::Plugins::HarassmentPlugin do
     Harassment::Repositories::PostgresClassificationRecordRepository.new(connection: fake_connection).save(record)
     app = instance_double("Application", redis: nil)
     plugin_registry = instance_double("PluginRegistry", postgres_connection: fake_connection)
-    original_backend = ENV.fetch("HARASSMENT_STORAGE_BACKEND", nil)
-    ENV["HARASSMENT_STORAGE_BACKEND"] = "postgres"
 
     plugin.boot(app: app, plugin_registry: plugin_registry)
     report = plugin.query_service.recent_incidents("456", "789")
 
     expect(report.incidents.map(&:message_id)).to eq(["123"])
     expect(report.incidents.first.intent).to eq("aggressive")
-  ensure
-    ENV["HARASSMENT_STORAGE_BACKEND"] = original_backend
   end
 end

@@ -6,6 +6,7 @@ describe ModerationGPT::RuntimeBuilder do
     instance_double(
       ModerationGPT::PluginRegistry,
       boot: nil,
+      capability: nil,
       commands: [],
       moderation_strategies: []
     )

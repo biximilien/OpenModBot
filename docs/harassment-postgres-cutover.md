@@ -1,6 +1,6 @@
 # Harassment Postgres Cutover
 
-This runbook is the intended path for moving the harassment pipeline from Redis-backed state to the Postgres-backed runtime path.
+This runbook is for older deployments that need to move historical harassment pipeline data from Redis-backed state to the current Postgres-backed runtime path.
 
 ## Goal
 
@@ -19,7 +19,7 @@ Use Postgres for the harassment runtime state:
 - the optional `postgres` plugin dependency group has been installed
 - the schema in `db/harassment/001_initial_schema.sql` has been applied
 - Redis still contains the active harassment runtime state
-- the bot is still running with `HARASSMENT_STORAGE_BACKEND=redis`
+- Redis still contains the historical harassment runtime state to migrate
 
 ## Sequence
 
@@ -34,7 +34,7 @@ Use Postgres for the harassment runtime state:
    Run:
 
    ```bash
-   PLUGINS=postgres
+   PLUGINS=redis,postgres
    ruby scripts/bootstrap_harassment_postgres.rb
    ```
 
@@ -71,14 +71,14 @@ Use Postgres for the harassment runtime state:
    Run:
 
    ```bash
-   PLUGINS=postgres
+   PLUGINS=redis,postgres
    ruby scripts/verify_harassment_postgres.rb
    ```
 
    Or, if you want to sanity-check specific known incidents as well:
 
    ```bash
-   PLUGINS=postgres
+   PLUGINS=redis,postgres
    ruby scripts/verify_harassment_postgres.rb 123456789012345678 234567890123456789
    ```
 
@@ -107,13 +107,12 @@ Use Postgres for the harassment runtime state:
    - Postgres connectivity is stable
    - logs are clean
 
-6. **Flip the backend**
+6. **Enable harassment on Postgres**
 
    Set:
 
    ```bash
    PLUGINS=postgres,harassment
-   HARASSMENT_STORAGE_BACKEND=postgres
    ```
 
    and restart the bot.
@@ -129,13 +128,7 @@ Use Postgres for the harassment runtime state:
 
 ## Rollback
 
-If the Postgres cutover misbehaves:
-
-1. set `HARASSMENT_STORAGE_BACKEND=redis`
-2. restart the bot
-3. keep Postgres data for investigation; do not delete it immediately
-
-Because Redis remains the source before cutover and the backend switch is configuration-driven, rollback is only a configuration change plus restart.
+If the Postgres cutover misbehaves, disable the `harassment` plugin while investigating and keep Postgres data for analysis. The current harassment runtime requires Postgres.
 
 ## Notes
 

@@ -6,6 +6,7 @@ require_relative "plugins/harassment_plugin"
 require_relative "plugins/open_ai_plugin"
 require_relative "plugins/personality_plugin"
 require_relative "plugins/postgres_plugin"
+require_relative "plugins/redis_plugin"
 require_relative "plugins/telemetry_plugin"
 
 module ModerationGPT
@@ -157,5 +158,6 @@ module ModerationGPT
   PluginRegistry.register("openai") { Plugins::OpenAIPlugin.new }
   PluginRegistry.register("personality") { Plugins::PersonalityPlugin.new }
   PluginRegistry.register("postgres") { Plugins::PostgresPlugin.new }
+  PluginRegistry.register("redis") { Plugins::RedisPlugin.new }
   PluginRegistry.register("telemetry") { Plugins::TelemetryPlugin.new }
 end

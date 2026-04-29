@@ -5,11 +5,11 @@ module ModerationGPT
   class Application
     include Backend
 
-    attr_writer :ai_provider
+    attr_writer :ai_provider, :moderation_store
 
-    def initialize(ai_provider: OpenAI::Provider.new)
+    def initialize(ai_provider: OpenAI::Provider.new, moderation_store: nil)
       @ai_provider = ai_provider
-      initialize_backend
+      initialize_backend(store: moderation_store || Moderation::Stores::InMemoryStore.new)
     end
 
     def moderate_text(text, user = nil)

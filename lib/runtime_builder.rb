@@ -25,6 +25,7 @@ module ModerationGPT
 
     def build(bot:)
       @plugins.boot(app: @app, plugin_registry: @plugins)
+      configure_optional_capabilities
 
       RuntimeComponents.new(
         app: @app,
@@ -36,6 +37,11 @@ module ModerationGPT
     end
 
     private
+
+    def configure_optional_capabilities
+      moderation_store = @plugins.capability(:moderation_store)
+      @app.moderation_store = moderation_store if moderation_store
+    end
 
     def strategies
       [

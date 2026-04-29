@@ -51,6 +51,14 @@ describe ModerationGPT::PluginRegistry do
       expect(registry.find_plugin(ModerationGPT::Plugins::PostgresPlugin)).to be_a(ModerationGPT::Plugins::PostgresPlugin)
     end
 
+    it "builds the built-in Redis plugin" do
+      ENV["PLUGINS"] = "redis"
+
+      registry = described_class.from_environment
+
+      expect(registry.find_plugin(ModerationGPT::Plugins::RedisPlugin)).to be_a(ModerationGPT::Plugins::RedisPlugin)
+    end
+
     it "builds the built-in OpenAI plugin" do
       ENV["PLUGINS"] = "openai"
 

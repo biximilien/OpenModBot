@@ -14,11 +14,13 @@ describe ModerationGPT::Plugins::PostgresPlugin do
     ENV["DATABASE_URL"] = "postgres://postgres:postgres@localhost:5432/moderationgpt"
     stub_const("PG", class_double("PG", connect: connection))
     allow(plugin).to receive(:require).with("pg")
+    allow(connection).to receive(:exec_params).and_return([])
 
     expect(plugin.database_connection).to eq(connection)
     expect(plugin.connection).to eq(connection)
     expect(plugin.postgres_connection).to eq(connection)
-    expect(plugin.capabilities).to eq(postgres_connection: connection)
+    expect(plugin.capabilities[:postgres_connection]).to eq(connection)
+    expect(plugin.capabilities[:moderation_store]).to be_a(Moderation::Stores::PostgresStore)
     expect(PG).to have_received(:connect).once.with(ENV.fetch("DATABASE_URL"))
   end
 

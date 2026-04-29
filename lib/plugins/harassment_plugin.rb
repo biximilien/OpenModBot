@@ -25,6 +25,7 @@ module ModerationGPT
         configured = Harassment::PluginBootstrap.new(
           app: app,
           plugin_registry: plugin_registry,
+          storage_backend: "postgres",
           score_version: Harassment::ScoreDefinition::VERSION,
           current_read_model: @classification_service.read_model
         ).build
@@ -62,7 +63,7 @@ module ModerationGPT
       def build_runtime(app:, plugin_registry:)
         storage_config = Harassment::StorageConfig.new(plugin_registry:)
         @runtime = Harassment::Runtime.new(
-          redis: app.redis,
+          redis: nil,
           connection: storage_config.database_connection,
           storage_backend: storage_config.storage_backend,
           classifier_version: @classification_service.classifier_version,

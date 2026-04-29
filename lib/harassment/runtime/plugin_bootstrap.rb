@@ -10,7 +10,7 @@ module Harassment
     def initialize(
       app:,
       plugin_registry:,
-      score_version:, current_read_model:, storage_backend: Environment.harassment_storage_backend
+      score_version:, current_read_model:, storage_backend: "postgres"
     )
       @app = app
       @plugin_registry = plugin_registry

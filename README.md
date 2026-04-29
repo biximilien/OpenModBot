@@ -1,6 +1,6 @@
 # ModerationGPT
 
-ModerationGPT is a Discord moderation bot for text channels. By default it uses OpenAI's moderation endpoint to classify messages, Redis to store per-server watchlists and karma, and the OpenAI Responses API to rewrite flagged messages from watched users in a more constructive tone. Optional plugins add passive harassment analysis, Postgres-backed durable harassment state, OpenTelemetry, rewrite personalities, and replaceable AI providers.
+ModerationGPT is a Discord moderation bot for text channels. By default it uses OpenAI's moderation endpoint to classify messages, in-memory moderation state, and the OpenAI Responses API to rewrite flagged messages from watched users in a more constructive tone. Optional plugins add Redis or Postgres-backed durable moderation state, passive harassment analysis, OpenTelemetry, rewrite personalities, and replaceable AI providers.
 
 ## Features
 
@@ -8,7 +8,7 @@ Core moderation:
 
 - Deletes AI-flagged messages.
 - Rewrites flagged messages from watched users in a more constructive tone.
-- Tracks per-server watchlists, karma scores, and capped karma audit history in Redis.
+- Tracks per-server watchlists, karma scores, and capped karma audit history.
 - Records a capped per-server moderation review queue for recent live and shadow-mode actions.
 - Supports shadow mode with `MODERATION_SHADOW_MODE=true` to review would-be actions without deleting messages, reposting rewrites, changing karma, or applying automod.
 - Applies optional automod actions when karma crosses `KARMA_AUTOMOD_THRESHOLD`: `log_only`, `timeout`, `kick`, or `ban`.
@@ -23,7 +23,8 @@ AI providers:
 Optional plugins:
 
 - `harassment` passively captures interaction events, classifies harassment risk asynchronously, and exposes moderator insight commands without automated punishment.
-- `postgres` provides durable harassment storage and migration/verification paths.
+- `redis` stores core moderation state in Redis.
+- `postgres` stores core moderation state in Postgres and provides the required durable storage dependency for harassment.
 - `personality` changes the rewrite tone for moderated watchlist messages.
 - `telemetry` enables OpenTelemetry exporting while keeping identifier anonymization in place.
 
@@ -76,7 +77,6 @@ Review reposting is privacy-gated. By default, review entries do not store origi
 
 - Ruby 3.3.11, matching `.tool-versions` and `Gemfile`
 - Bundler 2.4.5 or newer
-- Redis
 - Discord bot token
 - OpenAI API key, or a Google AI API key when using the `google_ai` provider plugin
 
@@ -98,7 +98,6 @@ GOOGLE_AI_MODEL=gemini-2.5-flash
 HARASSMENT_CLASSIFIER_MODEL=gpt-4o-2024-08-06
 HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS=3600
 HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE=30
-HARASSMENT_STORAGE_BACKEND=redis
 MODERATION_SHADOW_MODE=false
 MODERATION_SHADOW_REWRITE=true
 MODERATION_REVIEW_STORE_CONTENT=false
@@ -113,7 +112,7 @@ PLUGINS=
 PERSONALITY=objective
 ```
 
-`DATABASE_URL`, `OPENAI_MODERATION_MODEL`, `OPENAI_REWRITE_MODEL`, `GOOGLE_AI_MODEL`, `HARASSMENT_CLASSIFIER_MODEL`, `HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS`, `HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE`, `HARASSMENT_STORAGE_BACKEND`, `MODERATION_SHADOW_MODE`, `MODERATION_SHADOW_REWRITE`, `MODERATION_REVIEW_STORE_CONTENT`, `KARMA_AUTOMOD_THRESHOLD`, `KARMA_AUTOMOD_ACTION`, `KARMA_TIMEOUT_SECONDS`, `LOG_INVITE_URL`, and `LOG_FORMAT` are optional. `DATABASE_URL` is only used when the `postgres` plugin is enabled. `TELEMETRY_HASH_SALT` is used to anonymize Discord identifiers in logs and traces; set it to a stable random secret for your deployment.
+`REDIS_URL`, `DATABASE_URL`, `OPENAI_MODERATION_MODEL`, `OPENAI_REWRITE_MODEL`, `GOOGLE_AI_MODEL`, `HARASSMENT_CLASSIFIER_MODEL`, `HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS`, `HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE`, `MODERATION_SHADOW_MODE`, `MODERATION_SHADOW_REWRITE`, `MODERATION_REVIEW_STORE_CONTENT`, `KARMA_AUTOMOD_THRESHOLD`, `KARMA_AUTOMOD_ACTION`, `KARMA_TIMEOUT_SECONDS`, `LOG_INVITE_URL`, and `LOG_FORMAT` are optional. `REDIS_URL` is only used when the `redis` plugin is enabled. `DATABASE_URL` is only used when the `postgres` plugin is enabled. `TELEMETRY_HASH_SALT` is used to anonymize Discord identifiers in logs and traces; set it to a stable random secret for your deployment.
 
 ## Local Development
 
@@ -131,13 +130,13 @@ bundle config set --local with postgres
 bundle install
 ```
 
-Start Redis:
+Start Redis if you want Redis-backed core moderation state:
 
 ```bash
 docker compose up redis
 ```
 
-If you are not using Docker, point `REDIS_URL` at any reachable Redis instance.
+If you are not using Docker, point `REDIS_URL` at any reachable Redis instance and run with `PLUGINS=redis`. With no database plugin enabled, moderation state is in-memory and resets on restart.
 
 Run the bot:
 
@@ -157,9 +156,9 @@ Run lint:
 bundle exec rubocop
 ```
 
-The default specs stub AI providers and Redis, so they do not require external API calls.
+The default specs stub AI providers and optional databases, so they do not require external API calls.
 
-The Redis data model is documented in `docs/data-model.md`.
+The moderation data model is documented in `docs/data-model.md`.
 The application structure is documented in `docs/architecture.md`.
 Architecture decisions are tracked in `docs/adrs/README.md`.
 
@@ -191,12 +190,19 @@ Built-in plugins:
 - `google_ai`
 - `openai`
 - `postgres`
+- `redis`
 - `telemetry`
 - `personality`
 
 Plugin `boot` is a configuration boundary: if an enabled plugin cannot initialize required infrastructure, startup fails instead of continuing with a partially configured bot. Runtime hooks such as `message`, moderation observations, strategy contribution, and command contribution remain isolated so one plugin hook failure does not stop unrelated processing.
 
-Optional infrastructure is exposed through plugins rather than hidden globals. For example, the `postgres` plugin owns `DATABASE_URL` and exposes the database connection to other plugins through the plugin registry.
+Optional infrastructure is exposed through plugins rather than hidden globals. For example, the `redis` plugin owns `REDIS_URL` and exposes Redis-backed moderation storage, while the `postgres` plugin owns `DATABASE_URL` and exposes both Postgres-backed moderation storage and the database connection used by harassment.
+
+Core moderation storage options:
+
+- no database plugin: in-memory watchlists, karma, and review queue; useful for local trials and tests
+- `PLUGINS=redis`: Redis-backed watchlists, karma, and review queue
+- `PLUGINS=postgres`: Postgres-backed watchlists, karma, and review queue
 
 The shared application delegates AI calls through a replaceable provider. OpenAI is the default provider, and enabling `PLUGINS=openai` configures it explicitly through the plugin system. Enable `PLUGINS=google_ai` and set `GOOGLE_AI_API_KEY` to use Gemini through Google AI instead:
 
@@ -215,28 +221,27 @@ AI provider configuration:
 
 External AI backend plugins can provide the same provider methods (`moderate_text`, `moderation_rewrite`, `generate_structured`, `query`, and `response_text`) and assign that provider during `boot`.
 
-When the `harassment` plugin is enabled, the bot passively captures interaction events, enqueues harassment classification work, and records classified incidents in a harassment read model without applying automated enforcement.
+When the `harassment` plugin is enabled with `postgres`, the bot passively captures interaction events, enqueues harassment classification work, and records classified incidents in a harassment read model without applying automated enforcement.
 
 The harassment plugin owns its runtime: Discord message ingestion, backend-owned event and job storage, transient context assembly, classifier-output caching, per-server rate limiting, and background classification processing. It composes the harassment classification service, query service, read model, worker lifecycle, and Discord command output without applying automated enforcement.
 
-`HARASSMENT_STORAGE_BACKEND=postgres` routes the harassment runtime through Postgres-backed repositories for interaction events, classification records, classification jobs, classifier cache entries, per-server rate-limit buckets, and persisted relationship-edge projections. Enable the shared database capability with the `postgres` plugin:
+The harassment plugin always uses Postgres-backed repositories for interaction events, classification records, classification jobs, classifier cache entries, per-server rate-limit buckets, and persisted relationship-edge projections. Enable the shared database capability with the `postgres` plugin:
 
 ```bash
 PLUGINS=postgres,harassment
-HARASSMENT_STORAGE_BACKEND=postgres
 ```
 
 To bootstrap the current Redis harassment state into Postgres before cutover, run:
 
 ```bash
-PLUGINS=postgres
+PLUGINS=redis,postgres
 ruby scripts/bootstrap_harassment_postgres.rb
 ```
 
 With Docker Compose, use:
 
 ```bash
-BUNDLE_WITH=postgres PLUGINS=postgres docker compose --profile postgres run --rm bot ruby scripts/bootstrap_harassment_postgres.rb
+BUNDLE_WITH=postgres PLUGINS=redis,postgres docker compose --profile postgres run --rm bot ruby scripts/bootstrap_harassment_postgres.rb
 ```
 
 This script is idempotent for already-migrated interaction events, classification records, and classification jobs.
@@ -270,20 +275,20 @@ The harassment implementation is organized by domain under `lib/harassment`, wit
 To compare Redis and Postgres harassment counts, inspect Postgres relationship-edge totals, and run a small set of sampled row checks before cutover, run:
 
 ```bash
-PLUGINS=postgres
+PLUGINS=redis,postgres
 ruby scripts/verify_harassment_postgres.rb
 ```
 
 With Docker Compose, use:
 
 ```bash
-BUNDLE_WITH=postgres PLUGINS=postgres docker compose --profile postgres run --rm bot ruby scripts/verify_harassment_postgres.rb
+BUNDLE_WITH=postgres PLUGINS=redis,postgres docker compose --profile postgres run --rm bot ruby scripts/verify_harassment_postgres.rb
 ```
 
 To verify specific known message IDs as part of the cutover check, pass them as arguments:
 
 ```bash
-PLUGINS=postgres
+PLUGINS=redis,postgres
 ruby scripts/verify_harassment_postgres.rb 123456789012345678 234567890123456789
 ```
 
@@ -344,18 +349,18 @@ Available personalities are `objective`, `empathetic`, `teacher`, `supportive`, 
 
 ## Docker
 
-Run the bot and Redis together:
+Run the bot with the Compose services:
 
 ```bash
 docker compose up --build
 ```
 
-The bot service reads secrets from `.env`. Inside Compose, `REDIS_URL` is set to `redis://redis:6379/0`. Redis uses append-only persistence with `appendfsync everysec`, and stores local state in `./redis-data`.
+The bot service reads secrets from `.env`. Inside Compose, `REDIS_URL` is set to `redis://redis:6379/0`; it is used when `PLUGINS` includes `redis`. Redis uses append-only persistence with `appendfsync everysec`, and stores local state in `./redis-data`.
 
-To run with the optional Postgres-backed harassment storage path, build the image with the `postgres` bundle group and enable the Compose Postgres profile:
+To run with harassment, build the image with the `postgres` bundle group and enable the Compose Postgres profile:
 
 ```bash
-BUNDLE_WITH=postgres PLUGINS=postgres,harassment HARASSMENT_STORAGE_BACKEND=postgres docker compose --profile postgres up --build
+BUNDLE_WITH=postgres PLUGINS=postgres,harassment docker compose --profile postgres up --build
 ```
 
 Compose starts a local `postgres` service, initializes the harassment schema from `db/harassment/001_initial_schema.sql`, and points the bot at `postgres://postgres:postgres@postgres:5432/moderationgpt` unless `DATABASE_URL` is overridden.

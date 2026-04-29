@@ -1,17 +1,18 @@
 require_relative "../environment"
-require_relative "../lib/application"
 require_relative "../lib/plugin_registry"
 require_relative "../lib/harassment/persistence/postgres_verifier"
 
-app = ModerationGPT::Application.new
 plugins = ModerationGPT::PluginRegistry.from_environment
 postgres_plugin = plugins.find_plugin(ModerationGPT::Plugins::PostgresPlugin)
 raise "verify_harassment_postgres requires PLUGINS=postgres and DATABASE_URL to be configured" unless postgres_plugin
 
+redis = plugins.capability(:redis_client)
+raise "verify_harassment_postgres requires PLUGINS=redis and REDIS_URL to read source data" unless redis
+
 message_ids = ARGV
 
 verifier = Harassment::PostgresVerifier.new(
-  redis: app.redis,
+  redis: redis,
   connection: postgres_plugin.database_connection
 )
 

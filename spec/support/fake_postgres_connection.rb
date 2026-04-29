@@ -14,10 +14,49 @@ class FakePostgresConnection
     @classification_cache_entries = []
     @relationship_edges = []
     @server_rate_limits = []
+    @moderation_servers = []
+    @moderation_watchlist = []
+    @moderation_karma = []
+    @moderation_karma_events = []
+    @moderation_reviews = []
   end
 
   def exec_params(sql, params)
     case sql
+    when /CREATE TABLE IF NOT EXISTS moderation_/im
+      []
+    when /INSERT INTO moderation_servers/i
+      insert_moderation_server(params[0])
+    when /DELETE FROM moderation_servers\s+WHERE guild_id = \$1/im
+      delete_moderation_server(params[0])
+    when /SELECT guild_id FROM moderation_servers/im
+      list_moderation_servers
+    when /INSERT INTO moderation_watchlist/i
+      insert_moderation_watchlist(params[0], params[1])
+    when /DELETE FROM moderation_watchlist\s+WHERE guild_id = \$1 AND user_id = \$2/im
+      delete_moderation_watchlist(params[0], params[1])
+    when /DELETE FROM moderation_watchlist\s+WHERE guild_id = \$1/im
+      delete_moderation_watchlist_for_server(params[0])
+    when /SELECT user_id FROM moderation_watchlist/im
+      list_moderation_watchlist(params[0])
+    when /INSERT INTO moderation_karma_events/i
+      insert_moderation_karma_event(params)
+    when /SELECT payload\s+FROM moderation_karma_events/im
+      list_moderation_karma_events(params[0], params[1], params[2])
+    when /DELETE FROM moderation_karma_events\s+WHERE guild_id = \$1/im
+      delete_moderation_karma_events_for_server(params[0])
+    when /SELECT score FROM moderation_karma/im
+      find_moderation_karma(params[0], params[1])
+    when /INSERT INTO moderation_karma\s/i
+      upsert_moderation_karma(params[0], params[1], params[2])
+    when /DELETE FROM moderation_karma\s+WHERE guild_id = \$1/im
+      delete_moderation_karma_for_server(params[0])
+    when /INSERT INTO moderation_reviews/i
+      insert_moderation_review(params)
+    when /SELECT payload\s+FROM moderation_reviews/im
+      list_moderation_reviews(params)
+    when /DELETE FROM moderation_reviews\s+WHERE guild_id = \$1/im
+      delete_moderation_reviews_for_server(params[0])
     when /INSERT INTO interaction_events/i
       insert_interaction_event(params)
     when /SELECT \*\s+FROM interaction_events\s+WHERE guild_id = \$1\s+AND message_id = \$2\s+LIMIT 1/im
@@ -97,6 +136,115 @@ class FakePostgresConnection
   end
 
   private
+
+  def insert_moderation_server(guild_id)
+    @moderation_servers << { "guild_id" => guild_id.to_s } unless @moderation_servers.any? { |row| row["guild_id"] == guild_id.to_s }
+    []
+  end
+
+  def delete_moderation_server(guild_id)
+    @moderation_servers.reject! { |row| row["guild_id"] == guild_id.to_s }
+    []
+  end
+
+  def list_moderation_servers
+    @moderation_servers.sort_by { |row| row["guild_id"] }
+  end
+
+  def insert_moderation_watchlist(guild_id, user_id)
+    unless @moderation_watchlist.any? { |row| row["guild_id"] == guild_id.to_s && row["user_id"] == user_id.to_s }
+      @moderation_watchlist << { "guild_id" => guild_id.to_s, "user_id" => user_id.to_s }
+    end
+    []
+  end
+
+  def delete_moderation_watchlist(guild_id, user_id)
+    @moderation_watchlist.reject! { |row| row["guild_id"] == guild_id.to_s && row["user_id"] == user_id.to_s }
+    []
+  end
+
+  def delete_moderation_watchlist_for_server(guild_id)
+    @moderation_watchlist.reject! { |row| row["guild_id"] == guild_id.to_s }
+    []
+  end
+
+  def list_moderation_watchlist(guild_id)
+    @moderation_watchlist.select { |row| row["guild_id"] == guild_id.to_s }.sort_by { |row| row["user_id"] }
+  end
+
+  def find_moderation_karma(guild_id, user_id)
+    row = @moderation_karma.find { |entry| entry["guild_id"] == guild_id.to_s && entry["user_id"] == user_id.to_s }
+    row ? [row] : []
+  end
+
+  def upsert_moderation_karma(guild_id, user_id, score)
+    row = @moderation_karma.find { |entry| entry["guild_id"] == guild_id.to_s && entry["user_id"] == user_id.to_s }
+    if row
+      row["score"] = score.to_i
+    else
+      @moderation_karma << { "guild_id" => guild_id.to_s, "user_id" => user_id.to_s, "score" => score.to_i }
+    end
+    []
+  end
+
+  def delete_moderation_karma_for_server(guild_id)
+    @moderation_karma.reject! { |row| row["guild_id"] == guild_id.to_s }
+    []
+  end
+
+  def insert_moderation_karma_event(params)
+    guild_id, user_id, payload, created_at = params
+    @moderation_karma_events << {
+      "id" => (@moderation_karma_events.length + 1).to_s,
+      "guild_id" => guild_id.to_s,
+      "user_id" => user_id.to_s,
+      "payload" => payload,
+      "created_at" => created_at
+    }
+    []
+  end
+
+  def list_moderation_karma_events(guild_id, user_id, limit)
+    @moderation_karma_events
+      .select { |row| row["guild_id"] == guild_id.to_s && row["user_id"] == user_id.to_s }
+      .sort_by { |row| [parse_utc(row["created_at"]), row["id"].to_i] }
+      .reverse
+      .first(limit.to_i)
+  end
+
+  def delete_moderation_karma_events_for_server(guild_id)
+    @moderation_karma_events.reject! { |row| row["guild_id"] == guild_id.to_s }
+    []
+  end
+
+  def insert_moderation_review(params)
+    guild_id, message_id, user_id, payload, created_at = params
+    @moderation_reviews << {
+      "id" => (@moderation_reviews.length + 1).to_s,
+      "guild_id" => guild_id.to_s,
+      "message_id" => message_id.to_s,
+      "user_id" => user_id.to_s,
+      "payload" => payload,
+      "created_at" => created_at
+    }
+    []
+  end
+
+  def list_moderation_reviews(params)
+    guild_id = params[0].to_s
+    limit = params[1].to_i
+    user_id = params[2]&.to_s
+    @moderation_reviews
+      .select { |row| row["guild_id"] == guild_id && (user_id.nil? || row["user_id"] == user_id) }
+      .sort_by { |row| [parse_utc(row["created_at"]), row["id"].to_i] }
+      .reverse
+      .first(limit)
+  end
+
+  def delete_moderation_reviews_for_server(guild_id)
+    @moderation_reviews.reject! { |row| row["guild_id"] == guild_id.to_s }
+    []
+  end
 
   def insert_interaction_event(params)
     guild_id, message_id, author_id, channel_id, target_user_ids, raw_content, classification_status, retention_expires_at, redacted_at, created_at = params
