@@ -41,7 +41,7 @@ class FakePostgresConnection
       list_moderation_watchlist(params[0])
     when /INSERT INTO moderation_karma_events/i
       insert_moderation_karma_event(params)
-    when /SELECT payload\s+FROM moderation_karma_events/im
+    when /SELECT delta, score, source, actor_id, reason, created_at\s+FROM moderation_karma_events/im
       list_moderation_karma_events(params[0], params[1], params[2])
     when /DELETE FROM moderation_karma_events\s+WHERE guild_id = \$1/im
       delete_moderation_karma_events_for_server(params[0])
@@ -53,7 +53,7 @@ class FakePostgresConnection
       delete_moderation_karma_for_server(params[0])
     when /INSERT INTO moderation_reviews/i
       insert_moderation_review(params)
-    when /SELECT payload\s+FROM moderation_reviews/im
+    when /SELECT schema_version, created_at, guild_id, channel_id, message_id, user_id, strategy, action, shadow_mode/im
       list_moderation_reviews(params)
     when /DELETE FROM moderation_reviews\s+WHERE guild_id = \$1/im
       delete_moderation_reviews_for_server(params[0])
@@ -193,12 +193,16 @@ class FakePostgresConnection
   end
 
   def insert_moderation_karma_event(params)
-    guild_id, user_id, payload, created_at = params
+    guild_id, user_id, delta, score, source, actor_id, reason, created_at = params
     @moderation_karma_events << {
       "id" => (@moderation_karma_events.length + 1).to_s,
       "guild_id" => guild_id.to_s,
       "user_id" => user_id.to_s,
-      "payload" => payload,
+      "delta" => delta,
+      "score" => score,
+      "source" => source,
+      "actor_id" => actor_id,
+      "reason" => reason,
       "created_at" => created_at
     }
     []
@@ -218,13 +222,23 @@ class FakePostgresConnection
   end
 
   def insert_moderation_review(params)
-    guild_id, message_id, user_id, payload, created_at = params
+    guild_id, channel_id, message_id, user_id, schema_version, strategy, action, shadow_mode, flagged, categories, category_scores, rewrite, original_content, automod_outcome, created_at = params
     @moderation_reviews << {
       "id" => (@moderation_reviews.length + 1).to_s,
       "guild_id" => guild_id.to_s,
+      "channel_id" => channel_id.to_s,
       "message_id" => message_id.to_s,
       "user_id" => user_id.to_s,
-      "payload" => payload,
+      "schema_version" => schema_version,
+      "strategy" => strategy,
+      "action" => action,
+      "shadow_mode" => shadow_mode,
+      "flagged" => flagged,
+      "categories" => categories,
+      "category_scores" => category_scores,
+      "rewrite" => rewrite,
+      "original_content" => original_content,
+      "automod_outcome" => automod_outcome,
       "created_at" => created_at
     }
     []

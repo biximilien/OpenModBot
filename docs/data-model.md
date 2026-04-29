@@ -96,7 +96,7 @@ When the `postgres` plugin provides core moderation storage, `Moderation::Stores
 - `moderation_karma_events`
 - `moderation_reviews`
 
-Karma event and moderation review payload columns store the same JSON documents shown below.
+Karma events are stored in normalized columns for `delta`, `score`, `source`, `actor_id`, `reason`, and `created_at`. Moderation reviews are also normalized across their stable fields, with JSONB retained only for the flexible `categories` and `category_scores` maps.
 
 ## Harassment Storage
 

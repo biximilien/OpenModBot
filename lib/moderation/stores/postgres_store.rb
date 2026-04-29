@@ -36,7 +36,11 @@ module Moderation
             id BIGSERIAL PRIMARY KEY,
             guild_id TEXT NOT NULL,
             user_id TEXT NOT NULL,
-            payload JSONB NOT NULL,
+            delta INTEGER NOT NULL,
+            score INTEGER NOT NULL,
+            source TEXT NOT NULL,
+            actor_id TEXT,
+            reason TEXT,
             created_at TIMESTAMPTZ NOT NULL
           )
         SQL
@@ -44,9 +48,19 @@ module Moderation
           CREATE TABLE IF NOT EXISTS moderation_reviews (
             id BIGSERIAL PRIMARY KEY,
             guild_id TEXT NOT NULL,
+            channel_id TEXT NOT NULL,
             message_id TEXT NOT NULL,
             user_id TEXT NOT NULL,
-            payload JSONB NOT NULL,
+            schema_version INTEGER NOT NULL,
+            strategy TEXT NOT NULL,
+            action TEXT NOT NULL,
+            shadow_mode BOOLEAN NOT NULL,
+            flagged BOOLEAN,
+            categories JSONB NOT NULL DEFAULT '{}'::jsonb,
+            category_scores JSONB NOT NULL DEFAULT '{}'::jsonb,
+            rewrite TEXT,
+            original_content TEXT,
+            automod_outcome TEXT,
             created_at TIMESTAMPTZ NOT NULL
           )
         SQL
@@ -119,9 +133,9 @@ module Moderation
           reason: reason,
           created_at: Time.now.utc.iso8601
         )
-        exec(<<~SQL, [server_id.to_s, user_id.to_s, event.to_json, event.created_at])
-          INSERT INTO moderation_karma_events (guild_id, user_id, payload, created_at)
-          VALUES ($1, $2, $3::jsonb, $4)
+        exec(<<~SQL, karma_event_insert_params(server_id, user_id, event))
+          INSERT INTO moderation_karma_events (guild_id, user_id, delta, score, source, actor_id, reason, created_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         SQL
         event.to_h.compact
       end
@@ -129,13 +143,13 @@ module Moderation
       def get_user_karma_history(server_id, user_id, limit = 5)
         history_limit = limit.to_i.clamp(1, KARMA_AUDIT_LIMIT)
         rows(exec(<<~SQL, [server_id.to_s, user_id.to_s, history_limit]))
-          SELECT payload
+          SELECT delta, score, source, actor_id, reason, created_at
           FROM moderation_karma_events
           WHERE guild_id = $1 AND user_id = $2
           ORDER BY created_at DESC, id DESC
           LIMIT $3
         SQL
-          .map { |row| DataModel::KarmaEvent.from_json(row.fetch("payload")).to_h.compact }
+          .map { |row| karma_event_from_row(row).to_h.compact }
       end
 
       def add_server(server_id)
@@ -183,9 +197,12 @@ module Moderation
           original_content: original_content,
           automod_outcome: automod_outcome
         )
-        exec(<<~SQL, [server_id.to_s, message_id.to_s, user_id.to_s, entry.to_json, entry.created_at])
-          INSERT INTO moderation_reviews (guild_id, message_id, user_id, payload, created_at)
-          VALUES ($1, $2, $3, $4::jsonb, $5)
+        exec(<<~SQL, moderation_review_insert_params(entry))
+          INSERT INTO moderation_reviews (
+            guild_id, channel_id, message_id, user_id, schema_version, strategy, action, shadow_mode, flagged,
+            categories, category_scores, rewrite, original_content, automod_outcome, created_at
+          )
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10::jsonb, $11::jsonb, $12, $13, $14, $15)
         SQL
         entry.to_h
       end
@@ -200,13 +217,14 @@ module Moderation
         end
 
         rows(exec(<<~SQL, params))
-          SELECT payload
+          SELECT schema_version, created_at, guild_id, channel_id, message_id, user_id, strategy, action, shadow_mode,
+                 flagged, categories, category_scores, rewrite, original_content, automod_outcome
           FROM moderation_reviews
           WHERE guild_id = $1#{user_filter}
           ORDER BY created_at DESC, id DESC
           LIMIT $2
         SQL
-          .map { |row| DataModel::ModerationReviewEntry.from_json(row.fetch("payload")).to_h }
+          .map { |row| moderation_review_from_row(row).to_h }
       end
 
       def find_moderation_review(server_id, message_id)
@@ -239,6 +257,85 @@ module Moderation
 
       def ensure_core_schema
         SCHEMA_STATEMENTS.each { |statement| exec(statement, []) }
+      end
+
+      def moderation_review_insert_params(entry)
+        [
+          entry.server_id,
+          entry.channel_id,
+          entry.message_id,
+          entry.user_id,
+          entry.schema_version,
+          entry.strategy,
+          entry.action,
+          entry.shadow_mode,
+          entry.flagged,
+          JSON.generate(entry.categories),
+          JSON.generate(entry.category_scores),
+          entry.rewrite,
+          entry.original_content,
+          entry.automod_outcome,
+          entry.created_at
+        ]
+      end
+
+      def karma_event_insert_params(server_id, user_id, event)
+        [
+          server_id.to_s,
+          user_id.to_s,
+          event.delta,
+          event.score,
+          event.source,
+          event.actor_id&.to_s,
+          event.reason,
+          event.created_at
+        ]
+      end
+
+      def karma_event_from_row(row)
+        DataModel::KarmaEvent.new(
+          created_at: row.fetch("created_at").to_s,
+          delta: row.fetch("delta").to_i,
+          score: row.fetch("score").to_i,
+          source: row.fetch("source"),
+          actor_id: optional_integer(row["actor_id"]),
+          reason: row["reason"]
+        )
+      end
+
+      def moderation_review_from_row(row)
+        DataModel::ModerationReviewEntry.new(
+          schema_version: row.fetch("schema_version").to_i,
+          created_at: row.fetch("created_at").to_s,
+          server_id: row.fetch("guild_id"),
+          channel_id: row.fetch("channel_id"),
+          message_id: row.fetch("message_id"),
+          user_id: row.fetch("user_id"),
+          strategy: row.fetch("strategy"),
+          action: row.fetch("action"),
+          shadow_mode: pg_value?(row.fetch("shadow_mode")),
+          flagged: optional_postgres_bool(row["flagged"]),
+          categories: parse_json_hash(row.fetch("categories")),
+          category_scores: parse_json_hash(row.fetch("category_scores")),
+          rewrite: row["rewrite"],
+          original_content: row["original_content"],
+          automod_outcome: row["automod_outcome"]
+        )
+      end
+
+      def parse_json_hash(value)
+        parsed = value.is_a?(Hash) ? value : JSON.parse(value.to_s)
+        parsed.transform_keys(&:to_sym)
+      end
+
+      def optional_postgres_bool(value)
+        return nil if value.nil?
+
+        pg_value?(value)
+      end
+
+      def pg_value?(value)
+        value == true || value.to_s == "t" || value.to_s == "true"
       end
 
       def exec(sql, params)
