@@ -1,7 +1,7 @@
 require "ai/json_transport"
 require "net/http"
 
-describe ModerationGPT::AI::JsonTransport do
+describe OpenModBot::AI::JsonTransport do
   subject(:transport) do
     described_class.new(
       provider_name: "Test AI",

@@ -7,7 +7,7 @@ require_relative "moderation/strategies/remove_message_strategy"
 require_relative "moderation/strategies/watch_list_strategy"
 require_relative "plugin_registry"
 
-module ModerationGPT
+module OpenModBot
   RuntimeComponents = Struct.new(
     :app,
     :plugins,
@@ -51,3 +51,5 @@ module ModerationGPT
     end
   end
 end
+
+require_relative "open_mod_bot/compatibility"

@@ -7,8 +7,8 @@ require_relative "response_parser"
 require_relative "transport"
 
 module GoogleAI
-  class Provider < ModerationGPT::AI::Provider
-    DEFAULT_REWRITE_INSTRUCTIONS = ModerationGPT::AI::DEFAULT_REWRITE_INSTRUCTIONS
+  class Provider < OpenModBot::AI::Provider
+    DEFAULT_REWRITE_INSTRUCTIONS = OpenModBot::AI::DEFAULT_REWRITE_INSTRUCTIONS
     MODERATION_SCHEMA = {
       type: "object",
       additionalProperties: false,
@@ -51,7 +51,7 @@ module GoogleAI
       )
       payload = JSON.parse(response_text(response))
 
-      ModerationGPT::AI::ModerationResult.new(
+      OpenModBot::AI::ModerationResult.new(
         flagged: payload.fetch("flagged"),
         categories: payload.fetch("categories"),
         category_scores: payload.fetch("category_scores")

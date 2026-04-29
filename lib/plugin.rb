@@ -1,4 +1,4 @@
-module ModerationGPT
+module OpenModBot
   class Plugin
     def boot(**); end
 
@@ -39,3 +39,5 @@ module ModerationGPT
     end
   end
 end
+
+require_relative "open_mod_bot/compatibility"

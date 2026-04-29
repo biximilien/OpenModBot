@@ -1,7 +1,7 @@
 require_relative "../../environment"
 require "ai/provider_config"
 
-describe ModerationGPT::AI::ProviderConfig do
+describe OpenModBot::AI::ProviderConfig do
   around do |example|
     original = ENV.to_h
     example.run

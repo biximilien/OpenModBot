@@ -1,16 +1,16 @@
 require "open_ai/transport"
 
 describe OpenAI::Transport do
-  let(:json_transport) { instance_double(ModerationGPT::AI::JsonTransport, post: { "ok" => true }) }
+  let(:json_transport) { instance_double(OpenModBot::AI::JsonTransport, post: { "ok" => true }) }
 
   before do
-    allow(ModerationGPT::AI::JsonTransport).to receive(:new).and_return(json_transport)
+    allow(OpenModBot::AI::JsonTransport).to receive(:new).and_return(json_transport)
   end
 
   it "configures shared JSON transport with OpenAI headers" do
     described_class.new(api_key: "test-key")
 
-    expect(ModerationGPT::AI::JsonTransport).to have_received(:new).with(
+    expect(OpenModBot::AI::JsonTransport).to have_received(:new).with(
       provider_name: "OpenAI",
       headers: {
         "Content-Type" => "application/json",

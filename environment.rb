@@ -140,7 +140,7 @@ module Environment
   end
 
   def self.ai_provider_config
-    ModerationGPT::AI::ProviderConfig.new(enabled_plugins:)
+    OpenModBot::AI::ProviderConfig.new(enabled_plugins:)
   end
 
   private_class_method :missing?, :ai_api_key_variable, :ai_provider_config

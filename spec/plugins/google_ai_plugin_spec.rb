@@ -1,6 +1,6 @@
 require "plugins/google_ai_plugin"
 
-describe ModerationGPT::Plugins::GoogleAIPlugin do
+describe OpenModBot::Plugins::GoogleAIPlugin do
   around do |example|
     original = ENV.to_h
     example.run

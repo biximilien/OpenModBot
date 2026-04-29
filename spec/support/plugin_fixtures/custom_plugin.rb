@@ -14,10 +14,10 @@ class CustomPluginCommand
   end
 end
 
-class CustomPlugin < ModerationGPT::Plugin
+class CustomPlugin < OpenModBot::Plugin
   def commands
     [CustomPluginCommand.new]
   end
 end
 
-ModerationGPT::PluginRegistry.register("custom") { CustomPlugin.new }
+OpenModBot::PluginRegistry.register("custom") { CustomPlugin.new }

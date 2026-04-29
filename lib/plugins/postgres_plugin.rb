@@ -2,7 +2,7 @@ require_relative "../plugin"
 require_relative "../../environment"
 require_relative "../moderation/stores/postgres_store"
 
-module ModerationGPT
+module OpenModBot
   module Plugins
     class PostgresPlugin < Plugin
       def boot(app: nil, **)

@@ -1,6 +1,6 @@
 require "plugins/personality_plugin"
 
-describe ModerationGPT::Plugins::PersonalityPlugin do
+describe OpenModBot::Plugins::PersonalityPlugin do
   around do |example|
     original = ENV.to_h
     example.run

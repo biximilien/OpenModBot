@@ -1,6 +1,6 @@
 # Data Model
 
-ModerationGPT stores core moderation state through a selectable moderation store. With no database plugin, the store is in-memory and resets on restart. The `redis` plugin stores the same state in Redis, while the `postgres` plugin stores it in Postgres. Karma audit entries are represented in application code by `DataModel::KarmaEvent`.
+OpenModBot stores core moderation state through a selectable moderation store. With no database plugin, the store is in-memory and resets on restart. The `redis` plugin stores the same state in Redis, while the `postgres` plugin stores it in Postgres. Karma audit entries are represented in application code by `DataModel::KarmaEvent`.
 
 ## Core Moderation State
 

@@ -1,4 +1,4 @@
-module ModerationGPT
+module OpenModBot
   module AI
     class Provider
       def moderate_text(_text, _user = nil)
@@ -23,3 +23,5 @@ module ModerationGPT
     end
   end
 end
+
+require_relative "../open_mod_bot/compatibility"

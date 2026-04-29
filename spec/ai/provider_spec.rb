@@ -1,6 +1,6 @@
 require "ai/provider"
 
-describe ModerationGPT::AI::Provider do
+describe OpenModBot::AI::Provider do
   subject(:provider) { described_class.new }
 
   it "requires concrete providers to implement moderation" do

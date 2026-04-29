@@ -9,7 +9,7 @@ require_relative "plugins/postgres_plugin"
 require_relative "plugins/redis_plugin"
 require_relative "plugins/telemetry_plugin"
 
-module ModerationGPT
+module OpenModBot
   class PluginRegistry
     def self.register(name, factory = nil, &block)
       catalog[name.to_s] = factory || block
@@ -161,3 +161,5 @@ module ModerationGPT
   PluginRegistry.register("redis") { Plugins::RedisPlugin.new }
   PluginRegistry.register("telemetry") { Plugins::TelemetryPlugin.new }
 end
+
+require_relative "open_mod_bot/compatibility"

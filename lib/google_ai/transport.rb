@@ -6,7 +6,7 @@ module GoogleAI
     API_ROOT = "https://generativelanguage.googleapis.com/v1beta".freeze
 
     def initialize(api_key: Environment.google_ai_api_key)
-      @transport = ModerationGPT::AI::JsonTransport.new(
+      @transport = OpenModBot::AI::JsonTransport.new(
         provider_name: "Google AI",
         headers: {
           "Content-Type" => "application/json",

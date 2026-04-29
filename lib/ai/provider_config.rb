@@ -1,4 +1,4 @@
-module ModerationGPT
+module OpenModBot
   module AI
     class ProviderConfig
       DEFAULT_PROVIDER = "openai".freeze
@@ -42,3 +42,5 @@ module ModerationGPT
     end
   end
 end
+
+require_relative "../open_mod_bot/compatibility"

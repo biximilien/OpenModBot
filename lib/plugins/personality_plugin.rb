@@ -3,7 +3,7 @@ require_relative "../logging"
 require_relative "../moderation/rewrite_personalities"
 require_relative "../plugin"
 
-module ModerationGPT
+module OpenModBot
   module Plugins
     class PersonalityPlugin < Plugin
       def rewrite_instructions(**)

@@ -1,6 +1,6 @@
 require "plugins/postgres_plugin"
 
-describe ModerationGPT::Plugins::PostgresPlugin do
+describe OpenModBot::Plugins::PostgresPlugin do
   around do |example|
     original = ENV.to_h
     example.run
@@ -11,7 +11,7 @@ describe ModerationGPT::Plugins::PostgresPlugin do
   it "connects using DATABASE_URL" do
     connection = instance_double("PG::Connection")
     plugin = described_class.new
-    ENV["DATABASE_URL"] = "postgres://postgres:postgres@localhost:5432/moderationgpt"
+    ENV["DATABASE_URL"] = "postgres://postgres:postgres@localhost:5432/openmodbot"
     stub_const("PG", class_double("PG", connect: connection))
     allow(plugin).to receive(:require).with("pg")
     allow(connection).to receive(:exec_params).and_return([])

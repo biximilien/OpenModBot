@@ -9,9 +9,9 @@ require_relative "open_ai/responses_client"
 require_relative "open_ai/transport"
 
 module OpenAI
-  DEFAULT_REWRITE_INSTRUCTIONS = ModerationGPT::AI::DEFAULT_REWRITE_INSTRUCTIONS
+  DEFAULT_REWRITE_INSTRUCTIONS = OpenModBot::AI::DEFAULT_REWRITE_INSTRUCTIONS
 
-  ModerationResult = ModerationGPT::AI::ModerationResult
+  ModerationResult = OpenModBot::AI::ModerationResult
   RESPONSES_ENDPOINT = "https://api.openai.com/v1/responses".freeze
 
   def query(url, params, user = nil)
@@ -60,7 +60,7 @@ module OpenAI
     @openai_transport ||= Transport.new
   end
 
-  class Provider < ModerationGPT::AI::Provider
+  class Provider < OpenModBot::AI::Provider
     include OpenAI
   end
 end

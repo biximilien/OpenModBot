@@ -103,7 +103,7 @@ describe OpenAI do
 
   describe OpenAI::Provider do
     it "implements the generic AI provider contract" do
-      expect(described_class.new).to be_a(ModerationGPT::AI::Provider)
+      expect(described_class.new).to be_a(OpenModBot::AI::Provider)
     end
   end
 end

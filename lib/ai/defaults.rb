@@ -1,4 +1,4 @@
-module ModerationGPT
+module OpenModBot
   module AI
     DEFAULT_REWRITE_INSTRUCTIONS = [
       "Rewrite the user's message in a direct, neutral tone.",
@@ -7,3 +7,5 @@ module ModerationGPT
     ].join(" ").freeze
   end
 end
+
+require_relative "../open_mod_bot/compatibility"

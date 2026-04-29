@@ -1,7 +1,7 @@
 require_relative "../harassment/discord/command_parser"
 require_relative "../harassment/discord/command_presenter"
 
-module ModerationGPT
+module OpenModBot
   module Plugins
     class HarassmentCommand
       HELP_LINES = [

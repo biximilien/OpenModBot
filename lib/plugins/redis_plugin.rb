@@ -2,7 +2,7 @@ require_relative "../../environment"
 require_relative "../moderation/stores/redis_store"
 require_relative "../plugin"
 
-module ModerationGPT
+module OpenModBot
   module Plugins
     class RedisPlugin < Plugin
       def boot(app:, **)

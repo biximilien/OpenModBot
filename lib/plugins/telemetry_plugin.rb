@@ -1,7 +1,7 @@
 require_relative "../plugin"
 require_relative "../telemetry"
 
-module ModerationGPT
+module OpenModBot
   module Plugins
     class TelemetryPlugin < Plugin
       def boot(**)

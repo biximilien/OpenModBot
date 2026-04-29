@@ -5,8 +5,8 @@ require_relative "../lib/harassment/repositories/postgres_interaction_event_repo
 require_relative "../lib/harassment/repositories/postgres_classification_record_repository"
 require_relative "../lib/harassment/repositories/postgres_classification_job_repository"
 
-plugins = ModerationGPT::PluginRegistry.from_environment
-postgres_plugin = plugins.find_plugin(ModerationGPT::Plugins::PostgresPlugin)
+plugins = OpenModBot::PluginRegistry.from_environment
+postgres_plugin = plugins.find_plugin(OpenModBot::Plugins::PostgresPlugin)
 raise "bootstrap_harassment_postgres requires PLUGINS=postgres and DATABASE_URL to be configured" unless postgres_plugin
 
 redis = plugins.capability(:redis_client)

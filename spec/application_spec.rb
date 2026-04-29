@@ -1,6 +1,6 @@
 require "application"
 
-describe ModerationGPT::Application do
+describe OpenModBot::Application do
   it "initializes with an in-memory backend by default" do
     expect(described_class.new.moderation_store).to be_a(Moderation::Stores::InMemoryStore)
   end

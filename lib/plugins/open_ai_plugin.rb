@@ -1,7 +1,7 @@
 require_relative "../open_ai"
 require_relative "../plugin"
 
-module ModerationGPT
+module OpenModBot
   module Plugins
     class OpenAIPlugin < Plugin
       def boot(app:, **)

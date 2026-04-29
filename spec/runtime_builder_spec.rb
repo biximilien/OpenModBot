@@ -1,10 +1,10 @@
 require "runtime_builder"
 
-describe ModerationGPT::RuntimeBuilder do
-  let(:app) { instance_double(ModerationGPT::Application) }
+describe OpenModBot::RuntimeBuilder do
+  let(:app) { instance_double(OpenModBot::Application) }
   let(:plugins) do
     instance_double(
-      ModerationGPT::PluginRegistry,
+      OpenModBot::PluginRegistry,
       boot: nil,
       capability: nil,
       commands: [],

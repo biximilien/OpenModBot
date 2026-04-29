@@ -4,8 +4,8 @@ require_relative "../lib/harassment/relationship/edge_rebuilder"
 require_relative "../lib/harassment/persistence/repository_factory"
 require_relative "../lib/harassment/risk/score_definition"
 
-plugins = ModerationGPT::PluginRegistry.from_environment
-postgres_plugin = plugins.find_plugin(ModerationGPT::Plugins::PostgresPlugin)
+plugins = OpenModBot::PluginRegistry.from_environment
+postgres_plugin = plugins.find_plugin(OpenModBot::Plugins::PostgresPlugin)
 unless postgres_plugin
   raise "rebuild_harassment_relationship_edges requires PLUGINS=postgres and DATABASE_URL to be configured"
 end

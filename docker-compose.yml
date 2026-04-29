@@ -11,7 +11,7 @@ services:
       OPENAI_MODERATION_MODEL: ${OPENAI_MODERATION_MODEL:-omni-moderation-latest}
       OPENAI_REWRITE_MODEL: ${OPENAI_REWRITE_MODEL:-gpt-4.1-mini}
       GOOGLE_AI_MODEL: ${GOOGLE_AI_MODEL:-gemini-2.5-flash}
-      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/moderationgpt}
+      DATABASE_URL: ${DATABASE_URL:-postgres://postgres:postgres@postgres:5432/openmodbot}
       HARASSMENT_CLASSIFIER_MODEL: ${HARASSMENT_CLASSIFIER_MODEL:-gpt-4o-2024-08-06}
       HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS: ${HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS:-3600}
       HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE: ${HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE:-30}
@@ -31,7 +31,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
       OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
-      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-ModerationGPT}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-OpenModBot}
     networks:
       - backend
 
@@ -51,11 +51,11 @@ services:
 
   postgres:
     image: postgres:16-alpine
-    container_name: moderationgpt-postgres
+    container_name: openmodbot-postgres
     profiles:
       - postgres
     environment:
-      POSTGRES_DB: moderationgpt
+      POSTGRES_DB: openmodbot
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -64,7 +64,7 @@ services:
       - postgres-data:/var/lib/postgresql/data
       - ./db/harassment/001_initial_schema.sql:/docker-entrypoint-initdb.d/001_harassment_schema.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d moderationgpt"]
+      test: ["CMD-SHELL", "pg_isready -U postgres -d openmodbot"]
       interval: 5s
       timeout: 5s
       retries: 10

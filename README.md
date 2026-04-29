@@ -1,6 +1,6 @@
-# ModerationGPT
+# OpenModBot
 
-ModerationGPT is a Discord moderation bot for text channels. By default it uses OpenAI's moderation endpoint to classify messages, in-memory moderation state, and the OpenAI Responses API to rewrite flagged messages from watched users in a more constructive tone. Optional plugins add Redis or Postgres-backed durable moderation state, passive harassment analysis, OpenTelemetry, rewrite personalities, and replaceable AI providers.
+OpenModBot is a Discord moderation bot for text channels. By default it uses OpenAI's moderation endpoint to classify messages, in-memory moderation state, and the OpenAI Responses API to rewrite flagged messages from watched users in a more constructive tone. Optional plugins add Redis or Postgres-backed durable moderation state, passive harassment analysis, OpenTelemetry, rewrite personalities, and replaceable AI providers.
 
 ## Features
 
@@ -96,7 +96,7 @@ OPENAI_API_KEY=my_openai_secret
 GOOGLE_AI_API_KEY=my_google_ai_secret
 DISCORD_BOT_TOKEN=my_discord_secret
 REDIS_URL=redis://localhost:6379/0
-DATABASE_URL=postgres://postgres:postgres@localhost:5432/moderationgpt
+DATABASE_URL=postgres://postgres:postgres@localhost:5432/openmodbot
 OPENAI_MODERATION_MODEL=omni-moderation-latest
 OPENAI_REWRITE_MODEL=gpt-4.1-mini
 GOOGLE_AI_MODEL=gemini-2.5-flash
@@ -323,7 +323,7 @@ When the `harassment` plugin is enabled, moderators can inspect the derived sign
 
 The incidents command supports fixed time windows of `1h`, `24h`, and `7d`. The optional mention, limit, and window tokens can appear in flexible order as long as each is present at most once.
 
-External plugin packages can follow the same `ModerationGPT::Plugin` hook interface and register with `ModerationGPT::PluginRegistry.register`. Use `PLUGIN_REQUIRES` to load plugin packages before `PLUGINS` is resolved:
+External plugin packages can follow the same `OpenModBot::Plugin` hook interface and register with `OpenModBot::PluginRegistry.register`. The old `ModerationGPT` namespace remains as a compatibility alias for existing plugins, but new plugins should use `OpenModBot`. Use `PLUGIN_REQUIRES` to load plugin packages before `PLUGINS` is resolved:
 
 ```bash
 PLUGIN_REQUIRES=moderation_gpt/plugins/audit_webhook
@@ -381,7 +381,7 @@ To run with harassment, build the image with the `postgres` bundle group and ena
 BUNDLE_WITH=postgres PLUGINS=postgres,harassment docker compose --profile postgres up --build
 ```
 
-Compose starts a local `postgres` service, initializes the harassment schema from `db/harassment/001_initial_schema.sql`, and points the bot at `postgres://postgres:postgres@postgres:5432/moderationgpt` unless `DATABASE_URL` is overridden.
+Compose starts a local `postgres` service, initializes the harassment schema from `db/harassment/001_initial_schema.sql`, and points the bot at `postgres://postgres:postgres@postgres:5432/openmodbot` unless `DATABASE_URL` is overridden. Existing deployments can continue using an older database name, such as `moderationgpt`, by keeping their current `DATABASE_URL`.
 
 ## OpenTelemetry
 
@@ -392,7 +392,7 @@ PLUGINS=telemetry
 TELEMETRY_ENABLED=true
 OTEL_EXPORTER_OTLP_ENDPOINT=https://api.honeycomb.io
 OTEL_EXPORTER_OTLP_HEADERS=x-honeycomb-team=secretkey
-OTEL_SERVICE_NAME=ModerationGPT
+OTEL_SERVICE_NAME=OpenModBot
 ```
 
 OpenTelemetry is disabled by default. Identifier anonymization still runs when telemetry is disabled. Enable the telemetry plugin explicitly with `PLUGINS=telemetry`, then set `TELEMETRY_ENABLED=true` to turn on OpenTelemetry inside that plugin. Install optional telemetry dependencies with `bundle config set --local with telemetry` before `bundle install` when enabling OpenTelemetry locally. For Docker, build with `BUNDLE_WITH=telemetry docker compose build`. When combining optional groups in Docker, use values such as `BUNDLE_WITH=redis:postgres:telemetry`.

@@ -3,7 +3,7 @@ require "net/http"
 require "uri"
 require_relative "../telemetry"
 
-module ModerationGPT
+module OpenModBot
   module AI
     class JsonTransport
       def initialize(provider_name:, headers:)
@@ -67,3 +67,5 @@ module ModerationGPT
     end
   end
 end
+
+require_relative "../open_mod_bot/compatibility"

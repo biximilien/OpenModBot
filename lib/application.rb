@@ -1,7 +1,7 @@
 require_relative "backend"
 require_relative "open_ai"
 
-module ModerationGPT
+module OpenModBot
   class Application
     include Backend
 
@@ -16,7 +16,7 @@ module ModerationGPT
       ai_provider.moderate_text(text, user)
     end
 
-    def moderation_rewrite(text, user = nil, instructions: ModerationGPT::AI::DEFAULT_REWRITE_INSTRUCTIONS)
+    def moderation_rewrite(text, user = nil, instructions: OpenModBot::AI::DEFAULT_REWRITE_INSTRUCTIONS)
       ai_provider.moderation_rewrite(text, user, instructions:)
     end
 
@@ -33,3 +33,5 @@ module ModerationGPT
     end
   end
 end
+
+require_relative "open_mod_bot/compatibility"

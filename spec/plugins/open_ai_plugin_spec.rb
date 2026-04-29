@@ -1,6 +1,6 @@
 require "plugins/open_ai_plugin"
 
-describe ModerationGPT::Plugins::OpenAIPlugin do
+describe OpenModBot::Plugins::OpenAIPlugin do
   it "exposes an OpenAI provider" do
     expect(described_class.new.ai_provider).to be_a(OpenAI::Provider)
   end

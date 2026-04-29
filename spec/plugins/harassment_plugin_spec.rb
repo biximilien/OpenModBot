@@ -2,7 +2,7 @@ require "plugins/harassment_plugin"
 require "harassment/runtime/plugin_bootstrap"
 require_relative "../support/fake_postgres_connection"
 
-describe ModerationGPT::Plugins::HarassmentPlugin do
+describe OpenModBot::Plugins::HarassmentPlugin do
   subject(:plugin) { described_class.new }
 
   let(:event) do

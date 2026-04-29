@@ -5,7 +5,7 @@ require "harassment/incident/recent_incidents_report"
 require "harassment/relationship/edge"
 require "harassment/risk/user_risk_report"
 
-describe ModerationGPT::Plugins::HarassmentCommand do
+describe OpenModBot::Plugins::HarassmentCommand do
   subject(:command) { described_class.new(query_service) }
 
   let(:query_service) do

@@ -9,7 +9,7 @@ require_relative "../harassment/risk/score_definition"
 require_relative "../logging"
 require_relative "harassment_command"
 
-module ModerationGPT
+module OpenModBot
   module Plugins
     class HarassmentPlugin < Plugin
       attr_reader :classification_service, :query_service

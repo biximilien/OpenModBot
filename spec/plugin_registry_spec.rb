@@ -1,6 +1,6 @@
 require "plugin_registry"
 
-describe ModerationGPT::PluginRegistry do
+describe OpenModBot::PluginRegistry do
   around do |example|
     original = ENV.to_h
     original_catalog = described_class.catalog.dup
@@ -13,6 +13,10 @@ describe ModerationGPT::PluginRegistry do
   end
 
   describe ".register" do
+    it "keeps the old ModerationGPT namespace as a compatibility alias" do
+      expect(ModerationGPT::PluginRegistry).to eq(described_class)
+    end
+
     it "registers a plugin factory" do
       plugin = instance_double("Plugin")
 
@@ -40,7 +44,7 @@ describe ModerationGPT::PluginRegistry do
       expect(registry).to be_a(described_class)
       expect(registry.commands.length).to eq(1)
       expect(registry.commands.first.help_lines).to include("!moderation harassment risk @user")
-      expect(registry.find_plugin(ModerationGPT::Plugins::HarassmentPlugin)).to be_a(ModerationGPT::Plugins::HarassmentPlugin)
+      expect(registry.find_plugin(OpenModBot::Plugins::HarassmentPlugin)).to be_a(OpenModBot::Plugins::HarassmentPlugin)
     end
 
     it "builds the built-in postgres plugin" do
@@ -48,7 +52,7 @@ describe ModerationGPT::PluginRegistry do
 
       registry = described_class.from_environment
 
-      expect(registry.find_plugin(ModerationGPT::Plugins::PostgresPlugin)).to be_a(ModerationGPT::Plugins::PostgresPlugin)
+      expect(registry.find_plugin(OpenModBot::Plugins::PostgresPlugin)).to be_a(OpenModBot::Plugins::PostgresPlugin)
     end
 
     it "builds the built-in Redis plugin" do
@@ -56,7 +60,7 @@ describe ModerationGPT::PluginRegistry do
 
       registry = described_class.from_environment
 
-      expect(registry.find_plugin(ModerationGPT::Plugins::RedisPlugin)).to be_a(ModerationGPT::Plugins::RedisPlugin)
+      expect(registry.find_plugin(OpenModBot::Plugins::RedisPlugin)).to be_a(OpenModBot::Plugins::RedisPlugin)
     end
 
     it "builds the built-in OpenAI plugin" do
@@ -64,7 +68,7 @@ describe ModerationGPT::PluginRegistry do
 
       registry = described_class.from_environment
 
-      expect(registry.find_plugin(ModerationGPT::Plugins::OpenAIPlugin)).to be_a(ModerationGPT::Plugins::OpenAIPlugin)
+      expect(registry.find_plugin(OpenModBot::Plugins::OpenAIPlugin)).to be_a(OpenModBot::Plugins::OpenAIPlugin)
       expect(registry.ai_provider).to be_a(OpenAI::Provider)
     end
 
@@ -73,7 +77,7 @@ describe ModerationGPT::PluginRegistry do
 
       registry = described_class.from_environment
 
-      expect(registry.find_plugin(ModerationGPT::Plugins::GoogleAIPlugin)).to be_a(ModerationGPT::Plugins::GoogleAIPlugin)
+      expect(registry.find_plugin(OpenModBot::Plugins::GoogleAIPlugin)).to be_a(OpenModBot::Plugins::GoogleAIPlugin)
       expect(registry.ai_provider).to be_a(GoogleAI::Provider)
     end
 

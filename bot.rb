@@ -12,7 +12,7 @@ Logging.logger = Logging.build_logger($stdout)
 
 Environment.validate!
 bot = Discordrb::Bot.new token: Environment.discord_bot_token, intents: :all
-runtime = ModerationGPT::RuntimeBuilder.new.build(bot:)
+runtime = OpenModBot::RuntimeBuilder.new.build(bot:)
 app = runtime.app
 plugins = runtime.plugins
 

@@ -1,6 +1,6 @@
 require "plugins/redis_plugin"
 
-describe ModerationGPT::Plugins::RedisPlugin do
+describe OpenModBot::Plugins::RedisPlugin do
   around do |example|
     original = ENV.to_h
     example.run
