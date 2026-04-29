@@ -1,5 +1,7 @@
 module OpenModBot
   class Plugin
+    # Boot receives the shared runtime context: app:, bot:, and plugin_registry:.
+    # Concrete plugins should require only the keyword arguments they actually use.
     def boot(**); end
 
     def ready(**); end

@@ -36,6 +36,8 @@ _Boot behavior_:
 
 Plugin `boot` is a configuration boundary. Boot failures should fail fast so the bot does not continue with partially initialized required infrastructure. Runtime hooks such as `message`, `ready`, moderation observations, command contribution, and strategy contribution may remain isolated so one plugin hook failure does not stop unrelated processing.
 
+The `boot` hook receives shared runtime context as keyword arguments, currently `app:`, `bot:`, and `plugin_registry:`. Plugins should require only the context they need. This keeps lifecycle dependencies explicit without forcing every plugin to depend on the Discord bot, application object, or registry.
+
 _Consequences_:
 
 - Keeps optional services optional without obscuring dependencies

@@ -179,6 +179,8 @@ Current hook types include:
 - command contribution hook: `commands`
 - optional infrastructure capabilities through `capabilities` and `PluginRegistry#capability`
 
+The `boot` hook receives the shared runtime context: `app:`, `bot:`, and `plugin_registry:`. Plugins should require only the keyword arguments they need. For example, infrastructure plugins usually need `app:` or `plugin_registry:`, while delivery-oriented plugins may need `bot:` to interact with Discord outside a single message event.
+
 Plugins that provide shared optional infrastructure should expose it as a named capability, such as `postgres_connection` or `ai_provider`. Domain plugins should consume those capabilities through the registry instead of depending directly on a concrete infrastructure plugin class. Existing named registry helpers may remain as compatibility shims for common capabilities.
 
 The public Ruby namespace is `OpenModBot`.
