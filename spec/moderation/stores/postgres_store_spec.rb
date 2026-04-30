@@ -1,5 +1,6 @@
 require "moderation/stores/postgres_store"
 require_relative "../../support/fake_postgres_connection"
+require_relative "../../support/shared_examples/moderation_store_contract"
 
 describe Moderation::Stores::PostgresStore do
   subject(:store) { described_class.new(connection:) }
@@ -7,6 +8,8 @@ describe Moderation::Stores::PostgresStore do
   let(:connection) { FakePostgresConnection.new }
   let(:server_id) { 123 }
   let(:user_id) { 456 }
+
+  it_behaves_like "a moderation store"
 
   it "stores watchlists, karma, servers, and reviews in Postgres" do
     store.add_server(server_id)

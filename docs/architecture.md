@@ -94,6 +94,11 @@ All stores expose the same application-level methods for:
 - capped per-user karma history
 - capped moderation review queues
 
+The Postgres core moderation store currently creates its small schema at initialization time for local development and
+simple deployments. Production deployments should still treat schema changes as an explicit operational step: run the
+harassment SQL bootstrap/migration scripts intentionally, review core moderation table changes before rollout, and avoid
+depending on process startup as the only migration mechanism.
+
 See [docs/data-model.md](./data-model.md) for the structures and field definitions.
 
 ## Harassment Pipeline

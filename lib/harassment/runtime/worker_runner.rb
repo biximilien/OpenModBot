@@ -26,7 +26,7 @@ module Harassment
     end
 
     def stop
-      @thread&.kill
+      @thread&.kill&.join(1)
       @thread = nil
     end
 

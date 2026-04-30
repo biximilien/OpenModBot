@@ -14,7 +14,9 @@ describe Harassment::WorkerRunner do
 
   it "stops a running worker" do
     runtime = instance_double("Runtime")
-    thread = instance_double("Thread", kill: true)
+    thread = instance_double("Thread")
+    allow(thread).to receive(:kill).and_return(thread)
+    allow(thread).to receive(:join)
     allow(Thread).to receive(:new).and_return(thread)
     runner = described_class.new(runtime: runtime)
 
@@ -22,6 +24,7 @@ describe Harassment::WorkerRunner do
     runner.stop
 
     expect(thread).to have_received(:kill)
+    expect(thread).to have_received(:join).with(1)
     expect(runner.running?).to be(false)
   end
 

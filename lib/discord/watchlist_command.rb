@@ -1,8 +1,11 @@
+require_relative "watchlist_presenter"
+
 module Discord
   class WatchlistCommand
-    def initialize(store:, usage:)
+    def initialize(store:, usage:, presenter: WatchlistPresenter.new)
       @store = store
       @usage = usage
+      @presenter = presenter
     end
 
     def handle(event, match)
@@ -10,7 +13,7 @@ module Discord
 
       case match[:subcommand]
       when nil
-        event.respond("Watch list: #{watch_list_mentions(event.server.id)}")
+        event.respond(@presenter.list(@store.get_watch_list_users(event.server.id)))
       when "add"
         add_watchlist_user(event, match)
       when "remove"
@@ -30,19 +33,14 @@ module Discord
       return event.respond(@usage) unless match[:user_id]
 
       @store.add_user_to_watch_list(event.server.id, match[:user_id].to_i)
-      event.respond("Added <@#{match[:user_id]}> to watch list")
+      event.respond(@presenter.added(match[:user_id]))
     end
 
     def remove_watchlist_user(event, match)
       return event.respond(@usage) unless match[:user_id]
 
       @store.remove_user_from_watch_list(event.server.id, match[:user_id].to_i)
-      event.respond("Removed <@#{match[:user_id]}> from watch list")
-    end
-
-    def watch_list_mentions(server_id)
-      mentions = @store.get_watch_list_users(server_id).map { |user_id| "<@#{user_id}>" }
-      mentions.empty? ? "empty" : mentions.join(", ")
+      event.respond(@presenter.removed(match[:user_id]))
     end
   end
 end

@@ -1,11 +1,14 @@
+require_relative "karma_presenter"
+
 module Discord
   class KarmaCommand
     DEFAULT_HISTORY_LIMIT = 5
     MAX_HISTORY_LIMIT = 10
 
-    def initialize(store:, usage:)
+    def initialize(store:, usage:, presenter: KarmaPresenter.new)
       @store = store
       @usage = usage
+      @presenter = presenter
     end
 
     def handle(event, match)
@@ -32,14 +35,14 @@ module Discord
       return event.respond(@usage) unless match[:user_id]
 
       karma = @store.get_user_karma(event.server.id, match[:user_id].to_i)
-      event.respond("Karma for <@#{match[:user_id]}>: #{karma}")
+      event.respond(@presenter.score(match[:user_id], karma))
     end
 
     def reset_karma(event, match)
       return event.respond(@usage) unless match[:user_id]
 
       @store.set_user_karma(event.server.id, match[:user_id].to_i, 0, actor_id: event.user.id)
-      event.respond("Reset karma for <@#{match[:user_id]}>")
+      event.respond(@presenter.reset(match[:user_id]))
     end
 
     def set_karma(event, match)
@@ -47,21 +50,21 @@ module Discord
 
       karma = @store.set_user_karma(event.server.id, match[:user_id].to_i, signed_amount(match),
                                     actor_id: event.user.id)
-      event.respond("Karma for <@#{match[:user_id]}> set to #{karma}")
+      event.respond(@presenter.set(match[:user_id], karma))
     end
 
     def add_karma(event, match)
       return event.respond(@usage) unless match[:user_id] && amount(match)
 
       karma = @store.increment_user_karma(event.server.id, match[:user_id].to_i, amount(match), actor_id: event.user.id)
-      event.respond("Karma for <@#{match[:user_id]}>: #{karma}")
+      event.respond(@presenter.score(match[:user_id], karma))
     end
 
     def remove_karma(event, match)
       return event.respond(@usage) unless match[:user_id] && amount(match)
 
       karma = @store.decrement_user_karma(event.server.id, match[:user_id].to_i, amount(match), actor_id: event.user.id)
-      event.respond("Karma for <@#{match[:user_id]}>: #{karma}")
+      event.respond(@presenter.score(match[:user_id], karma))
     end
 
     def respond_with_karma_history(event, match)
@@ -69,7 +72,7 @@ module Discord
 
       user_id = match[:user_id].to_i
       entries = @store.get_user_karma_history(event.server.id, user_id, history_limit(match))
-      event.respond(karma_history_response(user_id, entries))
+      event.respond(@presenter.history(user_id, entries))
     end
 
     def amount(match)
@@ -87,23 +90,6 @@ module Discord
 
     def history_limit(match)
       [amount(match) || DEFAULT_HISTORY_LIMIT, MAX_HISTORY_LIMIT].min
-    end
-
-    def karma_history_response(user_id, entries)
-      return "No karma history for <@#{user_id}>" if entries.empty?
-
-      lines = entries.map { |entry| karma_history_line(entry) }
-      "Karma history for <@#{user_id}>:\n#{lines.join("\n")}"
-    end
-
-    def karma_history_line(entry)
-      actor = entry[:actor_id] ? " by <@#{entry[:actor_id]}>" : ""
-      reason = entry[:reason] ? " (#{entry[:reason]})" : ""
-      "- #{signed(entry[:delta])} => #{entry[:score]} via #{entry[:source]}#{actor} at #{entry[:created_at]}#{reason}"
-    end
-
-    def signed(value)
-      value.positive? ? "+#{value}" : value.to_s
     end
   end
 end
