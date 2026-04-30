@@ -91,15 +91,15 @@ ADMIN_NOTIFICATION_CHANNEL_ID=123456789012345678
 
 ## Documentation
 
-The GitHub wiki carries the operator-facing documentation. In this workspace, the wiki is cloned next to the bot repository under `../wiki`.
+The GitHub wiki carries the operator-facing documentation:
 
-- [Home](../wiki/Home.md)
-- [Getting Started](../wiki/Getting-Started.md)
-- [Configuration](../wiki/Configuration.md)
-- [Moderation Commands](../wiki/Moderation-Commands.md)
-- [Plugins](../wiki/Plugins.md)
-- [Operations](../wiki/Operations.md)
-- [Development](../wiki/Development.md)
+- [Home](https://github.com/biximilien/OpenModBot/wiki)
+- [Getting Started](https://github.com/biximilien/OpenModBot/wiki/Getting-Started)
+- [Configuration](https://github.com/biximilien/OpenModBot/wiki/Configuration)
+- [Moderation Commands](https://github.com/biximilien/OpenModBot/wiki/Moderation-Commands)
+- [Plugins](https://github.com/biximilien/OpenModBot/wiki/Plugins)
+- [Operations](https://github.com/biximilien/OpenModBot/wiki/Operations)
+- [Development](https://github.com/biximilien/OpenModBot/wiki/Development)
 
 Repository docs cover design and implementation details:
 
