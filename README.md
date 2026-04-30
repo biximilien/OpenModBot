@@ -2,6 +2,8 @@
 
 OpenModBot is a Discord moderation bot for text channels. It provides core AI-assisted message moderation, per-server watchlists, karma and review queues, optional automod actions, and a plugin system for storage, AI providers, admin notifications, telemetry, rewrite personalities, and passive harassment analysis.
 
+> **Experimental status:** OpenModBot is a large experiment in vibe coding and AI-assisted moderation tooling. Review the code, configuration, permissions, and moderation behavior carefully before using it in a real community, especially before enabling deletion, timeout, kick, ban, or content-retention features. Use it at your own risk; the maintainer does not accept responsibility for damage, data loss, moderation mistakes, community disputes, or other liabilities resulting from use of this project.
+
 ## Highlights
 
 - Deletes AI-flagged messages and rewrites flagged watchlist messages in a more constructive tone.
