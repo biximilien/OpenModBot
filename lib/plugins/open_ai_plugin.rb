@@ -4,8 +4,8 @@ require_relative "../plugin"
 module OpenModBot
   module Plugins
     class OpenAIPlugin < Plugin
-      def boot(app:, **)
-        app.ai_provider = ai_provider
+      def boot(**)
+        ai_provider
       end
 
       def ai_provider

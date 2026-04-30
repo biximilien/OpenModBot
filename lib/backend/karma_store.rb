@@ -1,11 +1,11 @@
 require "time"
-require_relative "../data_model/karma_event"
 require_relative "../data_model/keys"
+require_relative "../moderation/store_support"
 require_relative "redis_scripts"
 
 module Backend
   module KarmaStore
-    KARMA_AUDIT_LIMIT = 50
+    include Moderation::StoreSupport
 
     def get_user_karma(server_id, user_id)
       @redis.hget(DataModel::Keys.karma(server_id), user_id).to_i
@@ -28,7 +28,7 @@ module Backend
         RedisScripts::SET_KARMA_WITH_AUDIT,
         keys: [DataModel::Keys.karma(server_id), DataModel::Keys.karma_history(server_id, user_id)],
         argv: [user_id.to_s, validated_score, source, optional_redis_arg(actor_id), optional_redis_arg(reason),
-               created_at, KARMA_AUDIT_LIMIT]
+               created_at, Moderation::StoreSupport::KARMA_AUDIT_LIMIT]
       )
     end
 
@@ -40,12 +40,12 @@ module Backend
         RedisScripts::RECORD_KARMA_EVENT,
         keys: [DataModel::Keys.karma_history(server_id, user_id)],
         argv: [validated_score, validated_delta, source, created_at, optional_redis_arg(actor_id),
-               optional_redis_arg(reason), KARMA_AUDIT_LIMIT]
+               optional_redis_arg(reason), Moderation::StoreSupport::KARMA_AUDIT_LIMIT]
       )
     end
 
     def get_user_karma_history(server_id, user_id, limit = 5)
-      history_limit = limit.to_i.clamp(1, KARMA_AUDIT_LIMIT)
+      history_limit = limit.to_i.clamp(1, Moderation::StoreSupport::KARMA_AUDIT_LIMIT)
       @redis.lrange(DataModel::Keys.karma_history(server_id, user_id), 0, history_limit - 1).map do |entry|
         DataModel::KarmaEvent.from_json(entry).to_h.compact
       end
@@ -59,25 +59,12 @@ module Backend
         RedisScripts::INCREMENT_KARMA_WITH_AUDIT,
         keys: [DataModel::Keys.karma(server_id), DataModel::Keys.karma_history(server_id, user_id)],
         argv: [user_id.to_s, delta.to_i, source, optional_redis_arg(actor_id), optional_redis_arg(reason), created_at,
-               KARMA_AUDIT_LIMIT]
+               Moderation::StoreSupport::KARMA_AUDIT_LIMIT]
       )
     end
 
     def optional_redis_arg(value)
       value.nil? ? "" : value.to_s
-    end
-
-    def positive_integer!(value, name)
-      integer = integer!(value, name)
-      raise ArgumentError, "#{name} must be positive" unless integer.positive?
-
-      integer
-    end
-
-    def integer!(value, name)
-      Integer(value)
-    rescue ArgumentError, TypeError
-      raise ArgumentError, "#{name} must be an integer"
     end
   end
 end

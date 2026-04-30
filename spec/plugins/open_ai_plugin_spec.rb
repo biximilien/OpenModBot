@@ -5,13 +5,11 @@ describe OpenModBot::Plugins::OpenAIPlugin do
     expect(described_class.new.ai_provider).to be_a(OpenAI::Provider)
   end
 
-  it "configures the application AI provider during boot" do
-    app = instance_double("Application")
+  it "initializes its provider during boot and exposes it as a capability" do
     plugin = described_class.new
-    allow(app).to receive(:ai_provider=)
 
-    plugin.boot(app:)
+    plugin.boot
 
-    expect(app).to have_received(:ai_provider=).with(plugin.ai_provider)
+    expect(plugin.capabilities[:ai_provider]).to eq(plugin.ai_provider)
   end
 end

@@ -92,4 +92,33 @@ describe GoogleAI::Provider do
       user: nil
     )
   end
+
+  it "accepts the shared structured provider keyword contract" do
+    provider.generate_structured(
+      prompt: "message",
+      instructions: "Classify this.",
+      model: "gemini-classifier",
+      schema_name: "ignored_by_google_ai",
+      schema: {
+        type: "object",
+        properties: {
+          flagged: { type: "boolean" }
+        }
+      }
+    )
+
+    expect(transport).to have_received(:generate_content).with(
+      model: "gemini-classifier",
+      payload: hash_including(
+        contents: [
+          {
+            parts: [
+              { text: "Classify this.\n\nmessage" }
+            ]
+          }
+        ]
+      ),
+      user: nil
+    )
+  end
 end

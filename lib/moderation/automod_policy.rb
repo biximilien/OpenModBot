@@ -13,7 +13,7 @@ module Moderation
       action: Environment.karma_automod_action,
       timeout_seconds: Environment.karma_timeout_seconds
     )
-      @action = VALID_ACTIONS.include?(action) ? action : Environment::DEFAULT_KARMA_AUTOMOD_ACTION
+      @action = VALID_ACTIONS.include?(action) ? action : OpenModBot::Config::ModerationConfig::DEFAULT_KARMA_AUTOMOD_ACTION
       @timeout_seconds = timeout_seconds
     end
 

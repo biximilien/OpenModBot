@@ -5,8 +5,8 @@ require_relative "../plugin"
 module OpenModBot
   module Plugins
     class RedisPlugin < Plugin
-      def boot(app:, **)
-        app.moderation_store = moderation_store
+      def boot(**)
+        redis
       end
 
       def redis

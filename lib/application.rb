@@ -20,6 +20,10 @@ module OpenModBot
       ai_provider.moderation_rewrite(text, user, instructions:)
     end
 
+    def generate_structured(prompt:, schema:, model: nil, instructions: nil, schema_name: nil, user: nil)
+      ai_provider.generate_structured(prompt:, schema:, model:, instructions:, schema_name:, user:)
+    end
+
     def query(url, params, user = nil)
       ai_provider.query(url, params, user)
     end

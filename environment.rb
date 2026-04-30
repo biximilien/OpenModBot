@@ -1,5 +1,8 @@
 require "dotenv"
 require_relative "lib/ai/provider_config"
+require_relative "lib/config/admin_notification_config"
+require_relative "lib/config/harassment_config"
+require_relative "lib/config/moderation_config"
 Dotenv.load
 
 module Environment
@@ -9,17 +12,9 @@ module Environment
   DEFAULT_OPENAI_MODERATION_MODEL = "omni-moderation-latest".freeze
   DEFAULT_OPENAI_REWRITE_MODEL = "gpt-4.1-mini".freeze
   DEFAULT_GOOGLE_AI_MODEL = "gemini-2.5-flash".freeze
-  DEFAULT_KARMA_AUTOMOD_THRESHOLD = -5
   DEFAULT_TELEMETRY_HASH_SALT = "development-telemetry-salt".freeze
-  DEFAULT_KARMA_AUTOMOD_ACTION = "timeout".freeze
-  DEFAULT_KARMA_TIMEOUT_SECONDS = 3_600
   DEFAULT_PERSONALITY = "objective".freeze
   DEFAULT_LOG_FORMAT = "json".freeze
-  DEFAULT_HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS = 3_600
-  DEFAULT_HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE = 30
-  DEFAULT_ADMIN_NOTIFICATION_AMBIGUOUS_MIN_SCORE = 0.35
-  DEFAULT_ADMIN_NOTIFICATION_AMBIGUOUS_MAX_SCORE = 0.75
-  DEFAULT_ADMIN_NOTIFICATION_RATE_LIMIT_PER_MINUTE = 10
 
   def self.validate!
     required = REQUIRED_VARIABLES + [ai_api_key_variable]
@@ -62,7 +57,7 @@ module Environment
   end
 
   def self.karma_automod_threshold
-    ENV.fetch("KARMA_AUTOMOD_THRESHOLD", DEFAULT_KARMA_AUTOMOD_THRESHOLD).to_i
+    moderation_config.karma_automod_threshold
   end
 
   def self.telemetry_hash_salt
@@ -86,11 +81,11 @@ module Environment
   end
 
   def self.karma_automod_action
-    ENV.fetch("KARMA_AUTOMOD_ACTION", DEFAULT_KARMA_AUTOMOD_ACTION)
+    moderation_config.karma_automod_action
   end
 
   def self.karma_timeout_seconds
-    ENV.fetch("KARMA_TIMEOUT_SECONDS", DEFAULT_KARMA_TIMEOUT_SECONDS).to_i
+    moderation_config.karma_timeout_seconds
   end
 
   def self.log_invite_url?
@@ -103,45 +98,43 @@ module Environment
   end
 
   def self.moderation_shadow_mode?
-    ENV.fetch("MODERATION_SHADOW_MODE", "false").casecmp("true").zero?
+    moderation_config.shadow_mode?
   end
 
   def self.moderation_shadow_rewrite?
-    ENV.fetch("MODERATION_SHADOW_REWRITE", "true").casecmp("true").zero?
+    moderation_config.shadow_rewrite?
   end
 
   def self.moderation_review_store_content?
-    ENV.fetch("MODERATION_REVIEW_STORE_CONTENT", "false").casecmp("true").zero?
+    moderation_config.review_store_content?
   end
 
   def self.harassment_classifier_model
-    return ENV["HARASSMENT_CLASSIFIER_MODEL"] unless missing?(ENV["HARASSMENT_CLASSIFIER_MODEL"])
-
-    ai_provider_config.classifier_model
+    harassment_config.classifier_model
   end
 
   def self.harassment_classifier_cache_ttl_seconds
-    ENV.fetch("HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS", DEFAULT_HARASSMENT_CLASSIFIER_CACHE_TTL_SECONDS).to_i
+    harassment_config.classifier_cache_ttl_seconds
   end
 
   def self.harassment_classifier_rate_limit_per_minute
-    ENV.fetch("HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE", DEFAULT_HARASSMENT_CLASSIFIER_RATE_LIMIT_PER_MINUTE).to_i
+    harassment_config.classifier_rate_limit_per_minute
   end
 
-  def self.admin_notification_channel_id = ENV.fetch("ADMIN_NOTIFICATION_CHANNEL_ID", nil)
+  def self.admin_notification_channel_id = admin_notification_config.channel_id
 
   def self.admin_notification_ambiguous_min_score
-    ENV.fetch("ADMIN_NOTIFICATION_AMBIGUOUS_MIN_SCORE", DEFAULT_ADMIN_NOTIFICATION_AMBIGUOUS_MIN_SCORE).to_f
+    admin_notification_config.ambiguous_min_score
   end
 
   def self.admin_notification_ambiguous_max_score
-    ENV.fetch("ADMIN_NOTIFICATION_AMBIGUOUS_MAX_SCORE", DEFAULT_ADMIN_NOTIFICATION_AMBIGUOUS_MAX_SCORE).to_f
+    admin_notification_config.ambiguous_max_score
   end
 
-  def self.admin_notification_shadow_mode? = ENV.fetch("ADMIN_NOTIFICATION_SHADOW_MODE", "true").casecmp("true").zero?
+  def self.admin_notification_shadow_mode? = admin_notification_config.shadow_mode?
 
   def self.admin_notification_rate_limit_per_minute
-    ENV.fetch("ADMIN_NOTIFICATION_RATE_LIMIT_PER_MINUTE", DEFAULT_ADMIN_NOTIFICATION_RATE_LIMIT_PER_MINUTE).to_i
+    admin_notification_config.rate_limit_per_minute
   end
 
   def self.missing?(value)
@@ -156,5 +149,18 @@ module Environment
     OpenModBot::AI::ProviderConfig.new(enabled_plugins:)
   end
 
-  private_class_method :missing?, :ai_api_key_variable, :ai_provider_config
+  def self.admin_notification_config
+    OpenModBot::Config::AdminNotificationConfig.new
+  end
+
+  def self.harassment_config
+    OpenModBot::Config::HarassmentConfig.new(ai_provider_config:)
+  end
+
+  def self.moderation_config
+    OpenModBot::Config::ModerationConfig.new
+  end
+
+  private_class_method :missing?, :ai_api_key_variable, :ai_provider_config,
+                       :admin_notification_config, :harassment_config, :moderation_config
 end

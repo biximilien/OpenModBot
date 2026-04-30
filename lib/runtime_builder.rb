@@ -39,6 +39,9 @@ module OpenModBot
     private
 
     def configure_optional_capabilities
+      ai_provider = @plugins.capability(:ai_provider)
+      @app.ai_provider = ai_provider if ai_provider
+
       moderation_store = @plugins.capability(:moderation_store)
       @app.moderation_store = moderation_store if moderation_store
     end

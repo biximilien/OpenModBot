@@ -5,9 +5,8 @@ require_relative "../moderation/stores/postgres_store"
 module OpenModBot
   module Plugins
     class PostgresPlugin < Plugin
-      def boot(app: nil, **)
+      def boot(**)
         database_connection
-        app.moderation_store = moderation_store if app
       end
 
       def database_connection

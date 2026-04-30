@@ -1,12 +1,14 @@
 require_relative "../../environment"
+require_relative "../config/admin_notification_config"
 require_relative "../logging"
 require_relative "../plugin"
 
 module OpenModBot
   module Plugins
     class AdminNotificationsPlugin < Plugin
-      def initialize(clock: -> { Time.now.utc })
+      def initialize(clock: -> { Time.now.utc }, config: OpenModBot::Config::AdminNotificationConfig.new)
         @clock = clock
+        @config = config
         @sent_keys = {}
         @rate_limit_timestamps = Hash.new { |hash, key| hash[key] = [] }
       end
@@ -50,7 +52,7 @@ module OpenModBot
       private
 
       def channel_id_missing?
-        Environment.admin_notification_channel_id.to_s.strip.empty?
+        @config.channel_id.to_s.strip.empty?
       end
 
       def ambiguous?(result)
@@ -67,15 +69,15 @@ module OpenModBot
       end
 
       def shadow_mode_suppressed?
-        Environment.moderation_shadow_mode? && !Environment.admin_notification_shadow_mode?
+        Environment.moderation_shadow_mode? && !@config.shadow_mode?
       end
 
       def min_score
-        Environment.admin_notification_ambiguous_min_score
+        @config.ambiguous_min_score
       end
 
       def max_score
-        Environment.admin_notification_ambiguous_max_score
+        @config.ambiguous_max_score
       end
 
       def notify_once?(kind, event)
@@ -86,7 +88,7 @@ module OpenModBot
       end
 
       def rate_limit_allows?(server_id)
-        limit = Environment.admin_notification_rate_limit_per_minute
+        limit = @config.rate_limit_per_minute
         return true unless limit.positive?
 
         now = @clock.call
@@ -101,7 +103,7 @@ module OpenModBot
       def deliver(message)
         channel = notification_channel
         unless channel
-          Logging.warn("admin_notification_channel_unavailable", channel_id: Environment.admin_notification_channel_id)
+          Logging.warn("admin_notification_channel_unavailable", channel_id: @config.channel_id)
           return
         end
 
@@ -111,7 +113,7 @@ module OpenModBot
       def notification_channel
         return nil unless @discord_bot
 
-        @discord_bot.channel(Environment.admin_notification_channel_id.to_i)
+        @discord_bot.channel(@config.channel_id.to_i)
       end
 
       def notification_message(title:, event:, strategy:, details:)

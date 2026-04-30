@@ -10,43 +10,39 @@ require_relative "../repositories/postgres_classification_cache_repository"
 require_relative "../repositories/postgres_interaction_event_repository"
 require_relative "../repositories/postgres_relationship_edge_repository"
 require_relative "../repositories/postgres_server_rate_limit_repository"
-require_relative "../repositories/redis_classification_cache_repository"
-require_relative "../repositories/redis_classification_job_repository"
-require_relative "../repositories/redis_classification_record_repository"
-require_relative "../repositories/redis_interaction_event_repository"
-require_relative "../repositories/redis_server_rate_limit_repository"
+require_relative "legacy_redis_repositories"
 
 module Harassment
   class RepositoryFactory
     REPOSITORIES = {
       interaction_events: {
         "memory" => Repositories::InMemoryInteractionEventRepository,
-        "redis" => Repositories::RedisInteractionEventRepository,
+        "redis" => LegacyRedisRepositories.repository_for(:interaction_events),
         "postgres" => Repositories::PostgresInteractionEventRepository
       },
       classification_records: {
         "memory" => Repositories::InMemoryClassificationRecordRepository,
-        "redis" => Repositories::RedisClassificationRecordRepository,
+        "redis" => LegacyRedisRepositories.repository_for(:classification_records),
         "postgres" => Repositories::PostgresClassificationRecordRepository
       },
       classification_jobs: {
         "memory" => Repositories::InMemoryClassificationJobRepository,
-        "redis" => Repositories::RedisClassificationJobRepository,
+        "redis" => LegacyRedisRepositories.repository_for(:classification_jobs),
         "postgres" => Repositories::PostgresClassificationJobRepository
       },
       classification_cache: {
         "memory" => Repositories::InMemoryClassificationCacheRepository,
-        "redis" => Repositories::RedisClassificationCacheRepository,
+        "redis" => LegacyRedisRepositories.repository_for(:classification_cache),
         "postgres" => Repositories::PostgresClassificationCacheRepository
       },
       server_rate_limits: {
         "memory" => Repositories::InMemoryServerRateLimitRepository,
-        "redis" => Repositories::RedisServerRateLimitRepository,
+        "redis" => LegacyRedisRepositories.repository_for(:server_rate_limits),
         "postgres" => Repositories::PostgresServerRateLimitRepository
       },
       relationship_edges: {
         "memory" => Repositories::InMemoryRelationshipEdgeRepository,
-        "redis" => Repositories::InMemoryRelationshipEdgeRepository,
+        "redis" => LegacyRedisRepositories.repository_for(:relationship_edges),
         "postgres" => Repositories::PostgresRelationshipEdgeRepository
       }
     }.freeze
@@ -97,7 +93,7 @@ module Harassment
     end
 
     def redis_repository?(kind)
-      REPOSITORIES.fetch(kind).fetch("redis") != Repositories::InMemoryRelationshipEdgeRepository
+      LegacyRedisRepositories.redis_backed?(kind)
     end
 
     def normalize_backend(backend)

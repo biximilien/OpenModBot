@@ -18,6 +18,7 @@ describe OpenModBot::Application do
       "AIProvider",
       moderate_text: :moderation,
       moderation_rewrite: "Please stop.",
+      generate_structured: { "structured" => true },
       query: { "ok" => true },
       response_text: "text"
     )
@@ -25,6 +26,7 @@ describe OpenModBot::Application do
 
     expect(app.moderate_text("bad")).to eq(:moderation)
     expect(app.moderation_rewrite("bad", instructions: "Use this voice.")).to eq("Please stop.")
+    expect(app.generate_structured(prompt: "classify", schema: {}, schema_name: "result")).to eq("structured" => true)
     expect(app.query("https://example.test", {})).to eq("ok" => true)
     expect(app.response_text("output_text" => "text")).to eq("text")
   end

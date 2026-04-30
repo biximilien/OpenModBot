@@ -79,7 +79,8 @@ module GoogleAI
       end
     end
 
-    def generate_structured(prompt:, schema:, model: nil, instructions: nil, _schema_name: nil, user: nil)
+    def generate_structured(prompt:, schema:, model: nil, instructions: nil, schema_name: nil, user: nil)
+      schema_name&.to_s
       generate_json(prompt: [instructions, prompt].compact.join("\n\n"), schema:, user:, model: model || @model)
     end
 

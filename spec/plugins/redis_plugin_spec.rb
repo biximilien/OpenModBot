@@ -15,15 +15,12 @@ describe OpenModBot::Plugins::RedisPlugin do
       end
     end.new
     plugin = described_class.new
-    app = instance_double("Application")
     ENV["REDIS_URL"] = "redis://localhost:6379/0"
     stub_const("Redis", class_double("Redis", new: redis))
     allow(plugin).to receive(:require).with("redis")
-    allow(app).to receive(:moderation_store=)
 
-    plugin.boot(app: app)
+    plugin.boot
 
-    expect(app).to have_received(:moderation_store=).with(plugin.moderation_store)
     expect(plugin.redis).to eq(redis)
     expect(plugin.capabilities[:redis_client]).to eq(redis)
     expect(plugin.capabilities[:moderation_store]).to be_a(Moderation::Stores::RedisStore)

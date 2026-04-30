@@ -1,6 +1,7 @@
 require_relative "../telemetry/anonymizer"
 require_relative "../logging"
 require_relative "karma_command"
+require_relative "moderation_command_catalog"
 require_relative "moderation_command_parser"
 require_relative "review_command"
 require_relative "watchlist_command"
@@ -8,22 +9,7 @@ require_relative "watchlist_command"
 module Discord
   class ModerationCommand
     USAGE = "Usage: !moderation help".freeze
-    BASE_HELP_LINES = [
-      "Moderation commands:",
-      "!moderation watchlist",
-      "!moderation watchlist add @user",
-      "!moderation watchlist remove @user",
-      "!moderation karma @user",
-      "!moderation karma history @user [limit]",
-      "!moderation karma set @user score",
-      "!moderation karma reset @user",
-      "!moderation karma add @user amount",
-      "!moderation karma remove @user amount",
-      "!moderation review recent [limit]",
-      "!moderation review @user [limit]",
-      "!moderation review clear",
-      "!moderation review repost message_id"
-    ].freeze
+    BASE_HELP_LINES = ModerationCommandCatalog.help_lines.freeze
     HELP_TEXT = BASE_HELP_LINES.join("\n").freeze
 
     def initialize(store, plugin_commands: [], parser: ModerationCommandParser.new)

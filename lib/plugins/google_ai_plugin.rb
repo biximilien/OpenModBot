@@ -4,10 +4,10 @@ require_relative "../plugin"
 module OpenModBot
   module Plugins
     class GoogleAIPlugin < Plugin
-      def boot(app:, **)
+      def boot(**)
         raise "GOOGLE_AI_API_KEY is required when google_ai plugin is enabled" if missing_api_key?
 
-        app.ai_provider = ai_provider
+        ai_provider
       end
 
       def ai_provider
